@@ -19,7 +19,10 @@
         "x86_64-linux"
       ];
 
-      imports = [ inputs.flake-parts.flakeModules.partitions ];
+      imports = [
+        inputs.flake-parts.flakeModules.partitions
+        ./flake-module.nix
+      ];
 
       partitionedAttrs = {
         checks = "dev";
@@ -30,5 +33,7 @@
         extraInputsFlake = ./dev;
         module.imports = [ ./dev/flake-module.nix ];
       };
+
+      flake.flakeModule = ./flake-module.nix;
     };
 }
