@@ -7,6 +7,9 @@ in
   imports = [ ./interface.nix ];
 
   config = {
-    pipeline.gitlab-ci.settings = lib.mapAttrs (_: job: job.gitlab-ci) cfg;
+    pipeline = {
+      github-actions.settings.jobs = lib.mapAttrs (_: job: job.github-actions) cfg;
+      gitlab-ci.settings = lib.mapAttrs (_: job: job.gitlab-ci) cfg;
+    };
   };
 }

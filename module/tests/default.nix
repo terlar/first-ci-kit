@@ -56,6 +56,7 @@ let
       in
       eval.config;
 
+    eval-github-actions = modules: (evalConfig modules).pipeline.github-actions.settings;
     eval-gitlab-ci = modules: (evalConfig modules).pipeline.gitlab-ci.settings;
 
     pathRulesMR =

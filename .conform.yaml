@@ -21,7 +21,8 @@ policies:
           - style
           - test
         scopes:
-          - flake
           - github
-          - module
+          - gitlab
+          - jobs
+          - job-sets
         descriptionLength: 72

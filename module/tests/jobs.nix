@@ -1,7 +1,38 @@
 { test-lib, ... }:
 
 {
-  test-job-with-needs = {
+  test-github-jobs = {
+    expr = test-lib.eval-github-actions {
+      jobs.job1 = {
+        checkout = true;
+        commands = [ "echo 'Run your script here'" ];
+      };
+    };
+    expected = {
+      jobs.job1 = {
+        steps = [
+          { uses = "actions/checkout@v4"; }
+          { run = "echo 'Run your script here'"; }
+        ];
+      };
+    };
+  };
+
+  test-gitlab-jobs = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job1 = {
+        checkout = true;
+        commands = [ "echo 'Run your script here'" ];
+      };
+    };
+    expected = {
+      job1 = {
+        script = [ "echo 'Run your script here'" ];
+      };
+    };
+  };
+
+  test-gitlab-job-with-needs = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job-a = { };
       jobs.job-b.needs = [ { job = "job-a"; } ];
@@ -21,7 +52,7 @@
     };
   };
 
-  test-job-with-image = {
+  test-gitlab-job-with-image = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job.image = "sample-image";
     };
@@ -31,7 +62,7 @@
     };
   };
 
-  test-job-with-default-branch-trigger-onMergeRequest = {
+  test-gitlab-job-with-default-branch-trigger-onMergeRequest = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job.branches.default.triggers.onMergeRequest = true;
     };
@@ -41,7 +72,7 @@
     };
   };
 
-  test-job-with-default-branch-trigger-onMergeRequest-with-paths = {
+  test-gitlab-job-with-default-branch-trigger-onMergeRequest-with-paths = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
         branches.default = {
@@ -64,7 +95,7 @@
     };
   };
 
-  test-job-with-default-branch-trigger-onPush = {
+  test-gitlab-job-with-default-branch-trigger-onPush = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job.branches.default.triggers.onPush = true;
     };
@@ -74,7 +105,7 @@
     };
   };
 
-  test-job-with-default-branch-trigger-onPush-with-paths = {
+  test-gitlab-job-with-default-branch-trigger-onPush-with-paths = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
         branches.default = {
@@ -96,7 +127,7 @@
     };
   };
 
-  test-job-with-custom-branch-trigger = {
+  test-gitlab-job-with-custom-branch-trigger = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
         branches.a-branch = {
@@ -124,7 +155,7 @@
     };
   };
 
-  test-job-with-gitlab-ci-config = {
+  test-gitlab-job-with-gitlab-ci-config = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
         gitlab-ci.environment = "test";

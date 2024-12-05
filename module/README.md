@@ -211,6 +211,74 @@ boolean
 
 
 
+## jobs\.\<name>\.checkout
+
+
+
+Whether to enable whether a git checkout should be made\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.commands
+
+
+
+Commands to be executed by the job\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.github-actions
+
+
+
+Job configuration targeting GitHub Actions\.
+
+
+
+*Type:*
+YAML value
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.gitlab-ci
 
 
@@ -332,6 +400,40 @@ boolean
 
 
 
+## pipeline\.github-actions\.settings
+
+
+
+Configuration written for job to ` workflow.yml `\.
+
+
+
+*Type:*
+YAML value
+
+
+
+*Default:*
+` { } `
+
+
+
+*Example:*
+
+```
+{
+  name = "CI";
+  on = [ "push" ];
+  env.DAY_OF_WEEK = "Monday";
+}
+
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## pipeline\.gitlab-ci\.settings
 
 
@@ -355,8 +457,8 @@ YAML value
 ```
 {
   image = "ubuntu";
-  stages = ["validate" "test" "build" "deploy"];
-  default.tags = ["gke-runner"];
+  stages = [ "validate" "test" "build" "deploy" ];
+  default.tags = [ "gke-runner" ];
 }
 
 ```

@@ -56,6 +56,16 @@ let
 in
 {
   options = {
+    checkout = (lib.mkEnableOption "whether a git checkout should be made") // {
+      default = true;
+    };
+
+    commands = lib.mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Commands to be executed by the job.";
+    };
+
     needs = lib.mkOption {
       type = types.listOf needsType;
       default = [ ];
@@ -72,6 +82,12 @@ in
       type = types.nullOr types.str;
       default = null;
       description = "Image to use for job.";
+    };
+
+    github-actions = lib.mkOption {
+      inherit (yamlFormat) type;
+      default = { };
+      description = "Job configuration targeting GitHub Actions.";
     };
 
     gitlab-ci = lib.mkOption {

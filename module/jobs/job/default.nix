@@ -8,6 +8,14 @@
   imports = [ ./interface.nix ];
 
   config = {
+    github-actions = {
+      steps =
+        (lib.optional config.checkout {
+          uses = "actions/checkout@v4";
+        })
+        ++ (map (command: { run = command; }) config.commands);
+    };
+
     gitlab-ci = {
       needs = lib.mkIf (config.needs != [ ]) config.needs;
 
@@ -38,6 +46,12 @@
         ))
         lib.mkMerge
       ];
+
+      variables = lib.mkIf (!config.checkout) {
+        GIT_CHECKOUT = lib.boolToString config.checkout;
+      };
+
+      script = lib.mkIf (config.commands != [ ]) config.commands;
     };
   };
 }
