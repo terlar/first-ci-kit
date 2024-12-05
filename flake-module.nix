@@ -29,7 +29,9 @@ in
   );
 
   config = {
-    flake.tests.first-ci-kit = withSystem "x86_64-linux" ({ pkgs, ... }: pkgs.callPackage ./module/tests { });
+    flake.tests.first-ci-kit = withSystem "x86_64-linux" (
+      { pkgs, ... }: pkgs.callPackage ./module/tests { }
+    );
 
     perSystem =
       { pkgs, ... }:

@@ -25,6 +25,7 @@
       ];
 
       partitionedAttrs = {
+        formatter = "dev";
         checks = "dev";
         devShells = "dev";
       };
