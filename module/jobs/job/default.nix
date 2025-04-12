@@ -16,11 +16,10 @@ in
 
   config = {
     github-actions = {
-      steps =
-        (lib.optional config.checkout {
-          uses = "actions/checkout@v4";
-        })
-        ++ (map (command: { run = command; }) config.commands);
+      steps = lib.mkMerge [
+        (lib.mkIf config.checkout (lib.mkBefore [ { uses = "actions/checkout@v4"; } ]))
+        (map (command: { run = command; }) config.commands)
+      ];
     };
 
     gitlab-ci = {

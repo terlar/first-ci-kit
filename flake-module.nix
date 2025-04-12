@@ -10,7 +10,7 @@ in
     description = "Pipelines for CI.";
   };
 
-  config.perSystem.packages = lib.mapAttrs' (name: value: {
+  config.perSystem.legacyPackages = lib.mapAttrs' (name: value: {
     name = "ci-pipeline-github-actions-${name}";
     value = value.pipeline.github-actions.file;
   }) config.first-ci-kit.pipelines;

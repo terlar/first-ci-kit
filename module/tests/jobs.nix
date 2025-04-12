@@ -120,7 +120,7 @@
           "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
           changes = {
             paths = [ "a-path" ];
-            compare_to = "refs/heads/$CI_DEFAULT_BRANCH";
+            compare_to = "$CI_DEFAULT_BRANCH";
           };
         }
       ];
@@ -175,7 +175,7 @@
         {
           "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'a-branch'";
           changes = {
-            compare_to = "refs/heads/a-branch";
+            compare_to = "a-branch";
             paths = [ "a-path" ];
           };
         }

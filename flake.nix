@@ -25,11 +25,12 @@
       ];
 
       partitionedAttrs = {
+        devShells = "dev";
+        packages = "dev";
+        legacyPackages = "dev";
+        formatter = "dev";
         checks = "dev";
         tests = "dev";
-        devShells = "dev";
-        formatter = "dev";
-        packages = "dev";
       };
 
       partitions.dev = {
