@@ -1,9 +1,11 @@
-{ inputs, ... }:
+{ lib, inputs, ... }:
 
 {
   imports = [ inputs.dev-flake.flakeModule ];
 
   dev.name = "terlar/first-ci-kit";
+
+  flake.tests.first-ci-kit = import ../module/tests { inherit lib; };
 
   perSystem =
     { config, pkgs, ... }:
@@ -40,6 +42,10 @@
 
           files = "^module/.*\\.nix$";
         };
+      };
+
+      packages.module-docs = pkgs.callPackage ../packages/module-docs {
+        moduleRoot = ../module;
       };
     };
 }

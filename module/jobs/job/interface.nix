@@ -1,9 +1,7 @@
-{ lib, pkgs, ... }:
+{ lib, rootConfig, ... }:
 
 let
   inherit (lib) types;
-
-  yamlFormat = pkgs.formats.yaml { };
 
   branchType = types.submoduleWith {
     description = "Job branch configuration";
@@ -56,16 +54,6 @@ let
 in
 {
   options = {
-    checkout = (lib.mkEnableOption "whether a git checkout should be made") // {
-      default = true;
-    };
-
-    commands = lib.mkOption {
-      type = types.listOf types.str;
-      default = [ ];
-      description = "Commands to be executed by the job.";
-    };
-
     needs = lib.mkOption {
       type = types.listOf needsType;
       default = [ ];
@@ -84,14 +72,24 @@ in
       description = "Image to use for job.";
     };
 
+    checkout = (lib.mkEnableOption "whether a git checkout should be made") // {
+      default = true;
+    };
+
+    commands = lib.mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Commands to be executed by the job.";
+    };
+
     github-actions = lib.mkOption {
-      inherit (yamlFormat) type;
+      type = rootConfig.types.yamlType;
       default = { };
       description = "Job configuration targeting GitHub Actions.";
     };
 
     gitlab-ci = lib.mkOption {
-      inherit (yamlFormat) type;
+      type = rootConfig.types.yamlType;
       default = { };
       description = "Job configuration targeting GitLab CI.";
     };

@@ -1,16 +1,14 @@
 {
   lib,
   nixosOptionsDoc,
-  pkgs,
   # Args
   moduleRoot,
+  specialArgs ? { },
   extraModules ? [ ],
 }:
 let
   eval = lib.evalModules {
-    specialArgs = {
-      inherit pkgs;
-    };
+    inherit specialArgs;
     modules = [
       { options._module.args = lib.mkOption { internal = true; }; }
       moduleRoot

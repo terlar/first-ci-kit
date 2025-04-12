@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, ... }:
 
 let
   test-lib = rec {
@@ -49,9 +49,6 @@ let
       let
         eval = lib.evalModules {
           modules = [ ./.. ] ++ (lib.toList modules);
-          specialArgs = {
-            inherit pkgs;
-          };
         };
       in
       eval.config;

@@ -1,21 +1,44 @@
 {
   lib,
   config,
-  pkgs,
   ...
 }:
 
 let
   inherit (lib) types;
-
-  yamlFormat = pkgs.formats.yaml { };
 in
 {
   options = {
+    types = lib.mkOption {
+      internal = true;
+      type = types.lazyAttrsOf types.optionType;
+      default = {
+        yamlType =
+          let
+            valueType =
+              types.nullOr (
+                types.oneOf [
+                  types.bool
+                  types.int
+                  types.float
+                  types.str
+                  types.path
+                  (types.attrsOf valueType)
+                  (types.listOf valueType)
+                ]
+              )
+              // {
+                description = "YAML value";
+              };
+          in
+          valueType;
+      };
+    };
+
     pipeline = {
       github-actions = {
         settings = lib.mkOption {
-          inherit (yamlFormat) type;
+          type = config.types.yamlType;
           default = { };
           description = "Configuration written for job to {file}`workflow.yml`.";
           example = lib.literalExpression ''
@@ -30,14 +53,17 @@ in
         file = lib.mkOption {
           internal = true;
           type = types.package;
-          default = yamlFormat.generate "workflow.yml" config.pipeline.github-actions.settings;
+          default = lib.pipe config.pipeline.github-actions.settings [
+            builtins.toJSON
+            (builtins.toFile "workflow.yml")
+          ];
           description = "Package of the workflow.yml";
         };
       };
 
       gitlab-ci = {
         settings = lib.mkOption {
-          inherit (yamlFormat) type;
+          type = config.types.yamlType;
           default = { };
           description = "Configuration written for job to {file}`pipeline.yml`.";
           example = lib.literalExpression ''
@@ -52,7 +78,10 @@ in
         file = lib.mkOption {
           internal = true;
           type = types.package;
-          default = yamlFormat.generate "pipeline.yml" config.pipeline.gitlab-ci.settings;
+          default = lib.pipe config.pipeline.gitlab-ci.settings [
+            builtins.toJSON
+            (builtins.toFile "pipeline.yml")
+          ];
           description = "Package of the pipeline.yml";
         };
       };

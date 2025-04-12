@@ -1,4 +1,8 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 
 let
   inherit (lib) types;
@@ -9,9 +13,7 @@ in
       types.submoduleWith {
         description = "Job configuration";
         modules = [ ./job ];
-        specialArgs = {
-          inherit pkgs;
-        };
+        specialArgs.rootConfig = config;
       }
     );
     default = { };
