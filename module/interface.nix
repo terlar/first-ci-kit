@@ -9,6 +9,12 @@ let
 in
 {
   options = {
+    imageRegistry = lib.mkOption {
+      type = types.lazyAttrsOf types.str;
+      default = { };
+      description = "Image registry with image names";
+    };
+
     types = lib.mkOption {
       internal = true;
       type = types.lazyAttrsOf types.optionType;

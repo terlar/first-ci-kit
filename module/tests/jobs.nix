@@ -83,6 +83,17 @@
     };
   };
 
+  test-gitlab-job-with-image-from-image-registry = {
+    expr = test-lib.eval-gitlab-ci {
+      imageRegistry.sample-image = "registry/repository/sample-image:tag";
+      jobs.job.image = "sample-image";
+    };
+
+    expected = {
+      job.image = "registry/repository/sample-image:tag";
+    };
+  };
+
   test-gitlab-job-with-default-branch-trigger-onMergeRequest = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job.branches.default.triggers.onMergeRequest = true;

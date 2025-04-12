@@ -1,4 +1,25 @@
+## imageRegistry
+
+Image registry with image names
+
+
+
+*Type:*
+lazy attribute set of string
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## jobSets
+
+
 
 Job Sets to group jobs\.
 

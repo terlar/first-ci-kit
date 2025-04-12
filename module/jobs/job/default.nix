@@ -6,7 +6,8 @@
 }:
 
 let
-  inherit (rootConfig) jobs;
+  inherit (rootConfig) imageRegistry jobs;
+
   needs = builtins.filter (need: jobs.${need.job}.enable) config.needs;
 in
 {
@@ -24,7 +25,7 @@ in
     gitlab-ci = {
       needs = lib.mkIf (needs != [ ]) needs;
 
-      image = lib.mkIf (!builtins.isNull config.image) config.image;
+      image = lib.mkIf (!builtins.isNull config.image) imageRegistry.${config.image} or config.image;
 
       rules = lib.pipe config.branches [
         (lib.mapAttrsToList (
