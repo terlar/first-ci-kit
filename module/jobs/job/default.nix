@@ -9,6 +9,7 @@ let
   inherit (rootConfig) imageRegistry jobs;
 
   needs = builtins.filter (need: jobs.${need.job}.enable) config.needs;
+  triggersBranchConfig = map (job: jobs.${job}.branches) config.triggers;
 in
 {
   imports = [ ./interface.nix ];
@@ -33,19 +34,26 @@ in
           let
             branch = if name == "default" then "$CI_DEFAULT_BRANCH" else name;
             branchCompare = if lib.hasPrefix "$" branch then branch else "'${branch}'";
+
+            pathsFromTriggers = lib.pipe triggersBranchConfig [
+              (map (cfg: cfg.${name}.changes.paths))
+              builtins.concatLists
+              lib.unique
+            ];
+            paths = cfg.changes.paths ++ pathsFromTriggers;
           in
           [
             (lib.mkIf cfg.triggers.onMergeRequest {
               "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == ${branchCompare}";
-              changes = lib.mkIf (cfg.changes.paths != [ ]) {
-                inherit (cfg.changes) paths;
-                compare_to = "refs/heads/${branch}";
+              changes = lib.mkIf (paths != [ ]) {
+                inherit paths;
+                compare_to = branch;
               };
             })
             (lib.mkIf cfg.triggers.onPush {
               "if" = "$CI_COMMIT_BRANCH == ${branchCompare}";
-              changes = lib.mkIf (cfg.changes.paths != [ ]) {
-                inherit (cfg.changes) paths;
+              changes = lib.mkIf (paths != [ ]) {
+                inherit paths;
               };
             })
           ]

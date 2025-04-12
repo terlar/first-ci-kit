@@ -64,6 +64,12 @@ in
       description = "Jobs needed by the job.";
     };
 
+    triggers = lib.mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Jobs triggering the job.";
+    };
+
     branches = lib.mkOption {
       type = types.attrsOf branchType;
       default = { };

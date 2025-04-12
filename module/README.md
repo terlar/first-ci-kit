@@ -447,6 +447,27 @@ boolean
 
 
 
+## jobs\.\<name>\.triggers
+
+
+
+Jobs triggering the job\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## pipeline\.github-actions\.settings
 
 
