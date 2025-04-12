@@ -117,6 +117,32 @@ lazy attribute set of (Job configuration)
 
 
 
+## jobs\.\<name>\.enable
+
+
+
+Whether to enable Job\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.branches
 
 

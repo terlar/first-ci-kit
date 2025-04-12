@@ -55,28 +55,6 @@ let
 
     eval-github-actions = modules: (evalConfig modules).pipeline.github-actions.settings;
     eval-gitlab-ci = modules: (evalConfig modules).pipeline.gitlab-ci.settings;
-
-    pathRulesMR =
-      paths:
-      [
-        {
-          "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
-          changes = {
-            inherit paths;
-            compare_to = "refs/heads/$CI_DEFAULT_BRANCH";
-          };
-        }
-      ]
-      ++ pathRulesMain paths;
-
-    pathRulesMain = paths: [
-      {
-        "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
-        changes = {
-          inherit paths;
-        };
-      }
-    ];
   };
 
   tests = lib.pipe ./. [

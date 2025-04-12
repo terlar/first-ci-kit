@@ -32,6 +32,29 @@
     };
   };
 
+  test-gitlab-jobs-enable = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs = {
+        job-a = { };
+        job-b.enable = false;
+        job-c.needs = [
+          { job = "job-a"; }
+          { job = "job-b"; }
+        ];
+      };
+    };
+    expected = {
+      job-a = { };
+      job-c.needs = [
+        {
+          artifacts = true;
+          job = "job-a";
+          optional = false;
+        }
+      ];
+    };
+  };
+
   test-gitlab-job-with-needs = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job-a = { };
@@ -40,15 +63,13 @@
 
     expected = {
       job-a = { };
-      job-b = {
-        needs = [
-          {
-            artifacts = true;
-            job = "job-a";
-            optional = false;
-          }
-        ];
-      };
+      job-b.needs = [
+        {
+          artifacts = true;
+          job = "job-a";
+          optional = false;
+        }
+      ];
     };
   };
 

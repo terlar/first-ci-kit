@@ -54,6 +54,10 @@ let
 in
 {
   options = {
+    enable = (lib.mkEnableOption "Job") // {
+      default = true;
+    };
+
     needs = lib.mkOption {
       type = types.listOf needsType;
       default = [ ];

@@ -1,9 +1,14 @@
 {
   lib,
+  rootConfig,
   config,
   ...
 }:
 
+let
+  inherit (rootConfig) jobs;
+  needs = builtins.filter (need: jobs.${need.job}.enable) config.needs;
+in
 {
   imports = [ ./interface.nix ];
 
@@ -17,7 +22,7 @@
     };
 
     gitlab-ci = {
-      needs = lib.mkIf (config.needs != [ ]) config.needs;
+      needs = lib.mkIf (needs != [ ]) needs;
 
       image = lib.mkIf (!builtins.isNull config.image) config.image;
 
