@@ -16,14 +16,11 @@ let
 
   configureSetJobs =
     set:
-    let
-      needs = jobNeedsFromSet set;
-    in
     lib.genAttrs set.jobs (
       _:
       lib.mkMerge [
         set.jobDefaults
-        { inherit needs; }
+        { needs = jobNeedsFromSet set; }
       ]
     );
 in

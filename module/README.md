@@ -17,6 +17,27 @@ lazy attribute set of string
 
 
 
+## jobInterfaces
+
+
+
+Job Interfaces to define jobs\.
+
+
+
+*Type:*
+lazy attribute set of function that evaluates to a(n) lazy attribute set of module
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [job-interfaces/interface\.nix](job-interfaces/interface.nix)
+
+
+
 ## jobSets
 
 

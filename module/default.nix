@@ -10,6 +10,7 @@
 
     ./interface.nix
     ./jobs
+    ./job-interfaces
     ./job-sets
   ];
 }
