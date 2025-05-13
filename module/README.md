@@ -68,7 +68,7 @@ Configuration added to all the jobs within the job set\.
 
 
 *Type:*
-module
+lazy attribute set of raw value
 
 
 
@@ -138,6 +138,27 @@ string
 
 
 
+## jobSets\.\<name>\.tags
+
+
+
+List of tags associated with the job set
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
+
+
+
 ## jobs
 
 
@@ -156,6 +177,7 @@ lazy attribute set of (Job configuration)
 
 *Declared by:*
  - [jobs/interface\.nix](jobs/interface.nix)
+ - [job-sets](job-sets)
 
 
 
@@ -462,6 +484,27 @@ boolean
 
 *Default:*
 ` false `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.tags
+
+
+
+Tags associated with the job\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)

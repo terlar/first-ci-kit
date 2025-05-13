@@ -85,4 +85,41 @@
       set2-job2 = { };
     };
   };
+
+  test-job-set-with-tags = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs = {
+        set1-job1 = {
+          tags = [ "set1" ];
+        };
+        set1-job2 = {
+          tags = [ "set1" ];
+        };
+        set2-job1 = {
+          tags = [ "set2" ];
+        };
+        set2-job2 = {
+          tags = [ "set2" ];
+        };
+      };
+      jobSets = {
+        set1 = {
+          jobDefaults.image = "default-image";
+          tags = [ "set1" ];
+        };
+        set2.tags = [ "set2" ];
+      };
+    };
+
+    expected = {
+      set1-job1 = {
+        image = "default-image";
+      };
+      set1-job2 = {
+        image = "default-image";
+      };
+      set2-job1 = { };
+      set2-job2 = { };
+    };
+  };
 }

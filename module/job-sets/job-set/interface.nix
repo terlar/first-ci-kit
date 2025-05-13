@@ -20,7 +20,7 @@ in
 {
   options = {
     jobDefaults = lib.mkOption {
-      type = types.deferredModule;
+      type = types.lazyAttrsOf types.raw;
       default = { };
       description = "Configuration added to all the jobs within the job set.";
     };
@@ -33,8 +33,16 @@ in
 
     jobs = lib.mkOption {
       type = types.listOf types.str;
+      apply = lib.unique;
       default = [ ];
       description = "List of job names associated with the job set";
+    };
+
+    tags = lib.mkOption {
+      type = types.listOf types.str;
+      apply = lib.unique;
+      default = [ ];
+      description = "List of tags associated with the job set";
     };
   };
 }

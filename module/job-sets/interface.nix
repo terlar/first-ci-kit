@@ -1,14 +1,12 @@
-{ lib, ... }:
+{ config, lib, ... }:
 
-let
-  inherit (lib) types;
-in
 {
   options.jobSets = lib.mkOption {
-    type = types.lazyAttrsOf (
-      types.submoduleWith {
+    type = lib.types.lazyAttrsOf (
+      lib.types.submoduleWith {
         description = "Job Set configuration";
         modules = [ ./job-set ];
+        specialArgs.rootConfig = config;
       }
     );
     default = { };

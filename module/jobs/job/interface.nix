@@ -16,8 +16,8 @@ let
           changes = {
             paths = lib.mkOption {
               type = types.listOf types.str;
-              default = [ ];
               apply = lib.unique;
+              default = [ ];
               description = "Paths affecting the job.";
             };
           };
@@ -58,8 +58,15 @@ in
       default = true;
     };
 
+    tags = lib.mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Tags associated with the job.";
+    };
+
     needs = lib.mkOption {
       type = types.listOf needsType;
+      apply = lib.unique;
       default = [ ];
       description = "Jobs needed by the job.";
     };
