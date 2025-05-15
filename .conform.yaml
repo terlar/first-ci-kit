@@ -23,6 +23,8 @@ policies:
         scopes:
           - github
           - gitlab
-          - jobs
-          - job-sets
+          - template
+          - job-interface
+          - job-set
+          - job
         descriptionLength: 72

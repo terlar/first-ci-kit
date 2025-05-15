@@ -40,6 +40,17 @@
         module.imports = [ ./dev/flake-module.nix ];
       };
 
-      flake.flakeModule = ./flake-module.nix;
+      flake = {
+        templates = rec {
+          default = dual-project;
+          dual-project = {
+            path = ./template/dual-project;
+            description = ''
+              A flake project using first-ci-kit with dual GitHub Actions/GitLab CI pipelines.
+            '';
+          };
+        };
+        flakeModule = ./flake-module.nix;
+      };
     };
 }
