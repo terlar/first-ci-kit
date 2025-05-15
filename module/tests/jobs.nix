@@ -55,6 +55,26 @@
     };
   };
 
+  test-gitlab-jobs-default-stage = {
+    expr = test-lib.eval-gitlab-ci {
+      pipeline.gitlab-ci = {
+        settings.stages = [ "main" ];
+        defaultStage = "main";
+      };
+
+      jobs.job1 = {
+        commands = [ "echo 'Run your script here'" ];
+      };
+    };
+    expected = {
+      stages = [ "main" ];
+      job1 = {
+        stage = "main";
+        script = [ "echo 'Run your script here'" ];
+      };
+    };
+  };
+
   test-gitlab-job-with-needs = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job-a = { };

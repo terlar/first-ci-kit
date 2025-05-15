@@ -20,8 +20,6 @@
 
       jobs = {
         check = {
-          checkout = true;
-
           github-actions = {
             runs-on = "ubuntu-latest";
             steps = [

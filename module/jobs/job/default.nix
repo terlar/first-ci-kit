@@ -7,6 +7,7 @@
 
 let
   inherit (rootConfig) imageRegistry jobs;
+  inherit (rootConfig.pipeline.gitlab-ci) defaultStage;
 
   needs = builtins.filter (need: jobs.${need.job}.enable) config.needs;
   triggersBranchConfig = map (job: jobs.${job}.branches) config.triggers;
@@ -23,6 +24,7 @@ in
     };
 
     gitlab-ci = {
+      stage = lib.mkIf (defaultStage != null) (lib.mkDefault defaultStage);
       needs = lib.mkIf (needs != [ ]) needs;
 
       image = lib.mkIf (!builtins.isNull config.image) imageRegistry.${config.image} or config.image;

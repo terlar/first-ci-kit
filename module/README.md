@@ -566,6 +566,27 @@ YAML value
 
 
 
+## pipeline\.gitlab-ci\.defaultStage
+
+
+
+The default stage to use for jobs
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## pipeline\.gitlab-ci\.settings
 
 
