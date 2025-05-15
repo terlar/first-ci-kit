@@ -1,49 +1,7 @@
 { test-lib, ... }:
 
 {
-  test-github-jobs = {
-    expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
-      jobs.job1 = {
-        checkout = true;
-        commands = [ "echo 'Run your script here'" ];
-      };
-    };
-    expected = {
-      jobs.job1 = {
-        runs-on = "ubuntu-latest";
-        steps = [
-          { uses = "actions/checkout@v4"; }
-          { run = "echo 'Run your script here'"; }
-        ];
-      };
-    };
-  };
-
-  test-github-jobs-transform-names = {
-    expr = test-lib.eval-github-actions {
-      pipeline.github-actions.transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
-      jobs = {
-        "job:a" = { };
-        "job:b".needs = [
-          { job = "job:a"; }
-        ];
-      };
-    };
-    expected = {
-      jobs = {
-        job_a = {
-          steps = [ { uses = "actions/checkout@v4"; } ];
-        };
-        job_b = {
-          needs = [ "job_a" ];
-          steps = [ { uses = "actions/checkout@v4"; } ];
-        };
-      };
-    };
-  };
-
-  test-gitlab-jobs = {
+  test-gitlab-ci-job-basic = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job1 = {
         checkout = true;
@@ -57,7 +15,7 @@
     };
   };
 
-  test-gitlab-jobs-transform-names = {
+  test-gitlab-ci-job-transform-name = {
     expr = test-lib.eval-gitlab-ci {
       pipeline.gitlab-ci.transformJobName = builtins.replaceStrings [ "_" ] [ ":" ];
       jobs = {
@@ -79,7 +37,7 @@
     };
   };
 
-  test-gitlab-jobs-enable = {
+  test-gitlab-ci-job-enable = {
     expr = test-lib.eval-gitlab-ci {
       jobs = {
         job-a = { };
@@ -102,7 +60,35 @@
     };
   };
 
-  test-gitlab-jobs-default-stage = {
+  test-gitlab-ci-job-with-needs = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job-a = { };
+      jobs.job-b.needs = [ { job = "job-a"; } ];
+    };
+
+    expected = {
+      job-a = { };
+      job-b.needs = [
+        {
+          artifacts = true;
+          job = "job-a";
+          optional = false;
+        }
+      ];
+    };
+  };
+
+  test-gitlab-ci-job-with-self-needs = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job-a.needs = [ { job = "job-a"; } ];
+    };
+
+    expected = {
+      job-a = { };
+    };
+  };
+
+  test-gitlab-ci-job-default-stage = {
     expr = test-lib.eval-gitlab-ci {
       pipeline.gitlab-ci = {
         settings.stages = [ "main" ];
@@ -122,53 +108,7 @@
     };
   };
 
-  test-github-job-with-needs = {
-    expr = test-lib.eval-github-actions {
-      jobs.job-a = { };
-      jobs.job-b.needs = [ { job = "job-a"; } ];
-    };
-    expected = {
-      jobs = {
-        job-a = {
-          steps = [ { uses = "actions/checkout@v4"; } ];
-        };
-        job-b = {
-          needs = [ "job-a" ];
-          steps = [ { uses = "actions/checkout@v4"; } ];
-        };
-      };
-    };
-  };
-
-  test-gitlab-job-with-needs = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job-a = { };
-      jobs.job-b.needs = [ { job = "job-a"; } ];
-    };
-
-    expected = {
-      job-a = { };
-      job-b.needs = [
-        {
-          artifacts = true;
-          job = "job-a";
-          optional = false;
-        }
-      ];
-    };
-  };
-
-  test-gitlab-job-with-self-needs = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job-a.needs = [ { job = "job-a"; } ];
-    };
-
-    expected = {
-      job-a = { };
-    };
-  };
-
-  test-gitlab-job-with-image = {
+  test-gitlab-ci-job-with-image = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job.image = "sample-image";
     };
@@ -178,7 +118,7 @@
     };
   };
 
-  test-gitlab-job-with-image-from-image-registry = {
+  test-gitlab-ci-job-with-image-from-image-registry = {
     expr = test-lib.eval-gitlab-ci {
       imageRegistry.sample-image = "registry/repository/sample-image:tag";
       jobs.job.image = "sample-image";
@@ -189,7 +129,7 @@
     };
   };
 
-  test-gitlab-job-with-default-branch-trigger-onMergeRequest = {
+  test-gitlab-ci-job-with-default-branch-trigger-onMergeRequest = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job.branches.default.triggers.onMergeRequest = true;
     };
@@ -199,7 +139,7 @@
     };
   };
 
-  test-gitlab-job-with-default-branch-trigger-onMergeRequest-with-paths = {
+  test-gitlab-ci-job-with-default-branch-trigger-onMergeRequest-with-paths = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
         branches.default = {
@@ -222,7 +162,7 @@
     };
   };
 
-  test-gitlab-job-with-default-branch-trigger-onPush = {
+  test-gitlab-ci-job-with-default-branch-trigger-onPush = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job.branches.default.triggers.onPush = true;
     };
@@ -232,7 +172,7 @@
     };
   };
 
-  test-gitlab-job-with-default-branch-trigger-onPush-with-paths = {
+  test-gitlab-ci-job-with-default-branch-trigger-onPush-with-paths = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
         branches.default = {
@@ -254,7 +194,7 @@
     };
   };
 
-  test-gitlab-job-with-custom-branch-trigger = {
+  test-gitlab-ci-job-with-custom-branch-trigger = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
         branches.a-branch = {
@@ -282,7 +222,7 @@
     };
   };
 
-  test-gitlab-job-with-gitlab-ci-config = {
+  test-gitlab-ci-job-with-gitlab-ci-config = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
         gitlab-ci.environment = "test";
