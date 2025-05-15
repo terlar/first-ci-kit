@@ -9,4 +9,25 @@ See [the module documentation](./module/README.md).
 Generation targets:
 - GitLab CI (Usable)
 - GitHub Actions (WIP)
-- Local (Future)
+- process-compose (WIP)
+
+## Concepts
+- Job
+  - Steps
+  - Commands
+  - Features
+    - checkout
+    - nix
+    - nix cache
+  - Image
+  - Tags
+- JobSet
+  - Tags
+- JobInterface
+
+- Stacks
+- Components
+- Deployments
+
+- Strategy
+- Stages

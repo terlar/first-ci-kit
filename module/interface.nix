@@ -115,6 +115,14 @@ in
           description = "Package of the pipeline.yml";
         };
       };
+
+      process-compose = {
+        settings = lib.mkOption {
+          type = types.deferredModule;
+          default = { };
+          description = "Configuration of process-compose to be passed to process-compose-flake settings.";
+        };
+      };
     };
   };
 }

@@ -120,5 +120,11 @@ in
       default = { };
       description = "Job configuration targeting GitLab CI.";
     };
+
+    process-compose = lib.mkOption {
+      type = types.deferredModule;
+      default = { };
+      description = "Job configuration targeting process-compose.";
+    };
   };
 }

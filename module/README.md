@@ -490,6 +490,27 @@ boolean
 
 
 
+## jobs\.\<name>\.process-compose
+
+
+
+Job configuration targeting process-compose\.
+
+
+
+*Type:*
+module
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.tags
 
 
@@ -678,6 +699,27 @@ function that evaluates to a(n) string
 
 *Default:*
 ` <function> `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## pipeline\.process-compose\.settings
+
+
+
+Configuration of process-compose to be passed to process-compose-flake settings\.
+
+
+
+*Type:*
+module
+
+
+
+*Default:*
+` { } `
 
 *Declared by:*
  - [interface\.nix](interface.nix)
