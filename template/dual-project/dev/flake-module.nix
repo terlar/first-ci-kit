@@ -4,6 +4,7 @@
   imports = [
     inputs.dev-flake.flakeModule
     inputs.first-ci-kit.flakeModule
+    inputs.process-compose.flakeModule
     ./ci.nix
   ];
 
@@ -21,6 +22,7 @@
         };
       };
 
+      pre-commit.check.enable = false;
       pre-commit.settings.hooks = {
         first-ci-kit-gen-github-actions = {
           enable = true;

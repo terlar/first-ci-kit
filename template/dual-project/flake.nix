@@ -21,6 +21,7 @@
       partitionedAttrs = {
         checks = "dev";
         devShells = "dev";
+        packages = "dev";
         legacyPackages = "dev";
       };
 
