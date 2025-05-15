@@ -8,20 +8,22 @@
   # Dogfood
   first-ci-kit.pipelines = {
     default = {
-      pipeline.github-actions.settings = {
-        name = "CI";
-        on.push = {
-          branches = [ "main" ];
-        };
-        on.pull_request = {
-          branches = [ "main" ];
+      pipeline.github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        settings = {
+          name = "CI";
+          on.push = {
+            branches = [ "main" ];
+          };
+          on.pull_request = {
+            branches = [ "main" ];
+          };
         };
       };
 
       jobs = {
         check = {
           github-actions = {
-            runs-on = "ubuntu-latest";
             steps = [
               {
                 uses = "DeterminateSystems/nix-installer-action@v16";

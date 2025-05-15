@@ -20,6 +20,20 @@
     };
   };
 
+  test-github-jobs-transform-names = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
+      jobs."job:1" = { };
+    };
+    expected = {
+      jobs.job_1 = {
+        steps = [
+          { uses = "actions/checkout@v4"; }
+        ];
+      };
+    };
+  };
+
   test-gitlab-jobs = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job1 = {
@@ -31,6 +45,16 @@
       job1 = {
         script = [ "echo 'Run your script here'" ];
       };
+    };
+  };
+
+  test-gitlab-jobs-transform-names = {
+    expr = test-lib.eval-gitlab-ci {
+      pipeline.gitlab-ci.transformJobName = builtins.replaceStrings [ "_" ] [ ":" ];
+      jobs.job_1 = { };
+    };
+    expected = {
+      "job:1" = { };
     };
   };
 

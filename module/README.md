@@ -587,6 +587,27 @@ YAML value
 
 
 
+## pipeline\.github-actions\.transformJobName
+
+
+
+A function to transform job names
+
+
+
+*Type:*
+function that evaluates to a(n) string
+
+
+
+*Default:*
+` <function> `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## pipeline\.gitlab-ci\.defaultStage
 
 
@@ -636,6 +657,27 @@ YAML value
 }
 
 ```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## pipeline\.gitlab-ci\.transformJobName
+
+
+
+A function to transform job names
+
+
+
+*Type:*
+function that evaluates to a(n) string
+
+
+
+*Default:*
+` <function> `
 
 *Declared by:*
  - [interface\.nix](interface.nix)

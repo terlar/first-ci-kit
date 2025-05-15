@@ -62,6 +62,12 @@ in
           description = "The default runs-on to use for jobs";
         };
 
+        transformJobName = lib.mkOption {
+          type = types.functionTo types.str;
+          default = lib.id;
+          description = "A function to transform job names";
+        };
+
         file = lib.mkOption {
           internal = true;
           type = types.package;
@@ -91,6 +97,12 @@ in
           type = types.nullOr types.str;
           default = null;
           description = "The default stage to use for jobs";
+        };
+
+        transformJobName = lib.mkOption {
+          type = types.functionTo types.str;
+          default = lib.id;
+          description = "A function to transform job names";
         };
 
         file = lib.mkOption {
