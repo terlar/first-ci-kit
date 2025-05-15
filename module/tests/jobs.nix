@@ -93,6 +93,16 @@
     };
   };
 
+  test-gitlab-job-with-self-needs = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job-a.needs = [ { job = "job-a"; } ];
+    };
+
+    expected = {
+      job-a = { };
+    };
+  };
+
   test-gitlab-job-with-image = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job.image = "sample-image";

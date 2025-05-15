@@ -1,4 +1,9 @@
-{ lib, rootConfig, ... }:
+{
+  lib,
+  name,
+  rootConfig,
+  ...
+}:
 
 let
   inherit (lib) types;
@@ -66,7 +71,12 @@ in
 
     needs = lib.mkOption {
       type = types.listOf needsType;
-      apply = lib.unique;
+      apply =
+        v:
+        lib.pipe v [
+          lib.unique
+          (builtins.filter (need: need.job != name))
+        ];
       default = [ ];
       description = "Jobs needed by the job.";
     };

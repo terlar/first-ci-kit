@@ -15,7 +15,7 @@
           "set1-job2"
         ];
         set2 = {
-          needs = [ { jobSet = "set2"; } ];
+          needs = [ { jobSet = "set1"; } ];
           jobs = [
             "set2-job1"
             "set2-job2"
@@ -29,12 +29,12 @@
         needs = [
           {
             artifacts = false;
-            job = "set2-job1";
+            job = "set1-job1";
             optional = true;
           }
           {
             artifacts = false;
-            job = "set2-job2";
+            job = "set1-job2";
             optional = true;
           }
         ];
