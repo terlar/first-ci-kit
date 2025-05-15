@@ -7,7 +7,7 @@
 
   # Dogfood
   first-ci-kit.pipelines = {
-    pr = {
+    default = {
       pipeline.github-actions.settings = {
         name = "CI";
         on.push = {
@@ -81,10 +81,12 @@
               {
                 name = "generate-module-docs";
                 text = ''
-                  nix build --extra-experimental-features 'nix-command flakes' \
-                      --out-link result-module-docs \
-                      .#module-docs
-                  cp -f result-module-docs module/README.md
+                  out="$(nix build --extra-experimental-features 'nix-command flakes' \
+                    --print-out-paths \
+                    .#module-docs
+                  )"
+
+                  cp --no-preserve=all --force "$out" "module/README.md"
                 '';
               }
               [
@@ -95,34 +97,9 @@
           files = "^module/.*\\.nix$";
         };
 
-        generate-github-actions = {
+        first-ci-kit-gen-github-actions = {
           enable = true;
-          name = "generate-github-actions";
-          description = "Generate `.github/workflows/ci.yaml";
-
-          stages = [ "pre-push" ];
           files = "^dev/flake-module.nix$";
-          pass_filenames = false;
-
-          entry =
-            lib.pipe
-              {
-                name = "generate-github-actions";
-                runtimeInputs = [ pkgs.yq-go ];
-                text = ''
-                  out="$(nix build --extra-experimental-features 'nix-command flakes' \
-                    --print-out-paths \
-                    .#ci-pipeline-github-actions-pr
-                  )"
-
-                  mkdir -p .github/workflows
-                  yq --prettyPrint --output-format yaml "$out" > .github/workflows/ci.yaml
-                '';
-              }
-              [
-                pkgs.writeShellApplication
-                lib.getExe
-              ];
         };
       };
 
