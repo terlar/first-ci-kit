@@ -56,6 +56,12 @@ in
           '';
         };
 
+        defaultRunsOn = lib.mkOption {
+          type = with types; nullOr (either str (listOf str));
+          default = null;
+          description = "The default runs-on to use for jobs";
+        };
+
         file = lib.mkOption {
           internal = true;
           type = types.package;

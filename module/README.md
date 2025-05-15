@@ -532,6 +532,27 @@ list of string
 
 
 
+## pipeline\.github-actions\.defaultRunsOn
+
+
+
+The default runs-on to use for jobs
+
+
+
+*Type:*
+null or string or list of string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## pipeline\.github-actions\.settings
 
 

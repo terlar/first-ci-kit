@@ -3,6 +3,7 @@
 {
   test-github-jobs = {
     expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
       jobs.job1 = {
         checkout = true;
         commands = [ "echo 'Run your script here'" ];
@@ -10,6 +11,7 @@
     };
     expected = {
       jobs.job1 = {
+        runs-on = "ubuntu-latest";
         steps = [
           { uses = "actions/checkout@v4"; }
           { run = "echo 'Run your script here'"; }
