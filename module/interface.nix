@@ -117,6 +117,12 @@ in
       };
 
       process-compose = {
+        cli = lib.mkOption {
+          type = types.raw;
+          default = { };
+          description = "CLI configuration of process-compose to be passed to process-compose-flake cli.";
+        };
+
         settings = lib.mkOption {
           type = types.deferredModule;
           default = { };

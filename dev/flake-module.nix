@@ -8,17 +8,21 @@
   # Dogfood
   first-ci-kit.pipelines = {
     default = {
-      pipeline.github-actions = {
-        defaultRunsOn = "ubuntu-latest";
-        settings = {
-          name = "CI";
-          on.push = {
-            branches = [ "main" ];
-          };
-          on.pull_request = {
-            branches = [ "main" ];
+      pipeline = {
+        github-actions = {
+          defaultRunsOn = "ubuntu-latest";
+          settings = {
+            name = "CI";
+            on.push = {
+              branches = [ "main" ];
+            };
+            on.pull_request = {
+              branches = [ "main" ];
+            };
           };
         };
+
+        process-compose.cli.environment.PC_DISABLE_TUI = true;
       };
 
       jobs = {

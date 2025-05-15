@@ -705,6 +705,27 @@ function that evaluates to a(n) string
 
 
 
+## pipeline\.process-compose\.cli
+
+
+
+CLI configuration of process-compose to be passed to process-compose-flake cli\.
+
+
+
+*Type:*
+raw value
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## pipeline\.process-compose\.settings
 
 

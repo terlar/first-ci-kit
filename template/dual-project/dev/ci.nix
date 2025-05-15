@@ -21,6 +21,8 @@
           branches = [ "main" ];
         };
       };
+
+      process-compose.cli.environment.PC_DISABLE_TUI = true;
     };
 
     jobs = {
