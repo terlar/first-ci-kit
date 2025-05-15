@@ -71,6 +71,7 @@
 
       pre-commit.check.enable = false;
       pre-commit.settings.hooks = {
+        conform.enable = true;
         generate-module-docs = {
           enable = true;
           stages = [ "pre-push" ];
