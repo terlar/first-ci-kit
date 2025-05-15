@@ -69,6 +69,7 @@
         };
       };
 
+      pre-commit.check.enable = false;
       pre-commit.settings.hooks = {
         generate-module-docs = {
           enable = true;

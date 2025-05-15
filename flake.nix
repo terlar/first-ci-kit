@@ -31,8 +31,6 @@
         formatter = "dev";
         checks = "dev";
         tests = "dev";
-        debug = "dev";
-        currentSystem = "dev";
       };
 
       partitions.dev = {
