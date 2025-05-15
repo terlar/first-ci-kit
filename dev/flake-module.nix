@@ -77,8 +77,8 @@
           name = "generate-module-docs";
           description = "Generate first-ci-kit module documentation.";
           entry =
-            let
-              app = pkgs.writeShellApplication {
+            lib.pipe
+              {
                 name = "generate-module-docs";
                 text = ''
                   nix build --extra-experimental-features 'nix-command flakes' \
@@ -86,9 +86,11 @@
                       .#module-docs
                   cp -f result-module-docs module/README.md
                 '';
-              };
-            in
-            "${app}/bin/generate-module-docs";
+              }
+              [
+                pkgs.writeShellApplication
+                lib.getExe
+              ];
 
           files = "^module/.*\\.nix$";
         };
@@ -103,15 +105,24 @@
           pass_filenames = false;
 
           entry =
-            (pkgs.writeShellScript "generate-github-actions" ''
-              set -o errexit
-              nix build --extra-experimental-features 'nix-command flakes' \
-                --out-link result-github-actions \
-                .#ci-pipeline-github-actions-pr
+            lib.pipe
+              {
+                name = "generate-github-actions";
+                runtimeInputs = [ pkgs.yq-go ];
+                text = ''
+                  out="$(nix build --extra-experimental-features 'nix-command flakes' \
+                    --print-out-paths \
+                    .#ci-pipeline-github-actions-pr
+                  )"
 
-              mkdir -p .github/workflows
-              ${pkgs.yq-go}/bin/yq --prettyPrint --output-format yaml result-github-actions > .github/workflows/ci.yaml
-            '').outPath;
+                  mkdir -p .github/workflows
+                  yq --prettyPrint --output-format yaml "$out" > .github/workflows/ci.yaml
+                '';
+              }
+              [
+                pkgs.writeShellApplication
+                lib.getExe
+              ];
         };
       };
 
