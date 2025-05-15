@@ -7,7 +7,7 @@
 
 let
   inherit (rootConfig) imageRegistry jobs;
-  inherit (rootConfig.pipeline.gitlab-ci) defaultStage;
+  inherit (rootConfig.pipeline.gitlab-ci) defaultStage transformJobName;
 
   needs = builtins.filter (need: jobs.${need.job}.enable) config.needs;
   triggersBranchConfig = map (job: jobs.${job}.branches) config.triggers;
@@ -15,39 +15,39 @@ in
 {
   config.gitlab-ci = {
     stage = lib.mkIf (defaultStage != null) (lib.mkDefault defaultStage);
-    needs = lib.mkIf (needs != [ ]) needs;
+    needs = lib.mkIf (needs != [ ]) (map (need: need // { job = transformJobName need.job; }) needs);
 
     image = lib.mkIf (!builtins.isNull config.image) imageRegistry.${config.image} or config.image;
 
     rules = lib.pipe config.branches [
       (lib.mapAttrsToList (
-	name: cfg:
-	let
-	  branch = if name == "default" then "$CI_DEFAULT_BRANCH" else name;
-	  branchCompare = if lib.hasPrefix "$" branch then branch else "'${branch}'";
+        name: cfg:
+        let
+          branch = if name == "default" then "$CI_DEFAULT_BRANCH" else name;
+          branchCompare = if lib.hasPrefix "$" branch then branch else "'${branch}'";
 
-	  pathsFromTriggers = lib.pipe triggersBranchConfig [
-	    (map (cfg: cfg.${name}.changes.paths))
-	    builtins.concatLists
-	    lib.unique
-	  ];
-	  paths = cfg.changes.paths ++ pathsFromTriggers;
-	in
-	[
-	  (lib.mkIf cfg.triggers.onMergeRequest {
-	    "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == ${branchCompare}";
-	    changes = lib.mkIf (paths != [ ]) {
-	      inherit paths;
-	      compare_to = branch;
-	    };
-	  })
-	  (lib.mkIf cfg.triggers.onPush {
-	    "if" = "$CI_COMMIT_BRANCH == ${branchCompare}";
-	    changes = lib.mkIf (paths != [ ]) {
-	      inherit paths;
-	    };
-	  })
-	]
+          pathsFromTriggers = lib.pipe triggersBranchConfig [
+            (map (cfg: cfg.${name}.changes.paths))
+            builtins.concatLists
+            lib.unique
+          ];
+          paths = cfg.changes.paths ++ pathsFromTriggers;
+        in
+        [
+          (lib.mkIf cfg.triggers.onMergeRequest {
+            "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == ${branchCompare}";
+            changes = lib.mkIf (paths != [ ]) {
+              inherit paths;
+              compare_to = branch;
+            };
+          })
+          (lib.mkIf cfg.triggers.onPush {
+            "if" = "$CI_COMMIT_BRANCH == ${branchCompare}";
+            changes = lib.mkIf (paths != [ ]) {
+              inherit paths;
+            };
+          })
+        ]
       ))
       lib.mkMerge
     ];

@@ -23,13 +23,21 @@
   test-github-jobs-transform-names = {
     expr = test-lib.eval-github-actions {
       pipeline.github-actions.transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
-      jobs."job:1" = { };
+      jobs = {
+        "job:a" = { };
+        "job:b".needs = [
+          { job = "job:a"; }
+        ];
+      };
     };
     expected = {
-      jobs.job_1 = {
-        steps = [
-          { uses = "actions/checkout@v4"; }
-        ];
+      jobs = {
+        job_a = {
+          steps = [ { uses = "actions/checkout@v4"; } ];
+        };
+        job_b = {
+          steps = [ { uses = "actions/checkout@v4"; } ];
+        };
       };
     };
   };
@@ -51,10 +59,22 @@
   test-gitlab-jobs-transform-names = {
     expr = test-lib.eval-gitlab-ci {
       pipeline.gitlab-ci.transformJobName = builtins.replaceStrings [ "_" ] [ ":" ];
-      jobs.job_1 = { };
+      jobs = {
+        "job_a" = { };
+        "job_b".needs = [
+          { job = "job_a"; }
+        ];
+      };
     };
     expected = {
-      "job:1" = { };
+      "job:a" = { };
+      "job:b".needs = [
+        {
+          artifacts = true;
+          job = "job:a";
+          optional = false;
+        }
+      ];
     };
   };
 
