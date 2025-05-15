@@ -9,13 +9,16 @@ let
   inherit (rootConfig) imageRegistry jobs;
   inherit (rootConfig.pipeline.gitlab-ci) defaultStage transformJobName;
 
-  needs = builtins.filter (need: jobs.${need.job}.enable) config.needs;
+  needs = lib.pipe config.needs [
+    (builtins.filter (need: jobs.${need.job}.enable))
+    (map (need: need // { job = transformJobName need.job; }))
+  ];
   triggersBranchConfig = map (job: jobs.${job}.branches) config.triggers;
 in
 {
   config.gitlab-ci = {
     stage = lib.mkIf (defaultStage != null) (lib.mkDefault defaultStage);
-    needs = lib.mkIf (needs != [ ]) (map (need: need // { job = transformJobName need.job; }) needs);
+    needs = lib.mkIf (needs != [ ]) needs;
 
     image = lib.mkIf (!builtins.isNull config.image) imageRegistry.${config.image} or config.image;
 

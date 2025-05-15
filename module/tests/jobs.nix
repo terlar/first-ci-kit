@@ -36,6 +36,7 @@
           steps = [ { uses = "actions/checkout@v4"; } ];
         };
         job_b = {
+          needs = [ "job_a" ];
           steps = [ { uses = "actions/checkout@v4"; } ];
         };
       };
@@ -117,6 +118,24 @@
       job1 = {
         stage = "main";
         script = [ "echo 'Run your script here'" ];
+      };
+    };
+  };
+
+  test-github-job-with-needs = {
+    expr = test-lib.eval-github-actions {
+      jobs.job-a = { };
+      jobs.job-b.needs = [ { job = "job-a"; } ];
+    };
+    expected = {
+      jobs = {
+        job-a = {
+          steps = [ { uses = "actions/checkout@v4"; } ];
+        };
+        job-b = {
+          needs = [ "job-a" ];
+          steps = [ { uses = "actions/checkout@v4"; } ];
+        };
       };
     };
   };
