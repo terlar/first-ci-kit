@@ -7,7 +7,6 @@
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
-    process-compose.url = "github:platonic-systems/process-compose-flake";
   };
 
   outputs =
@@ -22,7 +21,6 @@
 
       imports = [
         inputs.flake-parts.flakeModules.partitions
-        inputs.process-compose.flakeModule
         ./flake-module.nix
       ];
 
