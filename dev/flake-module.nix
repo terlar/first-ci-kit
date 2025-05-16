@@ -1,7 +1,18 @@
 { lib, inputs, ... }:
 
 {
-  imports = [ inputs.dev-flake.flakeModule ];
+  imports = [
+    inputs.dev-flake.flakeModule
+    inputs.process-compose.flakeModule
+    ../extra/process-compose.nix
+  ];
+
+  systems = [
+    "aarch64-darwin"
+    "aarch64-linux"
+    "x86_64-darwin"
+    "x86_64-linux"
+  ];
 
   dev.name = "terlar/first-ci-kit";
 

@@ -1,27 +1,24 @@
 {
   description = "first-ci-kit - flake-parts module for CI integration";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
-      inputs.nixpkgs-lib.follows = "nixpkgs";
-    };
-  };
+  inputs.flake-parts.url = "github:hercules-ci/flake-parts";
 
   outputs =
     inputs:
+    let
+      flakeModules = {
+        default = ./flake-module.nix;
+        git-hooks = ./extra/git-hooks.nix;
+        process-compose = ./extra/process-compose.nix;
+      };
+    in
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [
-        "aarch64-darwin"
-        "aarch64-linux"
-        "x86_64-darwin"
-        "x86_64-linux"
-      ];
+      systems = [ ];
 
       imports = [
         inputs.flake-parts.flakeModules.partitions
-        ./flake-module.nix
+        flakeModules.default
+        flakeModules.git-hooks
       ];
 
       partitionedAttrs = {
@@ -48,7 +45,9 @@
             '';
           };
         };
-        flakeModule = ./flake-module.nix;
+
+        flakeModule = flakeModules.default;
+        inherit flakeModules;
       };
     };
 }
