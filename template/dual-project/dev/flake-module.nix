@@ -3,9 +3,18 @@
 {
   imports = [
     inputs.dev-flake.flakeModule
-    inputs.first-ci-kit.flakeModule
+    inputs.first-ci-kit.flakeModules.default
+    inputs.first-ci-kit.flakeModules.git-hooks
+    inputs.first-ci-kit.flakeModules.process-compose
     inputs.process-compose.flakeModule
     ./ci.nix
+  ];
+
+  systems = [
+    "aarch64-darwin"
+    "aarch64-linux"
+    "x86_64-darwin"
+    "x86_64-linux"
   ];
 
   dev.name = "my-project";
