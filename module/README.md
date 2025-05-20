@@ -462,7 +462,33 @@ Name of the needed job\.
 
 
 *Type:*
-string
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.needs\.\*\.jobSet
+
+
+
+Name of the needed job set\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)

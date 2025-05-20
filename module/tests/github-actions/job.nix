@@ -94,4 +94,23 @@
       jobs.job-a.steps = [ { uses = "actions/checkout@v4"; } ];
     };
   };
+
+  test-github-actions-job-with-needs-jobset = {
+    expr = test-lib.eval-github-actions {
+      jobs.job-a = { };
+      jobs.job-b.needs = [ { jobSet = "jobset-a"; } ];
+
+      jobSets.jobset-a.jobs = [ "job-a" ];
+    };
+
+    expected = {
+      jobs = {
+        job-a.steps = [ { uses = "actions/checkout@v4"; } ];
+        job-b = {
+          steps = [ { uses = "actions/checkout@v4"; } ];
+          needs = [ "job-a" ];
+        };
+      };
+    };
+  };
 }

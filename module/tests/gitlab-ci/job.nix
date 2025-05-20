@@ -88,6 +88,26 @@
     };
   };
 
+  test-gitlab-ci-job-with-needs-jobset = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job-a = { };
+      jobs.job-b.needs = [ { jobSet = "jobset-a"; } ];
+
+      jobSets.jobset-a.jobs = [ "job-a" ];
+    };
+
+    expected = {
+      job-a = { };
+      job-b.needs = [
+        {
+          artifacts = true;
+          job = "job-a";
+          optional = false;
+        }
+      ];
+    };
+  };
+
   test-gitlab-ci-job-default-stage = {
     expr = test-lib.eval-gitlab-ci {
       pipeline.gitlab-ci = {

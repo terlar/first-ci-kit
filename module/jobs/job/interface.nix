@@ -37,8 +37,15 @@ let
       {
         options = {
           job = lib.mkOption {
-            type = types.str;
+            type = types.nullOr types.str;
+            default = null;
             description = "Name of the needed job.";
+          };
+
+          jobSet = lib.mkOption {
+            type = types.nullOr types.str;
+            default = null;
+            description = "Name of the needed job set.";
           };
 
           optional = lib.mkOption {
@@ -56,6 +63,18 @@ let
       }
     ];
   };
+
+  expandNeedJobSet =
+    need:
+    if need.jobSet == null then
+      {
+        inherit (need) job optional artifacts;
+      }
+    else
+      map (job: {
+        inherit job;
+        inherit (need) optional artifacts;
+      }) rootConfig.jobSets.${need.jobSet}.jobs;
 in
 {
   options = {
@@ -74,6 +93,8 @@ in
       apply =
         v:
         lib.pipe v [
+          (map expandNeedJobSet)
+          lib.flatten
           lib.unique
           (builtins.filter (need: need.job != name))
         ];
