@@ -36,7 +36,7 @@ in
           ];
           paths = cfg.changes.paths ++ pathsFromTriggers;
         in
-        [
+        lib.mkAfter [
           (lib.mkIf cfg.triggers.onMergeRequest {
             "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == ${branchCompare}";
             changes = lib.mkIf (paths != [ ]) {

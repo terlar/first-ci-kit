@@ -214,6 +214,34 @@
     };
   };
 
+  test-gitlab-ci-job-with-default-branch-trigger-and-custom-rules = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job = {
+        branches.default = {
+          triggers.onMergeRequest = true;
+          triggers.onPush = true;
+        };
+        gitlab-ci.rules = [
+          {
+            "if" = "$CI_PIPELINE_SOURCE == 'schedule'";
+            where = "never";
+          }
+        ];
+      };
+    };
+
+    expected = {
+      job.rules = [
+        {
+          "if" = "$CI_PIPELINE_SOURCE == 'schedule'";
+          where = "never";
+        }
+        { "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH"; }
+        { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; }
+      ];
+    };
+  };
+
   test-gitlab-ci-job-with-custom-branch-trigger = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
