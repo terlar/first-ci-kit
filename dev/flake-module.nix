@@ -73,17 +73,8 @@
   flake.tests.first-ci-kit = import ../module/tests { inherit lib; };
 
   perSystem =
-    { config, pkgs, ... }:
+    { pkgs, ... }:
     {
-      formatter = config.treefmt.programs.nixfmt.package;
-
-      treefmt = {
-        programs.nixfmt = {
-          enable = true;
-          package = pkgs.nixfmt-rfc-style;
-        };
-      };
-
       pre-commit.check.enable = false;
       pre-commit.settings.hooks = {
         conform.enable = true;
