@@ -80,6 +80,22 @@ in
       };
 
       gitlab-ci = {
+        inputs = lib.mkOption {
+          type = config.types.yamlType;
+          default = { };
+          description = ''
+            Define inputs for the CI/CD configuration.
+            This will be added as a separate YAML document at the top of the {file}`pipeline.yml`.
+          '';
+          example = lib.literalExpression ''
+            {
+              website = {};
+              user.default = "test-user";
+              flags.default = "";
+            }
+          '';
+        };
+
         settings = lib.mkOption {
           type = config.types.yamlType;
           default = { };
@@ -105,13 +121,28 @@ in
           description = "A function to transform job names";
         };
 
+        fileContents = lib.mkOption {
+          internal = true;
+          type = types.str;
+          default = lib.pipe config.pipeline.gitlab-ci.settings [
+            builtins.toJSON
+            (x: x + "\n")
+            (
+              x:
+              lib.optional (config.pipeline.gitlab-ci.inputs != { }) (
+                builtins.toJSON { spec = { inherit (config.pipeline.gitlab-ci) inputs; }; }
+              )
+              ++ [ x ]
+            )
+            (builtins.concatStringsSep "\n---\n")
+          ];
+          description = "Contents of the pipeline.yml";
+        };
+
         file = lib.mkOption {
           internal = true;
           type = types.package;
-          default = lib.pipe config.pipeline.gitlab-ci.settings [
-            builtins.toJSON
-            (builtins.toFile "pipeline.yml")
-          ];
+          default = builtins.toFile "pipeline.yml" config.pipeline.gitlab-ci.fileContents;
           description = "Package of the pipeline.yml";
         };
       };

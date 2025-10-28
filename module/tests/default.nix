@@ -54,7 +54,9 @@ let
       eval.config;
 
     eval-github-actions = modules: (evalConfig modules).pipeline.github-actions.settings;
+
     eval-gitlab-ci = modules: (evalConfig modules).pipeline.gitlab-ci.settings;
+    eval-gitlab-ci-raw = modules: (evalConfig modules).pipeline.gitlab-ci.fileContents;
   };
 
   tests = lib.pipe ./. [

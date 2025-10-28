@@ -676,6 +676,41 @@ null or string
 
 
 
+## pipeline\.gitlab-ci\.inputs
+
+
+
+Define inputs for the CI/CD configuration\.
+This will be added as a separate YAML document at the top of the ` pipeline.yml `\.
+
+
+
+*Type:*
+YAML value
+
+
+
+*Default:*
+` { } `
+
+
+
+*Example:*
+
+```
+{
+  website = {};
+  user.default = "test-user";
+  flags.default = "";
+}
+
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## pipeline\.gitlab-ci\.settings
 
 
