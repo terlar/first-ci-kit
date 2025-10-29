@@ -1,5 +1,6 @@
 {
   lib,
+  ci-lib,
   config,
   ...
 }:
@@ -121,28 +122,20 @@ in
           description = "A function to transform job names";
         };
 
-        fileContents = lib.mkOption {
+        fileDocuments = lib.mkOption {
           internal = true;
-          type = types.str;
-          default = lib.pipe config.pipeline.gitlab-ci.settings [
-            builtins.toJSON
-            (x: x + "\n")
-            (
-              x:
-              lib.optional (config.pipeline.gitlab-ci.inputs != { }) (
-                builtins.toJSON { spec = { inherit (config.pipeline.gitlab-ci) inputs; }; }
-              )
-              ++ [ x ]
-            )
-            (builtins.concatStringsSep "\n---\n")
-          ];
-          description = "Contents of the pipeline.yml";
+          type = types.listOf config.types.yamlType;
+          default = [ ];
+          description = "Documents to write to the pipeline.yml";
         };
 
         file = lib.mkOption {
           internal = true;
           type = types.package;
-          default = builtins.toFile "pipeline.yml" config.pipeline.gitlab-ci.fileContents;
+          default = lib.pipe config.pipeline.gitlab-ci.fileDocuments [
+            ci-lib.documentsToYAML
+            (builtins.toFile "pipeline.yml")
+          ];
           description = "Package of the pipeline.yml";
         };
       };

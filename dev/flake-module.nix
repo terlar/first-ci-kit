@@ -1,4 +1,8 @@
-{ lib, inputs, ... }:
+{
+  lib,
+  inputs,
+  ...
+}:
 
 {
   imports = [
@@ -70,7 +74,10 @@
     };
   };
 
-  flake.tests.first-ci-kit = import ../module/tests { inherit lib; };
+  flake.tests.first-ci-kit = import ../module/tests {
+    inherit lib;
+    ci-lib = import ../module/lib { inherit lib; };
+  };
 
   perSystem =
     { pkgs, ... }:

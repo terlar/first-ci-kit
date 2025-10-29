@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, ci-lib, ... }:
 
 let
   test-lib = rec {
@@ -56,13 +56,13 @@ let
     eval-github-actions = modules: (evalConfig modules).pipeline.github-actions.settings;
 
     eval-gitlab-ci = modules: (evalConfig modules).pipeline.gitlab-ci.settings;
-    eval-gitlab-ci-raw = modules: (evalConfig modules).pipeline.gitlab-ci.fileContents;
+    eval-gitlab-ci-documents = modules: (evalConfig modules).pipeline.gitlab-ci.fileDocuments;
   };
 
   tests = lib.pipe ./. [
     lib.filesystem.listFilesRecursive
     (builtins.filter (path: path != ./default.nix))
-    (map (path: import path { inherit lib test-lib; }))
+    (map (path: import path { inherit lib ci-lib test-lib; }))
     lib.mergeAttrsList
   ];
 in

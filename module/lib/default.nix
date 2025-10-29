@@ -1,6 +1,8 @@
 { lib, ... }:
 
 {
+  documentsToYAML = lib.concatMapStringsSep "---\n" (x: (builtins.toJSON x) + "\n");
+
   jobToNeed = job: {
     inherit job;
     artifacts = false;

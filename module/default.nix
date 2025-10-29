@@ -1,12 +1,21 @@
-{ lib, ... }:
+{ lib, config, ... }:
 
 {
-  config._module.args.ci-lib = import ./lib { inherit lib; };
-
   imports = [
     ./interface.nix
     ./jobs
     ./job-interfaces
     ./job-sets
   ];
+
+  config = {
+    _module.args.ci-lib = import ./lib { inherit lib; };
+
+    pipeline.gitlab-ci.fileDocuments = lib.mkMerge [
+      (lib.mkIf (config.pipeline.gitlab-ci.inputs != { }) [
+        { spec = { inherit (config.pipeline.gitlab-ci) inputs; }; }
+      ])
+      [ config.pipeline.gitlab-ci.settings ]
+    ];
+  };
 }
