@@ -1,0 +1,27 @@
+case "${{ github.event_name }}" in
+  push)
+    first_commit="${{ github.event.before }}"
+    last_commit="${{ github.event.after }}"
+    git fetch origin "$first_commit"
+    ;;
+  pull_request)
+    first_commit="origin/${{ github.base_ref }}"
+    last_commit="origin/${{ github.head_ref }}"
+    git fetch origin "${{ github.base_ref }}" "${{ github.head_ref }}"
+    ;;
+esac
+
+files=$(git diff --name-only --diff-filter=d "''${first_commit}" "''${last_commit}")
+change_lines=()
+for p in $PATHS; do
+  group="''${p%%:*}"
+  pattern="''${p#*:}"
+  if echo $files | grep "$pattern"; then
+    change_lines+=("\"$group\":true")
+  else
+   change_lines+=("\"$group\":false")
+  fi
+done
+
+change_object_body="$(printf '%s\n' ${change_lines[@]} | paste -sd,)"
+echo "changes={$change_object_body}" >> $GITHUB_OUTPUT

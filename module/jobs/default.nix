@@ -1,18 +1,15 @@
 { lib, config, ... }:
 
 let
-  cfg = config.jobs;
-  enabledJobs = lib.filterAttrs (_: builtins.getAttr "enable") cfg;
+  enabledJobs = lib.filterAttrs (_: builtins.getAttr "enable") config.jobs;
 in
 {
-  imports = [ ./interface.nix ];
+  imports = [
+    ./interface.nix
+    ./github-actions
+  ];
 
   config.pipeline = {
-    github-actions.settings.jobs = lib.mapAttrs' (name: job: {
-      name = config.pipeline.github-actions.transformJobName name;
-      value = job.github-actions;
-    }) enabledJobs;
-
     gitlab-ci.settings = lib.mapAttrs' (name: job: {
       name = config.pipeline.gitlab-ci.transformJobName name;
       value = job.gitlab-ci;

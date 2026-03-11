@@ -113,4 +113,42 @@
       };
     };
   };
+
+  test-github-actions-job-with-default-branch-trigger-onMergeRequest-with-paths = {
+    expr = test-lib.eval-github-actions {
+      jobs.job = {
+        branches.default = {
+          changes.paths = [
+            "config/**"
+            "terraform/**"
+          ];
+          triggers.onMergeRequest = true;
+        };
+      };
+    };
+
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          steps = [
+            {
+              id = "diff";
+              shell = "bash";
+              env.PATHS = "job:config/**\\|terraform/**";
+              run = builtins.readFile ../../jobs/github-actions/diff-script;
+            }
+          ];
+        };
+
+        job = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job'] == true }}'';
+          steps = [
+            { uses = "actions/checkout@v4"; }
+          ];
+        };
+      };
+    };
+  };
 }

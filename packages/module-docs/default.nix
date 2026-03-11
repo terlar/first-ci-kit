@@ -12,7 +12,8 @@ let
     modules = [
       { options._module.args = lib.mkOption { internal = true; }; }
       moduleRoot
-    ] ++ extraModules;
+    ]
+    ++ extraModules;
   };
   doc = nixosOptionsDoc {
     inherit (eval) options;
