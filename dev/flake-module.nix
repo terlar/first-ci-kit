@@ -45,16 +45,15 @@
           github-actions = {
             steps = [
               {
-                uses = "DeterminateSystems/nix-installer-action@v16";
+                uses = "cachix/install-nix-action@v31";
                 "with" = {
-                  source-url = "https://install.lix.systems/lix/lix-installer-x86_64-linux";
-                  extra-conf = ''
+                  extra_nix_config = ''
                     max-jobs = auto
                   '';
                 };
               }
               {
-                uses = "cachix/cachix-action@v15";
+                uses = "cachix/cachix-action@v16";
                 "with" = {
                   useDaemon = true;
                   name = "terlar";

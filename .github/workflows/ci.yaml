@@ -3,12 +3,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: cachix/install-nix-action@v31
         with:
-          extra-conf: |
+          extra_nix_config: |
             max-jobs = auto
-          source-url: https://install.lix.systems/lix/lix-installer-x86_64-linux
-      - uses: cachix/cachix-action@v15
+      - uses: cachix/cachix-action@v16
         with:
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
           extraPullNames: cuda-maintainers
