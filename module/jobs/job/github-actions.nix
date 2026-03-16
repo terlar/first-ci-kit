@@ -29,7 +29,7 @@ in
       ];
     }
 
-    (lib.mkIf (config ? branches.default.changes.paths) {
+    (lib.mkIf ((config.branches.default.changes.paths or [ ]) != [ ]) {
       needs = [ "changes" ];
       "if" = "\${{ fromJSON(needs.changes.outputs.changes)['${name}'] == true }}";
     })

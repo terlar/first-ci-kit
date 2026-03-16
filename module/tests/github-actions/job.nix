@@ -118,13 +118,20 @@
     expr = test-lib.eval-github-actions {
       pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
 
-      jobs.job = {
-        branches.default = {
-          changes.paths = [
-            "config/**"
-            "terraform/**"
-          ];
-          triggers.onMergeRequest = true;
+      jobs = {
+        job-a = {
+          branches.default = {
+            changes.paths = [
+              "config/**"
+              "terraform/**"
+            ];
+            triggers.onMergeRequest = true;
+          };
+        };
+        job-b = {
+          branches.default = {
+            triggers.onMergeRequest = true;
+          };
         };
       };
     };
@@ -138,15 +145,22 @@
             {
               id = "diff";
               shell = "bash";
-              env.PATHS = "job:config/**\\|terraform/**";
+              env.PATHS = "job-a:config/**\\|terraform/**";
               run = builtins.readFile ../../jobs/github-actions/diff-script;
             }
           ];
         };
 
-        job = {
+        job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job'] == true }}'';
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v4"; }
+          ];
+        };
+
+        job-b = {
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v4"; }

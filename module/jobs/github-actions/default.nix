@@ -3,16 +3,9 @@
 let
   enabledJobs = lib.filterAttrs (_: builtins.getAttr "enable") config.jobs;
 
-  changesPathsAttrPath = [
-    "branches"
-    "default"
-    "changes"
-    "paths"
-  ];
-
   changes = lib.pipe enabledJobs [
-    (lib.filterAttrs (_: lib.hasAttrByPath changesPathsAttrPath))
-    (builtins.mapAttrs (_: lib.getAttrFromPath changesPathsAttrPath))
+    (builtins.mapAttrs (_: job: job.branches.default.changes.paths or [ ]))
+    (lib.filterAttrs (_: paths: paths != [ ]))
     (builtins.mapAttrs (_: builtins.concatStringsSep "\\|"))
     (lib.mapAttrsToList (name: paths: "${name}:${paths}"))
   ];
