@@ -5,6 +5,7 @@
     ./interface.nix
     ./jobs
     ./job-interfaces
+    ./job-profiles
     ./job-sets
   ];
 

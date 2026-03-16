@@ -15,6 +15,25 @@
     };
   };
 
+  test-gitlab-ci-job-with-profile = {
+    expr = test-lib.eval-gitlab-ci {
+      jobProfiles.profile1 = {
+        image = "profile-image";
+      };
+
+      jobs.job1 = {
+        profile = "profile1";
+        commands = [ "echo 'Run your script here'" ];
+      };
+    };
+    expected = {
+      job1 = {
+        image = "profile-image";
+        script = [ "echo 'Run your script here'" ];
+      };
+    };
+  };
+
   test-gitlab-ci-job-transform-name = {
     expr = test-lib.eval-gitlab-ci {
       pipeline.gitlab-ci.transformJobName = builtins.replaceStrings [ "_" ] [ ":" ];

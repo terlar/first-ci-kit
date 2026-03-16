@@ -38,6 +38,27 @@ lazy attribute set of function that evaluates to a(n) lazy attribute set of modu
 
 
 
+## jobProfiles
+
+
+
+Job Profiles to use for common type of jobs\.
+
+
+
+*Type:*
+lazy attribute set of raw value
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [job-profiles/interface\.nix](job-profiles/interface.nix)
+
+
+
 ## jobSets
 
 
@@ -178,6 +199,7 @@ lazy attribute set of (Job configuration)
 *Declared by:*
  - [jobs/interface\.nix](jobs/interface.nix)
  - [job-sets](job-sets)
+ - [job-profiles](job-profiles)
 
 
 
@@ -534,6 +556,27 @@ module
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.profile
+
+
+
+Profile to use for the job\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [job-profiles/job-integration\.nix](job-profiles/job-integration.nix)
 
 
 
