@@ -116,6 +116,8 @@
 
   test-github-actions-job-with-default-branch-trigger-onMergeRequest-with-paths = {
     expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
       jobs.job = {
         branches.default = {
           changes.paths = [
@@ -131,6 +133,7 @@
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
           steps = [
             {
               id = "diff";
@@ -144,6 +147,7 @@
         job = {
           needs = [ "changes" ];
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job'] == true }}'';
+          runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v4"; }
           ];

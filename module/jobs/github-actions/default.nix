@@ -22,6 +22,7 @@ in
     (lib.mkIf (changes != [ ]) {
       changes = {
         outputs.changes = "\${{ steps.diff.outputs.changes }}";
+        runs-on = config.pipeline.github-actions.defaultRunsOn;
         steps = [
           {
             id = "diff";
