@@ -11,11 +11,11 @@ case "${{ github.event_name }}" in
     ;;
 esac
 
-files=$(git diff --name-only --diff-filter=d "''${first_commit}" "''${last_commit}")
+files=$(git diff --name-only --diff-filter=d "${first_commit}" "${last_commit}")
 change_lines=()
 for p in $PATHS; do
-  group="''${p%%:*}"
-  pattern="''${p#*:}"
+  group="${p%%:*}"
+  pattern="${p#*:}"
   if echo $files | grep "$pattern"; then
     change_lines+=("\"$group\":true")
   else
