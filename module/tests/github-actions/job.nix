@@ -142,6 +142,7 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
+            { uses = "actions/checkout@v4"; }
             {
               id = "diff";
               shell = "bash";
