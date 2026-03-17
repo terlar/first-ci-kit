@@ -17,6 +17,7 @@ in
         outputs.changes = "\${{ steps.diff.outputs.changes }}";
         runs-on = config.pipeline.github-actions.defaultRunsOn;
         steps = [
+          { uses = "actions/checkout@v4"; }
           {
             id = "diff";
             shell = "bash";
