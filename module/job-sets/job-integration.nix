@@ -24,7 +24,7 @@ let
   jobSetDefaults = lib.pipe matchedJobSets [
     builtins.attrValues
     (builtins.catAttrs "jobDefaults")
-    lib.mergeAttrsList
+    (lib.foldAttrs (item: acc: [ item ] ++ acc) [ ])
   ];
 in
 {
@@ -40,7 +40,9 @@ in
           (map ci-lib.jobToNeed)
         ];
       }
-      (lib.genAttrs jobOptionNames (n: lib.mkIf (jobSetDefaults ? ${n}) jobSetDefaults.${n}))
+      (lib.genAttrs jobOptionNames (
+        n: lib.mkIf (jobSetDefaults ? ${n}) (lib.mkMerge jobSetDefaults.${n})
+      ))
     ]
   );
 }

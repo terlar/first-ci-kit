@@ -86,6 +86,42 @@
     };
   };
 
+  test-job-set-with-multiple-jobDefaults = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs = {
+        job1 = { };
+        job2 = { };
+      };
+      jobSets = {
+        set1 = {
+          jobDefaults.commands = [ "set1 command" ];
+          jobs = [
+            "job1"
+            "job2"
+          ];
+        };
+        set2 = {
+          jobDefaults.commands = [ "set2 command" ];
+          jobs = [
+            "job1"
+            "job2"
+          ];
+        };
+      };
+    };
+
+    expected = {
+      job1.script = [
+        "set1 command"
+        "set2 command"
+      ];
+      job2.script = [
+        "set1 command"
+        "set2 command"
+      ];
+    };
+  };
+
   test-job-set-with-tags = {
     expr = test-lib.eval-gitlab-ci {
       jobs = {
