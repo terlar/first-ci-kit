@@ -53,7 +53,7 @@
                 };
               }
               {
-                uses = "cachix/cachix-action@v16";
+                uses = "cachix/cachix-action@v17";
                 "with" = {
                   useDaemon = true;
                   name = "terlar";
