@@ -3,7 +3,7 @@
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["\\.nix$"],
+      "managerFilePatterns": ["/\\.nix$/"],
       "matchStrings": [
         "\"(?<depName>[\\w-]+/[\\w-]+)@(?<currentValue>[\\w.]+)\""
       ],
