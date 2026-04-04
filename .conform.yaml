@@ -23,9 +23,10 @@ policies:
         scopes:
           - github
           - gitlab
-          - process-compose
-          - template
+          - job
           - job-interface
           - job-set
-          - job
+          - process-compose
+          - renovate
+          - template
         descriptionLength: 72

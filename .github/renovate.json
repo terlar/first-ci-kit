@@ -7,7 +7,8 @@
       "matchStrings": [
         "\"(?<depName>[\\w-]+/[\\w-]+)@(?<currentValue>[\\w.]+)\""
       ],
-      "datasourceTemplate": "github-tags"
+      "datasourceTemplate": "github-tags",
+      "depTypeTemplate": "action"
     }
   ]
 }
