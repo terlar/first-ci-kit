@@ -13,7 +13,7 @@
       jobs.job1 = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v6.0.2"; }
           { run = "echo 'Run your script here'"; }
         ];
       };
@@ -33,11 +33,11 @@
     expected = {
       jobs = {
         job_a = {
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v6.0.2"; } ];
         };
         job_b = {
           needs = [ "job_a" ];
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v6.0.2"; } ];
         };
       };
     };
@@ -57,11 +57,11 @@
     expected = {
       jobs = {
         job-a = {
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v6.0.2"; } ];
         };
         job-c = {
           needs = [ "job-a" ];
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v6.0.2"; } ];
         };
       };
     };
@@ -75,11 +75,11 @@
     expected = {
       jobs = {
         job-a = {
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v6.0.2"; } ];
         };
         job-b = {
           needs = [ "job-a" ];
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v6.0.2"; } ];
         };
       };
     };
@@ -91,7 +91,7 @@
     };
 
     expected = {
-      jobs.job-a.steps = [ { uses = "actions/checkout@v6"; } ];
+      jobs.job-a.steps = [ { uses = "actions/checkout@v6.0.2"; } ];
     };
   };
 
@@ -105,9 +105,9 @@
 
     expected = {
       jobs = {
-        job-a.steps = [ { uses = "actions/checkout@v6"; } ];
+        job-a.steps = [ { uses = "actions/checkout@v6.0.2"; } ];
         job-b = {
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v6.0.2"; } ];
           needs = [ "job-a" ];
         };
       };
@@ -142,7 +142,7 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v6.0.2"; }
             {
               id = "diff";
               shell = "bash";
@@ -157,14 +157,14 @@
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v6.0.2"; }
           ];
         };
 
         job-b = {
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v6.0.2"; }
           ];
         };
       };
@@ -175,7 +175,7 @@
     expr = test-lib.eval-github-actions {
       pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
       # renovate:ignore
-      pipeline.github-actions.checkoutAction = "actions/checkout@v5";
+      pipeline.github-actions.checkoutAction = "actions/checkout@v6.0.2";
       jobs.job1 = {
         checkout = true;
         commands = [ "echo hello" ];
@@ -186,7 +186,7 @@
         runs-on = "ubuntu-latest";
         steps = [
           # renovate:ignore
-          { uses = "actions/checkout@v5"; }
+          { uses = "actions/checkout@v6.0.2"; }
           { run = "echo hello"; }
         ];
       };
@@ -197,7 +197,7 @@
     expr = test-lib.eval-github-actions {
       pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
       # renovate:ignore
-      pipeline.github-actions.checkoutAction = "actions/checkout@v5";
+      pipeline.github-actions.checkoutAction = "actions/checkout@v6.0.2";
       jobs = {
         job-a = {
           branches.default = {
@@ -214,7 +214,7 @@
           runs-on = "ubuntu-latest";
           steps = [
             # renovate:ignore
-            { uses = "actions/checkout@v5"; }
+            { uses = "actions/checkout@v6.0.2"; }
             {
               id = "diff";
               shell = "bash";
@@ -229,7 +229,7 @@
           runs-on = "ubuntu-latest";
           steps = [
             # renovate:ignore
-            { uses = "actions/checkout@v5"; }
+            { uses = "actions/checkout@v6.0.2"; }
           ];
         };
       };

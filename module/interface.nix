@@ -71,10 +71,10 @@ in
 
         checkoutAction = lib.mkOption {
           type = types.str;
-          default = "actions/checkout@v6";
+          default = "actions/checkout@v6.0.2";
           description = "The default checkout action to use for jobs";
           # renovate:ignore
-          example = "actions/checkout@v5";
+          example = "actions/checkout@v6.0.2";
         };
 
         file = lib.mkOption {
