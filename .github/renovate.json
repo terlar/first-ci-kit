@@ -8,7 +8,20 @@
         "\"(?<depName>[\\w-]+/[\\w-]+)@(?<currentValue>[\\w.]+)\""
       ],
       "datasourceTemplate": "github-tags",
-      "depTypeTemplate": "action"
+      "depTypeTemplate": "action",
+      "versioningTemplate": "regex:^v(?<major>\\d+)$"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchCurrentVersion": "v5",
+      "enabled": false
+    },
+    {
+      "matchDatasources": ["github-tags"],
+      "matchDepTypes": ["action"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "enabled": false
     }
   ]
 }
