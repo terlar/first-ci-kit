@@ -174,6 +174,7 @@
   test-github-actions-job-custom-checkout-action = {
     expr = test-lib.eval-github-actions {
       pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      # renovate:ignore
       pipeline.github-actions.checkoutAction = "actions/checkout@v5";
       jobs.job1 = {
         checkout = true;
@@ -184,6 +185,7 @@
       jobs.job1 = {
         runs-on = "ubuntu-latest";
         steps = [
+          # renovate:ignore
           { uses = "actions/checkout@v5"; }
           { run = "echo hello"; }
         ];
@@ -194,6 +196,7 @@
   test-github-actions-changes-job-uses-custom-checkout-action = {
     expr = test-lib.eval-github-actions {
       pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      # renovate:ignore
       pipeline.github-actions.checkoutAction = "actions/checkout@v5";
       jobs = {
         job-a = {
@@ -210,6 +213,7 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
+            # renovate:ignore
             { uses = "actions/checkout@v5"; }
             {
               id = "diff";
@@ -224,6 +228,7 @@
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
+            # renovate:ignore
             { uses = "actions/checkout@v5"; }
           ];
         };

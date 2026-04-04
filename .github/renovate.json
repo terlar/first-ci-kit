@@ -1,0 +1,12 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "regexManagers": [
+    {
+      "fileMatch": ["\\.nix$"],
+      "matchStrings": [
+        "\"(?<depName>[\\w-]+/[\\w-]+)@(?<currentValue>[\\w.]+)\""
+      ],
+      "datasourceTemplate": "github-runners"
+    }
+  ]
+}

@@ -73,6 +73,7 @@ in
           type = types.str;
           default = "actions/checkout@v6";
           description = "The default checkout action to use for jobs";
+          # renovate:ignore
           example = "actions/checkout@v5";
         };
 
