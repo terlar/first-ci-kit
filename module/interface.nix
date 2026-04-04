@@ -71,7 +71,7 @@ in
 
         checkoutAction = lib.mkOption {
           type = types.str;
-          default = "actions/checkout@v4";
+          default = "actions/checkout@v6";
           description = "The default checkout action to use for jobs";
           example = "actions/checkout@v5";
         };

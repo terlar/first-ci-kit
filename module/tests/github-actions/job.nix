@@ -13,7 +13,7 @@
       jobs.job1 = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v4"; }
+          { uses = "actions/checkout@v6"; }
           { run = "echo 'Run your script here'"; }
         ];
       };
@@ -33,11 +33,11 @@
     expected = {
       jobs = {
         job_a = {
-          steps = [ { uses = "actions/checkout@v4"; } ];
+          steps = [ { uses = "actions/checkout@v6"; } ];
         };
         job_b = {
           needs = [ "job_a" ];
-          steps = [ { uses = "actions/checkout@v4"; } ];
+          steps = [ { uses = "actions/checkout@v6"; } ];
         };
       };
     };
@@ -57,11 +57,11 @@
     expected = {
       jobs = {
         job-a = {
-          steps = [ { uses = "actions/checkout@v4"; } ];
+          steps = [ { uses = "actions/checkout@v6"; } ];
         };
         job-c = {
           needs = [ "job-a" ];
-          steps = [ { uses = "actions/checkout@v4"; } ];
+          steps = [ { uses = "actions/checkout@v6"; } ];
         };
       };
     };
@@ -75,11 +75,11 @@
     expected = {
       jobs = {
         job-a = {
-          steps = [ { uses = "actions/checkout@v4"; } ];
+          steps = [ { uses = "actions/checkout@v6"; } ];
         };
         job-b = {
           needs = [ "job-a" ];
-          steps = [ { uses = "actions/checkout@v4"; } ];
+          steps = [ { uses = "actions/checkout@v6"; } ];
         };
       };
     };
@@ -91,7 +91,7 @@
     };
 
     expected = {
-      jobs.job-a.steps = [ { uses = "actions/checkout@v4"; } ];
+      jobs.job-a.steps = [ { uses = "actions/checkout@v6"; } ];
     };
   };
 
@@ -105,9 +105,9 @@
 
     expected = {
       jobs = {
-        job-a.steps = [ { uses = "actions/checkout@v4"; } ];
+        job-a.steps = [ { uses = "actions/checkout@v6"; } ];
         job-b = {
-          steps = [ { uses = "actions/checkout@v4"; } ];
+          steps = [ { uses = "actions/checkout@v6"; } ];
           needs = [ "job-a" ];
         };
       };
@@ -142,7 +142,7 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v4"; }
+            { uses = "actions/checkout@v6"; }
             {
               id = "diff";
               shell = "bash";
@@ -157,14 +157,14 @@
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v4"; }
+            { uses = "actions/checkout@v6"; }
           ];
         };
 
         job-b = {
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v4"; }
+            { uses = "actions/checkout@v6"; }
           ];
         };
       };
