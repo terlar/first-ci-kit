@@ -170,4 +170,64 @@
       };
     };
   };
+
+  test-github-actions-job-custom-checkout-action = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      pipeline.github-actions.checkoutAction = "actions/checkout@v5";
+      jobs.job1 = {
+        checkout = true;
+        commands = [ "echo hello" ];
+      };
+    };
+    expected = {
+      jobs.job1 = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          { uses = "actions/checkout@v5"; }
+          { run = "echo hello"; }
+        ];
+      };
+    };
+  };
+
+  test-github-actions-changes-job-uses-custom-checkout-action = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      pipeline.github-actions.checkoutAction = "actions/checkout@v5";
+      jobs = {
+        job-a = {
+          branches.default = {
+            changes.paths = [ "src/**" ];
+            triggers.onMergeRequest = true;
+          };
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v5"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env.PATHS = "job-a:src/**";
+              run = builtins.readFile ../../jobs/github-actions/diff-script;
+            }
+          ];
+        };
+        job-a = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v5"; }
+          ];
+        };
+      };
+    };
+  };
 }

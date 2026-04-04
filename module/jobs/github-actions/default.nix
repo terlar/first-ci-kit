@@ -1,6 +1,7 @@
 { lib, config, ... }:
 
 let
+  inherit (config.pipeline.github-actions) checkoutAction;
   enabledJobs = lib.filterAttrs (_: builtins.getAttr "enable") config.jobs;
 
   changes = lib.pipe enabledJobs [
@@ -17,7 +18,7 @@ in
         outputs.changes = "\${{ steps.diff.outputs.changes }}";
         runs-on = config.pipeline.github-actions.defaultRunsOn;
         steps = [
-          { uses = "actions/checkout@v4"; }
+          { uses = checkoutAction; }
           {
             id = "diff";
             shell = "bash";

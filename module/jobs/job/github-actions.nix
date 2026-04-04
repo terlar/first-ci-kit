@@ -8,7 +8,7 @@
 
 let
   inherit (rootConfig) jobs;
-  inherit (rootConfig.pipeline.github-actions) defaultRunsOn transformJobName;
+  inherit (rootConfig.pipeline.github-actions) defaultRunsOn transformJobName checkoutAction;
 
   needs = lib.pipe config.needs [
     (builtins.filter (need: jobs.${need.job}.enable))
@@ -24,7 +24,7 @@ in
       runs-on = lib.mkIf (defaultRunsOn != null) (lib.mkDefault defaultRunsOn);
 
       steps = lib.mkMerge [
-        (lib.mkIf config.checkout (lib.mkBefore [ { uses = "actions/checkout@v4"; } ]))
+        (lib.mkIf config.checkout (lib.mkBefore [ { uses = checkoutAction; } ]))
         (lib.mkAfter (map (command: { run = command; }) config.commands))
       ];
     }
