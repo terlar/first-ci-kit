@@ -69,6 +69,13 @@ in
           description = "A function to transform job names";
         };
 
+        checkoutAction = lib.mkOption {
+          type = types.str;
+          default = "actions/checkout@v6";
+          description = "The default checkout action to use for jobs";
+          example = "actions/checkout@v5";
+        };
+
         file = lib.mkOption {
           internal = true;
           type = types.package;

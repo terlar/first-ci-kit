@@ -579,6 +579,32 @@ list of string
 
 
 
+## pipeline\.github-actions\.checkoutAction
+
+
+
+The default checkout action to use for jobs
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "actions/checkout@v6" `
+
+
+
+*Example:*
+` "actions/checkout@v5" `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## pipeline\.github-actions\.defaultRunsOn
 
 
