@@ -45,7 +45,7 @@
           github-actions = {
             steps = [
               {
-                uses = "cachix/install-nix-action@v31";
+                uses = "cachix/install-nix-action@v31.10.3";
                 "with" = {
                   extra_nix_config = ''
                     max-jobs = auto
