@@ -12,19 +12,23 @@ let
     }:
     let
       writePipelineGenerator =
-        { name, hook }:
+        { backend, pipelines }:
         pkgs.writeShellApplication {
-          name = "generate-${name}";
+          name = "generate-${backend}";
           runtimeInputs = [ pkgs.yq-go ];
-          text = ''
-            out="$(nix build --extra-experimental-features 'nix-command flakes' \
-              --print-out-paths \
-              .#ci-pipeline-${name}-${hook.settings.pipeline}
-            )"
+          text =
+            let
+              generatePipeline = name: outputPath: ''
+                out="$(nix build --extra-experimental-features 'nix-command flakes' \
+                  --print-out-paths \
+                  .#ci-pipeline-${backend}-${name}
+                )"
 
-            mkdir -p "$(dirname "${hook.settings.outputPath}")"
-            yq --prettyPrint --output-format yaml "$out" > "${hook.settings.outputPath}"
-          '';
+                mkdir -p "$(dirname "${outputPath}")"
+                yq --prettyPrint --output-format yaml "$out" > "${outputPath}"
+              '';
+            in
+            lib.concatStringsSep "\n" (lib.mapAttrsToList generatePipeline pipelines);
         };
     in
     {
@@ -34,18 +38,18 @@ let
           type = types.submodule {
             imports = [ hookModule ];
             options.settings = {
-              pipeline = lib.mkOption {
-                type = types.str;
-                description = "The pipeline to generate.";
-                default = "default";
-                example = "pr";
-              };
-
-              outputPath = lib.mkOption {
-                type = types.str;
-                description = "The path of the output file generated.";
-                default = ".github/workflows/ci.yaml";
-                example = ".github/workflows/example.yaml";
+              pipelines = lib.mkOption {
+                type = types.attrsOf types.str;
+                default = {
+                  default = ".github/workflows/ci.yaml";
+                };
+                description = "Pipeline name to output path mapping.";
+                example = lib.literalExpression ''
+                  {
+                    default = ".github/workflows/ci.yaml";
+                    nightly = ".github/workflows/nightly.yaml";
+                  }
+                '';
               };
             };
           };
@@ -56,18 +60,18 @@ let
           type = types.submodule {
             imports = [ hookModule ];
             options.settings = {
-              pipeline = lib.mkOption {
-                type = types.str;
-                description = "The pipeline to generate.";
-                default = "default";
-                example = "pr";
-              };
-
-              outputPath = lib.mkOption {
-                type = types.str;
-                description = "The path of the output file generated.";
-                default = ".gitlab-ci.yml";
-                example = ".gitlab/ci.yml";
+              pipelines = lib.mkOption {
+                type = types.attrsOf types.str;
+                default = {
+                  default = ".gitlab-ci.yml";
+                };
+                description = "Pipeline name to output path mapping.";
+                example = lib.literalExpression ''
+                  {
+                    default = ".gitlab-ci.yml";
+                    pr = ".gitlab/ci-pr.yml";
+                  }
+                '';
               };
             };
           };
@@ -79,8 +83,8 @@ let
           name = "generate-github-actions";
           description = "generate GitHub Actions workflow";
           package = writePipelineGenerator {
-            name = "github-actions";
-            hook = config.hooks.first-ci-kit-gen-github-actions;
+            backend = "github-actions";
+            inherit (config.hooks.first-ci-kit-gen-github-actions.settings) pipelines;
           };
           entry = "${config.hooks.first-ci-kit-gen-github-actions.package}/bin/generate-github-actions";
           files = lib.mkDefault "\\.nix$";
@@ -91,8 +95,8 @@ let
           name = "generate-gitlab-ci";
           description = "generate GitLab CI pipeline";
           package = writePipelineGenerator {
-            name = "gitlab-ci";
-            hook = config.hooks.first-ci-kit-gen-gitlab-ci;
+            backend = "gitlab-ci";
+            inherit (config.hooks.first-ci-kit-gen-gitlab-ci.settings) pipelines;
           };
           entry = "${config.hooks.first-ci-kit-gen-gitlab-ci.package}/bin/generate-gitlab-ci";
           files = lib.mkDefault "\\.nix$";
