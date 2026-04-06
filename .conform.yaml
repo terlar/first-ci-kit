@@ -21,6 +21,7 @@ policies:
           - style
           - test
         scopes:
+          - extra
           - github
           - gitlab
           - job
