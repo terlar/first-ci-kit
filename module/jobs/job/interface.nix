@@ -138,7 +138,7 @@ in
             options = {
               enable = lib.mkOption {
                 type = types.bool;
-                default = config.enable;
+                default = true;
                 description = "Whether the job is enabled for GitHub Actions.";
               };
             };
@@ -157,7 +157,7 @@ in
             options = {
               enable = lib.mkOption {
                 type = types.bool;
-                default = config.enable;
+                default = true;
                 description = "Whether the job is enabled for GitLab CI.";
               };
             };
@@ -176,7 +176,7 @@ in
             options = {
               enable = lib.mkOption {
                 type = types.bool;
-                default = config.enable;
+                default = true;
                 description = "Whether the job is enabled for process-compose.";
               };
             };

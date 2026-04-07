@@ -16,7 +16,7 @@ let
   triggersBranchConfig = map (job: jobs.${job}.branches) config.triggers;
 in
 {
-  config.gitlab-ci = lib.mkIf config.enable {
+  config.gitlab-ci = {
     stage = lib.mkIf (defaultStage != null) (lib.mkDefault defaultStage);
     needs = lib.mkIf (needs != [ ]) needs;
 

@@ -19,7 +19,7 @@ in
 {
   imports = [ ./interface.nix ];
 
-  config.process-compose = lib.mkIf config.enable {
+  config.process-compose = {
     inherit depends_on;
 
     command = builtins.concatStringsSep "\n" config.commands;
