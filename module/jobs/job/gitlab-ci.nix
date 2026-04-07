@@ -10,13 +10,13 @@ let
   inherit (rootConfig.pipeline.gitlab-ci) defaultStage transformJobName;
 
   needs = lib.pipe config.needs [
-    (builtins.filter (need: jobs.${need.job}.enable))
+    (builtins.filter (need: jobs.${need.job}.enable && jobs.${need.job}.gitlab-ci.enable))
     (map (need: need // { job = transformJobName need.job; }))
   ];
   triggersBranchConfig = map (job: jobs.${job}.branches) config.triggers;
 in
 {
-  config.gitlab-ci = {
+  config.gitlab-ci = lib.mkIf config.enable {
     stage = lib.mkIf (defaultStage != null) (lib.mkDefault defaultStage);
     needs = lib.mkIf (needs != [ ]) needs;
 

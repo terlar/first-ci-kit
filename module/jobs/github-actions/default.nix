@@ -31,7 +31,7 @@ in
 
     (lib.mapAttrs' (name: job: {
       name = config.pipeline.github-actions.transformJobName name;
-      value = job.github-actions;
+      value = lib.filterAttrs (n: _: n != "enable") job.github-actions;
     }) enabledJobs)
   ];
 }

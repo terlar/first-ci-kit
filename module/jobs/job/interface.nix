@@ -2,6 +2,7 @@
   lib,
   name,
   rootConfig,
+  config,
   ...
 }:
 
@@ -131,19 +132,58 @@ in
     };
 
     github-actions = lib.mkOption {
-      type = rootConfig.types.yamlType;
+      type = types.submoduleWith {
+        modules = [
+          {
+            options = {
+              enable = lib.mkOption {
+                type = types.bool;
+                default = config.enable;
+                description = "Whether the job is enabled for GitHub Actions.";
+              };
+            };
+            config._module.freeformType = rootConfig.types.yamlType;
+          }
+        ];
+      };
       default = { };
       description = "Job configuration targeting GitHub Actions.";
     };
 
     gitlab-ci = lib.mkOption {
-      type = rootConfig.types.yamlType;
+      type = types.submoduleWith {
+        modules = [
+          {
+            options = {
+              enable = lib.mkOption {
+                type = types.bool;
+                default = config.enable;
+                description = "Whether the job is enabled for GitLab CI.";
+              };
+            };
+            config._module.freeformType = rootConfig.types.yamlType;
+          }
+        ];
+      };
       default = { };
       description = "Job configuration targeting GitLab CI.";
     };
 
     process-compose = lib.mkOption {
-      type = types.deferredModule;
+      type = types.submoduleWith {
+        modules = [
+          {
+            options = {
+              enable = lib.mkOption {
+                type = types.bool;
+                default = config.enable;
+                description = "Whether the job is enabled for process-compose.";
+              };
+            };
+            config._module.freeformType = types.deferredModule;
+          }
+        ];
+      };
       default = { };
       description = "Job configuration targeting process-compose.";
     };

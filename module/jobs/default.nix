@@ -12,11 +12,13 @@ in
   config.pipeline = {
     gitlab-ci.settings = lib.mapAttrs' (name: job: {
       name = config.pipeline.gitlab-ci.transformJobName name;
-      value = job.gitlab-ci;
+      value = lib.filterAttrs (n: _: n != "enable") job.gitlab-ci;
     }) enabledJobs;
 
     process-compose.settings = {
-      processes = lib.mapAttrs (_: job: job.process-compose) enabledJobs;
+      processes = lib.mapAttrs (
+        _: job: lib.filterAttrs (n: _: n != "enable") job.process-compose
+      ) enabledJobs;
     };
   };
 }
