@@ -369,6 +369,27 @@ YAML value
 
 
 
+## jobs\.\<name>\.github-actions\.enable
+
+
+
+Whether the job is enabled for GitHub Actions\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.gitlab-ci
 
 
@@ -384,6 +405,27 @@ YAML value
 
 *Default:*
 ` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.gitlab-ci\.enable
+
+
+
+Whether the job is enabled for GitLab CI\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -531,6 +573,27 @@ module
 
 *Default:*
 ` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.process-compose\.enable
+
+
+
+Whether the job is enabled for process-compose\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
