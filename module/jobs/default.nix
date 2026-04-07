@@ -1,7 +1,8 @@
 { lib, config, ... }:
 
 let
-  enabledJobs = lib.filterAttrs (_: builtins.getAttr "enable") config.jobs;
+  enabledForBackend =
+    backend: lib.filterAttrs (_: job: job.enable && job.${backend}.enable) config.jobs;
 in
 {
   imports = [
@@ -12,11 +13,13 @@ in
   config.pipeline = {
     gitlab-ci.settings = lib.mapAttrs' (name: job: {
       name = config.pipeline.gitlab-ci.transformJobName name;
-      value = job.gitlab-ci;
-    }) enabledJobs;
+      value = builtins.removeAttrs job.gitlab-ci [ "enable" ];
+    }) (enabledForBackend "gitlab-ci");
 
     process-compose.settings = {
-      processes = lib.mapAttrs (_: job: job.process-compose) enabledJobs;
+      processes = lib.mapAttrs (_: job: builtins.removeAttrs job.process-compose [ "enable" ]) (
+        enabledForBackend "process-compose"
+      );
     };
   };
 }

@@ -2,7 +2,7 @@
 
 let
   inherit (config.pipeline.github-actions) checkoutAction;
-  enabledJobs = lib.filterAttrs (_: builtins.getAttr "enable") config.jobs;
+  enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
 
   changes = lib.pipe enabledJobs [
     (builtins.mapAttrs (_: job: job.branches.default.changes.paths or [ ]))
@@ -31,7 +31,7 @@ in
 
     (lib.mapAttrs' (name: job: {
       name = config.pipeline.github-actions.transformJobName name;
-      value = job.github-actions;
+      value = builtins.removeAttrs job.github-actions [ "enable" ];
     }) enabledJobs)
   ];
 }

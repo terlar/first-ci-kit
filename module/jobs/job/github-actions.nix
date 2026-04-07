@@ -11,7 +11,7 @@ let
   inherit (rootConfig.pipeline.github-actions) defaultRunsOn transformJobName checkoutAction;
 
   needs = lib.pipe config.needs [
-    (builtins.filter (need: jobs.${need.job}.enable))
+    (builtins.filter (need: jobs.${need.job}.enable && jobs.${need.job}.github-actions.enable))
     (builtins.catAttrs "job")
     (map transformJobName)
   ];

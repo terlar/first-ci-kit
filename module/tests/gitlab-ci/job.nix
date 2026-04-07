@@ -281,4 +281,55 @@
       job.environment = "test";
     };
   };
+
+  test-gitlab-ci-job-per-backend-disable = {
+    expr = test-lib.eval-gitlab-ci {
+      pipeline.gitlab-ci.defaultStage = "test";
+      jobs = {
+        job-a = {
+          commands = [ "echo job-a" ];
+        };
+        job-b = {
+          commands = [ "echo job-b" ];
+          gitlab-ci.enable = false;
+        };
+        job-c = {
+          commands = [ "echo job-c" ];
+          needs = [ { job = "job-b"; } ];
+        };
+      };
+    };
+    expected = {
+      job-a = {
+        stage = "test";
+        script = [ "echo job-a" ];
+      };
+      job-c = {
+        stage = "test";
+        script = [ "echo job-c" ];
+      };
+    };
+  };
+
+  test-gitlab-ci-job-global-disable-overrides-per-backend-enable = {
+    expr = test-lib.eval-gitlab-ci {
+      pipeline.gitlab-ci.defaultStage = "test";
+      jobs = {
+        job-a = {
+          commands = [ "echo job-a" ];
+        };
+        job-b = {
+          commands = [ "echo job-b" ];
+          enable = false;
+          gitlab-ci.enable = true;
+        };
+      };
+    };
+    expected = {
+      job-a = {
+        stage = "test";
+        script = [ "echo job-a" ];
+      };
+    };
+  };
 }

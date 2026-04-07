@@ -230,4 +230,68 @@
       };
     };
   };
+
+  test-github-actions-job-per-backend-disable = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs = {
+        job-a = {
+          commands = [ "echo job-a" ];
+        };
+        job-b = {
+          commands = [ "echo job-b" ];
+          github-actions.enable = false;
+        };
+        job-c = {
+          commands = [ "echo job-c" ];
+          needs = [ { job = "job-b"; } ];
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        job-a = {
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            { run = "echo job-a"; }
+          ];
+        };
+        job-c = {
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            { run = "echo job-c"; }
+          ];
+        };
+      };
+    };
+  };
+
+  test-github-actions-job-global-disable-overrides-per-backend-enable = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs = {
+        job-a = {
+          commands = [ "echo job-a" ];
+        };
+        job-b = {
+          commands = [ "echo job-b" ];
+          enable = false;
+          github-actions.enable = true;
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        job-a = {
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            { run = "echo job-a"; }
+          ];
+        };
+      };
+    };
+  };
 }
