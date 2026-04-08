@@ -22,8 +22,12 @@ in
           {
             id = "diff";
             shell = "bash";
-            env.PATHS = builtins.concatStringsSep "\n" changes;
-            run = builtins.readFile ./diff-script;
+            env = {
+              DIFF_PATHS = builtins.concatStringsSep "\n" changes;
+              GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+              GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+            };
+            run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
           }
         ];
       };

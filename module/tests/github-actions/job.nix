@@ -146,8 +146,12 @@
             {
               id = "diff";
               shell = "bash";
-              env.PATHS = "job-a:config/**\\|terraform/**";
-              run = builtins.readFile ../../jobs/github-actions/diff-script;
+              env = {
+                DIFF_PATHS = "job-a:config/**\\|terraform/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
           ];
         };
@@ -214,8 +218,12 @@
             {
               id = "diff";
               shell = "bash";
-              env.PATHS = "job-a:src/**";
-              run = builtins.readFile ../../jobs/github-actions/diff-script;
+              env = {
+                DIFF_PATHS = "job-a:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
           ];
         };
@@ -318,8 +326,12 @@
             {
               id = "diff";
               shell = "bash";
-              env.PATHS = "job-b:src/**";
-              run = builtins.readFile ../../jobs/github-actions/diff-script;
+              env = {
+                DIFF_PATHS = "job-b:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
           ];
         };
@@ -367,8 +379,12 @@
             {
               id = "diff";
               shell = "bash";
-              env.PATHS = "job-b:src/**";
-              run = builtins.readFile ../../jobs/github-actions/diff-script;
+              env = {
+                DIFF_PATHS = "job-b:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
           ];
         };

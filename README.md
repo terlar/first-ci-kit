@@ -31,3 +31,5 @@ Generation targets:
 
 - Strategy
 - Stages
+
+- Strategy for how pipeline should be generated?

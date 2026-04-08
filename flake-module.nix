@@ -12,15 +12,21 @@ in
     };
   };
 
-  config.perSystem.legacyPackages = lib.mkMerge [
-    (lib.mapAttrs' (name: value: {
-      name = "ci-pipeline-github-actions-${name}";
-      value = value.pipeline.github-actions.file;
-    }) config.first-ci-kit.pipelines)
+  config.perSystem =
+    { pkgs, ... }:
+    {
+      packages.gha-path-changes = pkgs.callPackage ./packages/gha-path-changes { };
 
-    (lib.mapAttrs' (name: value: {
-      name = "ci-pipeline-gitlab-ci-${name}";
-      value = value.pipeline.gitlab-ci.file;
-    }) config.first-ci-kit.pipelines)
-  ];
+      legacyPackages = lib.mkMerge [
+        (lib.mapAttrs' (name: value: {
+          name = "ci-pipeline-github-actions-${name}";
+          value = value.pipeline.github-actions.file;
+        }) config.first-ci-kit.pipelines)
+
+        (lib.mapAttrs' (name: value: {
+          name = "ci-pipeline-gitlab-ci-${name}";
+          value = value.pipeline.gitlab-ci.file;
+        }) config.first-ci-kit.pipelines)
+      ];
+    };
 }
