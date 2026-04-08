@@ -14,7 +14,7 @@ esac
 files=$(git diff --name-only --diff-filter=d "${first_commit}" "${last_commit}")
 change_lines=()
 for p in $PATHS; do
-  group="${p%%:*}"
+  group="${p%:*}"
   pattern="${p#*:}"
   if echo $files | grep "$pattern"; then
     change_lines+=("\"$group\":true")
