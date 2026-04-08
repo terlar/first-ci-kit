@@ -12,14 +12,26 @@ let
 
   needs = lib.pipe config.needs [
     (builtins.filter (need: jobs.${need.job}.enable && jobs.${need.job}.github-actions.enable))
+    (map (need: need // { job = transformJobName need.job; }))
+  ];
+
+  needJobs = builtins.catAttrs "job" needs;
+  optionalNeedJobs = lib.pipe needs [
+    (builtins.filter (need: need.optional))
     (builtins.catAttrs "job")
-    (map transformJobName)
+  ];
+
+  hasChanges = (config.branches.default.changes.paths or [ ]) != [ ];
+
+  conditions = lib.pipe optionalNeedJobs [
+    (map (job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')"))
+    (lib.concat (lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${name}'] == true"))
   ];
 in
 {
   config.github-actions = lib.mkMerge [
     {
-      needs = lib.mkIf (needs != [ ]) needs;
+      needs = lib.mkIf (needJobs != [ ]) needJobs;
 
       runs-on = lib.mkIf (defaultRunsOn != null) (lib.mkDefault defaultRunsOn);
 
@@ -29,9 +41,12 @@ in
       ];
     }
 
-    (lib.mkIf ((config.branches.default.changes.paths or [ ]) != [ ]) {
+    (lib.mkIf hasChanges {
       needs = [ "changes" ];
-      "if" = "\${{ fromJSON(needs.changes.outputs.changes)['${name}'] == true }}";
+    })
+
+    (lib.mkIf (conditions != [ ]) {
+      "if" = "\${{ ${lib.concatStringsSep " && " conditions} }}";
     })
   ];
 }

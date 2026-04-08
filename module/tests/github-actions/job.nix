@@ -268,6 +268,127 @@
     };
   };
 
+  test-github-actions-job-with-optional-need = {
+    expr = test-lib.eval-github-actions {
+      jobs.job-a = { };
+      jobs.job-b.needs = [
+        {
+          job = "job-a";
+          optional = true;
+        }
+      ];
+    };
+    expected = {
+      jobs = {
+        job-a = {
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+        job-b = {
+          needs = [ "job-a" ];
+          "if" = ''''${{ (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  test-github-actions-job-with-changes-and-optional-need = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs = {
+        job-a = { };
+        job-b = {
+          branches.default.changes.paths = [ "src/**" ];
+          needs = [
+            {
+              job = "job-a";
+              optional = true;
+            }
+          ];
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env.PATHS = "job-b:src/**";
+              run = builtins.readFile ../../jobs/github-actions/diff-script;
+            }
+          ];
+        };
+        job-a = {
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+        job-b = {
+          needs = [
+            "changes"
+            "job-a"
+          ];
+          "if" =
+            ''''${{ fromJSON(needs.changes.outputs.changes)['job-b'] == true && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  test-github-actions-job-with-changes-and-non-optional-need = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs = {
+        job-a = { };
+        job-b = {
+          branches.default.changes.paths = [ "src/**" ];
+          needs = [
+            {
+              job = "job-a";
+              optional = false;
+            }
+          ];
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env.PATHS = "job-b:src/**";
+              run = builtins.readFile ../../jobs/github-actions/diff-script;
+            }
+          ];
+        };
+        job-a = {
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+        job-b = {
+          needs = [
+            "changes"
+            "job-a"
+          ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-b'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
   test-github-actions-job-global-disable-overrides-per-backend-enable = {
     expr = test-lib.eval-github-actions {
       pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
