@@ -40,11 +40,15 @@ let
     jsName: js:
     let
       # For each needed job-set: if it's also reusable, use its name;
-      # otherwise expand to individual job names.
+      # otherwise expand to individual job names (with transformJobName applied).
       callerNeeds = lib.unique (
         lib.pipe js.needs [
           (builtins.concatMap (
-            { jobSet }: if reusableJobSets ? ${jobSet} then [ jobSet ] else config.jobSets.${jobSet}.jobs
+            { jobSet }:
+            if reusableJobSets ? ${jobSet} then
+              [ jobSet ]
+            else
+              map transformJobName config.jobSets.${jobSet}.jobs
           ))
         ]
       );
@@ -55,6 +59,9 @@ let
     }
     // lib.optionalAttrs (callerNeeds != [ ]) { needs = callerNeeds; };
 
+  # Job-set names are used as-is (not run through transformJobName) because they
+  # also serve as the reusable workflow filename and cross-set needs references.
+  # Job-set names must already be valid GitHub Actions job identifiers.
   callerJobSetJobs = lib.mapAttrs callerJobForJobSet reusableJobSets;
 
   # -----------------------------------------------------------------------

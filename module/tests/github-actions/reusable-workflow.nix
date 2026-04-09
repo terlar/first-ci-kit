@@ -123,6 +123,63 @@
     };
   };
 
+  # Reusable workflow with jobs that have changes.paths gets a changes job inside
+  test-github-actions-reusable-workflow-with-changes = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
+          jobs = {
+            job-a = {
+              tags = [ "myset" ];
+              commands = [ "echo hello" ];
+              branches.default.changes.paths = [ "src/**" ];
+            };
+          };
+
+          jobSets.myset = {
+            tags = [ "myset" ];
+            github-actions.reusableWorkflow = true;
+          };
+        };
+      in
+      cfg.pipeline.github-actions.reusableWorkflowSettings;
+    expected = {
+      myset = {
+        on.workflow_call = { };
+        jobs = {
+          changes = {
+            outputs.changes = "\${{ steps.diff.outputs.changes }}";
+            runs-on = "ubuntu-latest";
+            steps = [
+              { uses = "actions/checkout@v6"; }
+              {
+                id = "diff";
+                shell = "bash";
+                env = {
+                  DIFF_PATHS = "job-a:src/**";
+                  GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                  GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                };
+                run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+              }
+            ];
+          };
+          job-a = {
+            needs = [ "changes" ];
+            "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+            runs-on = "ubuntu-latest";
+            steps = [
+              { uses = "actions/checkout@v6"; }
+              { run = "echo hello"; }
+            ];
+          };
+        };
+      };
+    };
+  };
+
   # Mixed: inline job appears as-is, reusable job-set appears as workflow_call job
   test-github-actions-reusable-workflow-mixed = {
     expr = test-lib.eval-github-actions {
