@@ -23,15 +23,30 @@ in
           value = value.pipeline.github-actions.file;
         }) config.first-ci-kit.pipelines)
 
-        (lib.mkMerge (
-          lib.mapAttrsToList (
-            pipelineName: pipeline:
-            lib.mapAttrs' (jobSetName: file: {
-              name = "ci-pipeline-github-actions-${pipelineName}-${jobSetName}";
-              value = file;
-            }) pipeline.pipeline.github-actions.reusableWorkflowFiles
-          ) config.first-ci-kit.pipelines
-        ))
+        (lib.mapAttrs' (
+          pipelineName: pipeline:
+          let
+            inherit (pipeline.pipeline.github-actions) reusableWorkflowFiles;
+          in
+          {
+            name = "ci-pipeline-github-actions-${pipelineName}-reusable-workflows";
+            value =
+              pkgs.runCommand "reusable-workflows-${pipelineName}"
+                {
+                  nativeBuildInputs = [ pkgs.yq-go ];
+                }
+                (
+                  ''
+                    mkdir -p $out
+                  ''
+                  + lib.concatStrings (
+                    lib.mapAttrsToList (jobSetName: file: ''
+                      yq --prettyPrint --output-format yaml ${file} > $out/${jobSetName}.yml
+                    '') reusableWorkflowFiles
+                  )
+                );
+          }
+        ) config.first-ci-kit.pipelines)
 
         (lib.mapAttrs' (name: value: {
           name = "ci-pipeline-gitlab-ci-${name}";
