@@ -59,6 +59,28 @@ lazy attribute set of (Job Set configuration)
 
 
 
+## jobSets\.\<name>\.github-actions\.reusableWorkflow
+
+
+
+When true, generate this job set as a standalone reusable workflow file
+instead of inlining its jobs into the main ci\.yml\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+*Declared by:*
+ - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
+
+
+
 ## jobSets\.\<name>\.jobDefaults
 
 

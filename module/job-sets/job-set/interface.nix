@@ -44,5 +44,16 @@ in
       default = [ ];
       description = "List of tags associated with the job set";
     };
+
+    github-actions = {
+      reusableWorkflow = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          When true, generate this job set as a standalone reusable workflow file
+          instead of inlining its jobs into the main ci.yml.
+        '';
+      };
+    };
   };
 }
