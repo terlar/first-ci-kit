@@ -101,6 +101,65 @@
     };
   };
 
+  # Non-reusable job-set whose jobs all live inside reusable workflows:
+  # reusable set-c needs non-reusable "group" job-set, whose jobs belong to
+  # set-a and set-b (both reusable). The caller must emit the reusable job-set
+  # names, not the hidden individual job names (which would be invalid in ci.yaml).
+  test-github-actions-reusable-workflow-non-reusable-set-with-reusable-jobs = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
+      jobs = {
+        job-a.tags = [ "set-a" ];
+        job-b.tags = [ "set-b" ];
+        job-c.tags = [ "set-c" ];
+      };
+
+      jobSets = {
+        # "group" is NOT reusable, but its jobs (job-a, job-b) belong to reusable sets
+        group.tags = [
+          "set-a"
+          "set-b"
+        ];
+        set-a = {
+          tags = [ "set-a" ];
+          github-actions.reusableWorkflow = true;
+        };
+        set-b = {
+          tags = [ "set-b" ];
+          github-actions.reusableWorkflow = true;
+        };
+        set-c = {
+          tags = [ "set-c" ];
+          needs = [ { jobSet = "group"; } ];
+          github-actions.reusableWorkflow = true;
+        };
+      };
+    };
+    # set-c caller must depend on set-a and set-b (the reusable sets that contain
+    # group's jobs), not on the individual job names job-a / job-b
+    expected = {
+      jobs = {
+        set-a = {
+          uses = "./.github/workflows/set-a.yml";
+          secrets = "inherit";
+        };
+        set-b = {
+          uses = "./.github/workflows/set-b.yml";
+          secrets = "inherit";
+        };
+        set-c = {
+          uses = "./.github/workflows/set-c.yml";
+          secrets = "inherit";
+          needs = [
+            "set-a"
+            "set-b"
+          ];
+        };
+      };
+    };
+  };
+
   # Non-opted-in job-sets continue to inline their jobs as before (no regression)
   test-github-actions-reusable-workflow-inline-jobs-unchanged = {
     expr = test-lib.eval-github-actions {

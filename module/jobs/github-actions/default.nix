@@ -15,6 +15,15 @@ let
     (builtins.concatMap (js: js.jobs))
   ]) (_: true);
 
+  # Reverse lookup: raw job name → the reusable job-set name that contains it.
+  # Used to map individual job names back to their reusable job-set when building
+  # caller needs from non-reusable job-set expansions.
+  jobNameToReusableJobSet = lib.pipe reusableJobSets [
+    (lib.mapAttrsToList (jsName: js: map (jobName: lib.nameValuePair jobName jsName) js.jobs))
+    lib.flatten
+    builtins.listToAttrs
+  ];
+
   # Jobs NOT in any reusable job-set → render inline in settings.jobs
   inlineEnabledJobs = lib.filterAttrs (name: _: !(reusableJobNames ? ${name})) enabledJobs;
 
@@ -39,15 +48,19 @@ let
   callerJobForJobSet =
     jsName: js:
     let
-      # For each needed job-set: if it's also reusable, use its name;
-      # otherwise expand to individual job names (with transformJobName applied).
+      # For each needed job-set: if it's also reusable, use its name directly.
+      # Otherwise expand to individual job names — but each expanded job may itself
+      # live inside a reusable workflow, in which case we emit the reusable job-set
+      # name rather than the (now-hidden) individual job name.
       callerNeedsFromJobSets = lib.pipe js.needs [
         (builtins.concatMap (
           { jobSet }:
           if reusableJobSets ? ${jobSet} then
             [ jobSet ]
           else
-            map transformJobName config.jobSets.${jobSet}.jobs
+            map (
+              jobName: jobNameToReusableJobSet.${jobName} or (transformJobName jobName)
+            ) config.jobSets.${jobSet}.jobs
         ))
       ];
 
