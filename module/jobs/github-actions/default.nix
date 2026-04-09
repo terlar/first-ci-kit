@@ -41,17 +41,33 @@ let
     let
       # For each needed job-set: if it's also reusable, use its name;
       # otherwise expand to individual job names (with transformJobName applied).
-      callerNeeds = lib.unique (
-        lib.pipe js.needs [
-          (builtins.concatMap (
-            { jobSet }:
-            if reusableJobSets ? ${jobSet} then
-              [ jobSet ]
-            else
-              map transformJobName config.jobSets.${jobSet}.jobs
-          ))
-        ]
-      );
+      callerNeedsFromJobSets = lib.pipe js.needs [
+        (builtins.concatMap (
+          { jobSet }:
+          if reusableJobSets ? ${jobSet} then
+            [ jobSet ]
+          else
+            map transformJobName config.jobSets.${jobSet}.jobs
+        ))
+      ];
+
+      # Also collect inline job dependencies from individual jobs in this job-set:
+      # if a job inside this reusable workflow needs an inline job (not in any
+      # reusable job-set), that ordering must be expressed at the caller level.
+      callerNeedsFromInlineJobDeps = lib.pipe js.jobs [
+        (builtins.concatMap (
+          jobName:
+          let
+            job = config.jobs.${jobName};
+          in
+          lib.pipe job.needs [
+            (builtins.filter (need: need.job != null && !(reusableJobNames ? ${need.job})))
+            (map (need: transformJobName need.job))
+          ]
+        ))
+      ];
+
+      callerNeeds = lib.unique (callerNeedsFromJobSets ++ callerNeedsFromInlineJobDeps);
     in
     {
       uses = "./.github/workflows/${jsName}.yml";

@@ -180,6 +180,51 @@
     };
   };
 
+  # Inline job dependencies of reusable job-set jobs surface at the caller level:
+  # if a job inside a reusable workflow needs an inline job (not in any reusable
+  # job-set), the caller workflow_call job must wait for it via `needs`.
+  test-github-actions-reusable-workflow-inline-dep-in-caller-needs = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
+      jobs = {
+        validate.commands = [ "echo validate" ];
+        plan = {
+          tags = [ "myset" ];
+          commands = [ "echo plan" ];
+          needs = [
+            {
+              job = "validate";
+              optional = true;
+            }
+          ];
+        };
+      };
+
+      jobSets.myset = {
+        tags = [ "myset" ];
+        github-actions.reusableWorkflow = true;
+      };
+    };
+    # The caller job for myset must list `validate` in its needs
+    expected = {
+      jobs = {
+        validate = {
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            { run = "echo validate"; }
+          ];
+        };
+        myset = {
+          uses = "./.github/workflows/myset.yml";
+          secrets = "inherit";
+          needs = [ "validate" ];
+        };
+      };
+    };
+  };
+
   # Cross-job-set needs are stripped from jobs inside a reusable workflow:
   # job-b (in set-b) has a job-level need on job-a (in set-a). Since set-a is
   # also reusable, job-b's need on job-a must be stripped from the reusable
