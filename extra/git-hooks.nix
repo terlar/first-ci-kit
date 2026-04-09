@@ -15,7 +15,7 @@ let
         {
           backend,
           pipelines,
-          reusableWorkflows ? { },
+          reusableWorkflowsDir ? { },
         }:
         pkgs.writeShellApplication {
           name = "generate-${backend}";
@@ -32,23 +32,21 @@ let
                 yq --prettyPrint --output-format yaml "$out" > "${outputPath}"
               '';
 
-              generateReusableWorkflow =
-                pipelineName: jobsets:
-                lib.concatStringsSep "\n" (
-                  lib.mapAttrsToList (jobSetName: outputPath: ''
-                    rwout="$(nix build --extra-experimental-features 'nix-command flakes' \
-                      --print-out-paths \
-                      .#ci-pipeline-${backend}-${pipelineName}-${jobSetName}
-                    )"
+              generateReusableWorkflowsDir = pipelineName: outputDir: ''
+                rwdir="$(nix build --extra-experimental-features 'nix-command flakes' \
+                  --print-out-paths \
+                  .#ci-pipeline-${backend}-${pipelineName}-reusable-workflows
+                )"
 
-                    mkdir -p "$(dirname "${outputPath}")"
-                    yq --prettyPrint --output-format yaml "$rwout" > "${outputPath}"
-                  '') jobsets
-                );
+                mkdir -p "${outputDir}"
+                if ls "$rwdir"/*.yml 2>/dev/null; then
+                  cp --no-preserve=all "$rwdir"/*.yml "${outputDir}/"
+                fi
+              '';
             in
             lib.concatStringsSep "\n" (
               lib.mapAttrsToList generatePipeline pipelines
-              ++ lib.mapAttrsToList generateReusableWorkflow reusableWorkflows
+              ++ lib.mapAttrsToList generateReusableWorkflowsDir reusableWorkflowsDir
             );
         };
     in
@@ -73,20 +71,17 @@ let
                 '';
               };
               # GitHub Actions only — reusable workflows are a GitHub Actions concept.
-              reusableWorkflows = lib.mkOption {
-                type = types.attrsOf (types.attrsOf types.str);
+              reusableWorkflowsDir = lib.mkOption {
+                type = types.attrsOf types.str;
                 default = { };
                 description = ''
-                  Map of pipeline name to job-set name to output path for reusable workflow files.
-                  Each entry triggers building `.#ci-pipeline-github-actions-<pipeline>-<jobset>`
-                  and writes the result to the specified path.
+                  Map of pipeline name to output directory path for reusable workflow files.
+                  Each entry triggers a single build of `.#ci-pipeline-github-actions-<pipeline>-reusable-workflows`
+                  and copies all resulting `.yml` files into the specified directory.
                 '';
                 example = lib.literalExpression ''
                   {
-                    default = {
-                      "stack-a_cmp-a_dev" = ".github/workflows/stack-a_cmp-a_dev.yml";
-                      "stack-a_cmp-a_stg" = ".github/workflows/stack-a_cmp-a_stg.yml";
-                    };
+                    default = ".github/workflows";
                   }
                 '';
               };
@@ -123,7 +118,7 @@ let
           description = "generate GitHub Actions workflow";
           package = writePipelineGenerator {
             backend = "github-actions";
-            inherit (config.hooks.first-ci-kit-gen-github-actions.settings) pipelines reusableWorkflows;
+            inherit (config.hooks.first-ci-kit-gen-github-actions.settings) pipelines reusableWorkflowsDir;
           };
           entry = "${config.hooks.first-ci-kit-gen-github-actions.package}/bin/generate-github-actions";
           files = lib.mkDefault "\\.nix$";
