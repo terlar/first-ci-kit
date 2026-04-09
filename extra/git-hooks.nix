@@ -39,7 +39,7 @@ let
                 )"
 
                 mkdir -p "${outputDir}"
-                if ls "$rwdir"/*.yml 2>/dev/null; then
+                if compgen -G "$rwdir/*.yml" > /dev/null 2>&1; then
                   cp --no-preserve=all "$rwdir"/*.yml "${outputDir}/"
                 fi
               '';
