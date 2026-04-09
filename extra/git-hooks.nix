@@ -12,7 +12,11 @@ let
     }:
     let
       writePipelineGenerator =
-        { backend, pipelines }:
+        {
+          backend,
+          pipelines,
+          reusableWorkflows ? { },
+        }:
         pkgs.writeShellApplication {
           name = "generate-${backend}";
           runtimeInputs = [ pkgs.yq-go ];
@@ -27,8 +31,25 @@ let
                 mkdir -p "$(dirname "${outputPath}")"
                 yq --prettyPrint --output-format yaml "$out" > "${outputPath}"
               '';
+
+              generateReusableWorkflow =
+                pipelineName: jobsets:
+                lib.concatStringsSep "\n" (
+                  lib.mapAttrsToList (jobSetName: outputPath: ''
+                    rwout="$(nix build --extra-experimental-features 'nix-command flakes' \
+                      --print-out-paths \
+                      .#ci-pipeline-${backend}-${pipelineName}-${jobSetName}
+                    )"
+
+                    mkdir -p "$(dirname "${outputPath}")"
+                    yq --prettyPrint --output-format yaml "$rwout" > "${outputPath}"
+                  '') jobsets
+                );
             in
-            lib.concatStringsSep "\n" (lib.mapAttrsToList generatePipeline pipelines);
+            lib.concatStringsSep "\n" (
+              lib.mapAttrsToList generatePipeline pipelines
+              ++ lib.mapAttrsToList generateReusableWorkflow reusableWorkflows
+            );
         };
     in
     {
@@ -48,6 +69,23 @@ let
                   {
                     default = ".github/workflows/ci.yaml";
                     nightly = ".github/workflows/nightly.yaml";
+                  }
+                '';
+              };
+              reusableWorkflows = lib.mkOption {
+                type = types.attrsOf (types.attrsOf types.str);
+                default = { };
+                description = ''
+                  Map of pipeline name to job-set name to output path for reusable workflow files.
+                  Each entry triggers building `.#ci-pipeline-github-actions-<pipeline>-<jobset>`
+                  and writes the result to the specified path.
+                '';
+                example = lib.literalExpression ''
+                  {
+                    default = {
+                      "stack-a_cmp-a_dev" = ".github/workflows/stack-a_cmp-a_dev.yml";
+                      "stack-a_cmp-a_stg" = ".github/workflows/stack-a_cmp-a_stg.yml";
+                    };
                   }
                 '';
               };
@@ -84,7 +122,7 @@ let
           description = "generate GitHub Actions workflow";
           package = writePipelineGenerator {
             backend = "github-actions";
-            inherit (config.hooks.first-ci-kit-gen-github-actions.settings) pipelines;
+            inherit (config.hooks.first-ci-kit-gen-github-actions.settings) pipelines reusableWorkflows;
           };
           entry = "${config.hooks.first-ci-kit-gen-github-actions.package}/bin/generate-github-actions";
           files = lib.mkDefault "\\.nix$";
