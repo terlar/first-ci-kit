@@ -23,6 +23,16 @@ in
           value = value.pipeline.github-actions.file;
         }) config.first-ci-kit.pipelines)
 
+        (lib.mkMerge (
+          lib.mapAttrsToList (
+            pipelineName: pipeline:
+            lib.mapAttrs' (jobSetName: file: {
+              name = "ci-pipeline-github-actions-${pipelineName}-${jobSetName}";
+              value = file;
+            }) pipeline.pipeline.github-actions.reusableWorkflowFiles
+          ) config.first-ci-kit.pipelines
+        ))
+
         (lib.mapAttrs' (name: value: {
           name = "ci-pipeline-gitlab-ci-${name}";
           value = value.pipeline.gitlab-ci.file;
