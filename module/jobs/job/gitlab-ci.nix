@@ -60,5 +60,22 @@ in
     };
 
     script = lib.mkIf (config.commands != [ ]) config.commands;
+
+    artifacts = lib.mkIf (config.artifacts.upload != null) (
+      lib.mkDefault (
+        {
+          public = false;
+        }
+        // lib.optionalAttrs (config.artifacts.upload.paths != [ ]) {
+          inherit (config.artifacts.upload) paths;
+        }
+        // lib.optionalAttrs (config.artifacts.upload.expireIn != null) {
+          expire_in = config.artifacts.upload.expireIn;
+        }
+        // lib.optionalAttrs (config.artifacts.upload.reports != null) {
+          inherit (config.artifacts.upload) reports;
+        }
+      )
+    );
   };
 }

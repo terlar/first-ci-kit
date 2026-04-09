@@ -16,6 +16,7 @@ let
   jobOptionNames = lib.pipe options [
     (lib.flip builtins.removeAttrs [
       "_module"
+      "artifacts"
       "tags"
     ])
     builtins.attrNames

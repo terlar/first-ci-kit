@@ -431,4 +431,60 @@
       };
     };
   };
+
+  test-github-actions-job-artifact-upload = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.plan = {
+        commands = [ "tf-plan svc dev" ];
+        artifacts.upload = {
+          name = "svc-dev-plan";
+          paths = [ ".ci/terraform/*" ];
+          retentionDays = 7;
+        };
+      };
+    };
+    expected = {
+      jobs.plan = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          { uses = "actions/checkout@v6"; }
+          { run = "tf-plan svc dev"; }
+          {
+            uses = "actions/upload-artifact@v4";
+            "with" = {
+              name = "svc-dev-plan";
+              path = ".ci/terraform/*";
+              retention-days = 7;
+            };
+          }
+        ];
+      };
+    };
+  };
+
+  test-github-actions-job-artifact-download = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.deploy = {
+        commands = [ "tf-deploy svc dev" ];
+        artifacts.download = {
+          name = "svc-dev-plan";
+        };
+      };
+    };
+    expected = {
+      jobs.deploy = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          { uses = "actions/checkout@v6"; }
+          {
+            uses = "actions/download-artifact@v4";
+            "with".name = "svc-dev-plan";
+          }
+          { run = "tf-deploy svc dev"; }
+        ];
+      };
+    };
+  };
 }

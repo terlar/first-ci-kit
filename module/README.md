@@ -207,6 +207,164 @@ boolean
 
 
 
+## jobs\.\<name>\.artifacts\.download
+
+
+
+Artifact to download before this job runs\.
+
+
+
+*Type:*
+null or (submodule)
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.artifacts\.download\.name
+
+
+
+Name of the artifact to download\.
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.artifacts\.upload
+
+
+
+Artifact to upload after this job completes\.
+
+
+
+*Type:*
+null or (submodule)
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.artifacts\.upload\.expireIn
+
+
+
+Artifact expiry (e\.g\. ‘1 week’)\. GitLab CI only\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.artifacts\.upload\.name
+
+
+
+Artifact name\.
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.artifacts\.upload\.paths
+
+
+
+Paths to include in the artifact\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.artifacts\.upload\.reports
+
+
+
+GitLab CI report artifacts (e\.g\. { terraform = “\.ci/terraform/plan-summary\.json”; })\.
+
+
+
+*Type:*
+null or (attribute set of string)
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.artifacts\.upload\.retentionDays
+
+
+
+Artifact retention in days\. GitHub Actions only\.
+
+
+
+*Type:*
+null or signed integer
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.branches
 
 

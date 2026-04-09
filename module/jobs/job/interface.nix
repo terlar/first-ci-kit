@@ -131,6 +131,54 @@ in
       description = "Commands to be executed by the job.";
     };
 
+    artifacts = {
+      upload = lib.mkOption {
+        type = types.nullOr (types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = types.str;
+              description = "Artifact name.";
+            };
+            paths = lib.mkOption {
+              type = types.listOf types.str;
+              default = [ ];
+              description = "Paths to include in the artifact.";
+            };
+            expireIn = lib.mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Artifact expiry (e.g. '1 week'). GitLab CI only.";
+            };
+            retentionDays = lib.mkOption {
+              type = types.nullOr types.int;
+              default = null;
+              description = "Artifact retention in days. GitHub Actions only.";
+            };
+            reports = lib.mkOption {
+              type = types.nullOr (types.attrsOf types.str);
+              default = null;
+              description = "GitLab CI report artifacts (e.g. { terraform = \".ci/terraform/plan-summary.json\"; }).";
+            };
+          };
+        });
+        default = null;
+        description = "Artifact to upload after this job completes.";
+      };
+
+      download = lib.mkOption {
+        type = types.nullOr (types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = types.str;
+              description = "Name of the artifact to download.";
+            };
+          };
+        });
+        default = null;
+        description = "Artifact to download before this job runs.";
+      };
+    };
+
     github-actions = lib.mkOption {
       type = types.submoduleWith {
         modules = [

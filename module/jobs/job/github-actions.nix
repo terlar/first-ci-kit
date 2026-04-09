@@ -48,5 +48,29 @@ in
     (lib.mkIf (conditions != [ ]) {
       "if" = "\${{ ${lib.concatStringsSep " && " conditions} }}";
     })
+
+    (lib.mkIf (config.artifacts.download != null) {
+      steps = lib.mkOrder 600 [
+        {
+          uses = "actions/download-artifact@v4";
+          "with".name = config.artifacts.download.name;
+        }
+      ];
+    })
+
+    (lib.mkIf (config.artifacts.upload != null && config.artifacts.upload.paths != [ ]) {
+      steps = lib.mkOrder 1600 [
+        {
+          uses = "actions/upload-artifact@v4";
+          "with" = {
+            inherit (config.artifacts.upload) name;
+            path = builtins.concatStringsSep "\n" config.artifacts.upload.paths;
+          }
+          // lib.optionalAttrs (config.artifacts.upload.retentionDays != null) {
+            retention-days = config.artifacts.upload.retentionDays;
+          };
+        }
+      ];
+    })
   ];
 }

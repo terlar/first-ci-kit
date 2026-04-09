@@ -332,4 +332,31 @@
       };
     };
   };
+
+  test-gitlab-ci-job-artifacts-upload = {
+    expr = test-lib.eval-gitlab-ci {
+      pipeline.gitlab-ci.defaultStage = "main";
+      jobs.plan = {
+        commands = [ "tf-plan svc dev" ];
+        artifacts.upload = {
+          name = "svc-dev-plan";
+          paths = [ ".ci/terraform/*" ];
+          expireIn = "1 week";
+          reports = { terraform = ".ci/terraform/plan-summary.json"; };
+        };
+      };
+    };
+    expected = {
+      "plan" = {
+        stage = "main";
+        script = [ "tf-plan svc dev" ];
+        artifacts = {
+          public = false;
+          expire_in = "1 week";
+          paths = [ ".ci/terraform/*" ];
+          reports.terraform = ".ci/terraform/plan-summary.json";
+        };
+      };
+    };
+  };
 }
