@@ -146,8 +146,12 @@
             {
               id = "diff";
               shell = "bash";
-              env.PATHS = "job-a:config/**\\|terraform/**";
-              run = builtins.readFile ../../jobs/github-actions/diff-script;
+              env = {
+                DIFF_PATHS = "job-a:config/**\\|terraform/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
           ];
         };
@@ -214,8 +218,12 @@
             {
               id = "diff";
               shell = "bash";
-              env.PATHS = "job-a:src/**";
-              run = builtins.readFile ../../jobs/github-actions/diff-script;
+              env = {
+                DIFF_PATHS = "job-a:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
           ];
         };
@@ -263,6 +271,135 @@
             { uses = "actions/checkout@v6"; }
             { run = "echo job-c"; }
           ];
+        };
+      };
+    };
+  };
+
+  test-github-actions-job-with-optional-need = {
+    expr = test-lib.eval-github-actions {
+      jobs.job-a = { };
+      jobs.job-b.needs = [
+        {
+          job = "job-a";
+          optional = true;
+        }
+      ];
+    };
+    expected = {
+      jobs = {
+        job-a = {
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+        job-b = {
+          needs = [ "job-a" ];
+          "if" = ''''${{ (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  test-github-actions-job-with-changes-and-optional-need = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs = {
+        job-a = { };
+        job-b = {
+          branches.default.changes.paths = [ "src/**" ];
+          needs = [
+            {
+              job = "job-a";
+              optional = true;
+            }
+          ];
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "job-b:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        job-a = {
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+        job-b = {
+          needs = [
+            "changes"
+            "job-a"
+          ];
+          "if" =
+            ''''${{ fromJSON(needs.changes.outputs.changes)['job-b'] == true && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  test-github-actions-job-with-changes-and-non-optional-need = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs = {
+        job-a = { };
+        job-b = {
+          branches.default.changes.paths = [ "src/**" ];
+          needs = [
+            {
+              job = "job-a";
+              optional = false;
+            }
+          ];
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "job-b:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        job-a = {
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+        job-b = {
+          needs = [
+            "changes"
+            "job-a"
+          ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-b'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
         };
       };
     };
