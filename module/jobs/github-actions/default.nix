@@ -67,16 +67,61 @@ let
   # -----------------------------------------------------------------------
   # Reusable workflow settings (one attrset per opted-in job-set)
   # -----------------------------------------------------------------------
+
+  # Strip cross-job-set references from a rendered job inside a reusable workflow.
+  # GitHub Actions reusable workflows cannot reference jobs from other workflows,
+  # so we drop any `needs` entries that belong to a different job-set.
+  # Ordering across job-sets is guaranteed at the caller level via `needs` on the
+  # `workflow_call` job in ci.yaml.
+  #
+  # `intraJobNames` is a lookup set (name -> true) of transformed job names
+  # that belong to the same job-set (plus the special "changes" job name).
+  stripExternalNeeds =
+    intraJobNames: job:
+    let
+      filteredNeeds = builtins.filter (n: intraJobNames ? ${n}) (job.needs or [ ]);
+
+      # The `if` expression is "${{ COND1 && COND2 && ... }}".
+      # Each optional-need condition has the form:
+      #   (needs.JOB.result == 'success' || needs.JOB.result == 'skipped')
+      # Strip conditions for jobs we removed from needs.
+      removedNeeds = builtins.filter (n: !(intraJobNames ? ${n})) (job.needs or [ ]);
+      filteredIf =
+        if removedNeeds == [ ] || !(job ? "if") then
+          job."if" or null
+        else
+          let
+            rawExpr = lib.removePrefix "\${{ " (lib.removeSuffix " }}" job."if");
+            conditions = lib.splitString " && " rawExpr;
+            isExternalNeedCond =
+              cond:
+              builtins.any (
+                n: cond == "(needs.${n}.result == 'success' || needs.${n}.result == 'skipped')"
+              ) removedNeeds;
+            keptConditions = builtins.filter (c: !(isExternalNeedCond c)) conditions;
+          in
+          if keptConditions == [ ] then null else "\${{ ${lib.concatStringsSep " && " keptConditions} }}";
+    in
+    builtins.removeAttrs job [
+      "needs"
+      "if"
+    ]
+    // lib.optionalAttrs (filteredNeeds != [ ]) { needs = filteredNeeds; }
+    // lib.optionalAttrs (filteredIf != null) { "if" = filteredIf; };
+
   reusableWorkflowSettingForJobSet =
     _jsName: js:
     let
       # Jobs in this job-set
       jsEnabledJobs = lib.filterAttrs (name: _: builtins.elem name js.jobs) reusableEnabledJobs;
 
-      # Render jobs the same way as inline rendering
+      # Intra-job-set transformed job names + "changes" (the changes job lives in the same reusable workflow)
+      jsJobNames = lib.genAttrs (map transformJobName js.jobs ++ [ "changes" ]) (_: true);
+
+      # Render jobs the same way as inline rendering, then strip cross-set needs
       renderedJobs = lib.mapAttrs' (name: job: {
         name = transformJobName name;
-        value = builtins.removeAttrs job.github-actions [ "enable" ];
+        value = stripExternalNeeds jsJobNames (builtins.removeAttrs job.github-actions [ "enable" ]);
       }) jsEnabledJobs;
 
       # Changes entries scoped to this job-set's jobs only
