@@ -72,6 +72,7 @@ let
                   }
                 '';
               };
+              # GitHub Actions only — reusable workflows are a GitHub Actions concept.
               reusableWorkflows = lib.mkOption {
                 type = types.attrsOf (types.attrsOf types.str);
                 default = { };
