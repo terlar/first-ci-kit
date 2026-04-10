@@ -44,5 +44,44 @@ in
       default = [ ];
       description = "List of tags associated with the job set";
     };
+
+    github-actions = {
+      reusableWorkflow = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          When true, generate this job set as a standalone reusable workflow file
+          instead of inlining its jobs into the main ci.yml.
+        '';
+      };
+
+      reusableWorkflowFile = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          When set, the caller job uses this path as `uses:` instead of the
+          auto-generated `.github/workflows/<name>.yml`. No workflow file is
+          generated for this job-set. Requires reusableWorkflow = true.
+        '';
+      };
+
+      reusableWorkflowInputs = lib.mkOption {
+        type = types.attrsOf types.anything;
+        default = { };
+        description = ''
+          Inputs to pass to the reusable workflow via `with:`. Only used when
+          reusableWorkflowFile is set.
+        '';
+      };
+
+      callerExtraNeeds = lib.mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = ''
+          Extra job names to add to the caller job's `needs:` list, beyond those
+          derived from the job-set's own needs.
+        '';
+      };
+    };
   };
 }
