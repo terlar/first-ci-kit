@@ -59,6 +59,95 @@ lazy attribute set of (Job Set configuration)
 
 
 
+## jobSets\.\<name>\.github-actions\.callerExtraNeeds
+
+
+
+Extra job names to add to the caller job’s ` needs: ` list, beyond those
+derived from the job-set’s own needs\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
+
+
+
+## jobSets\.\<name>\.github-actions\.reusableWorkflow
+
+
+
+When true, generate this job set as a standalone reusable workflow file
+instead of inlining its jobs into the main ci\.yml\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+*Declared by:*
+ - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
+
+
+
+## jobSets\.\<name>\.github-actions\.reusableWorkflowFile
+
+
+
+When set, the caller job uses this path as ` uses: ` instead of the
+auto-generated ` .github/workflows/<name>.yml `\. No workflow file is
+generated for this job-set\. Requires reusableWorkflow = true\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
+
+
+
+## jobSets\.\<name>\.github-actions\.reusableWorkflowInputs
+
+
+
+Inputs to pass to the reusable workflow via ` with: `\. Only used when
+reusableWorkflowFile is set\.
+
+
+
+*Type:*
+attribute set of anything
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
+
+
+
 ## jobSets\.\<name>\.jobDefaults
 
 

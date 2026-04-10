@@ -99,6 +99,26 @@ in
           ];
           description = "Package of the workflow.yml";
         };
+
+        reusableWorkflowSettings = lib.mkOption {
+          internal = true;
+          type = types.attrsOf config.types.yamlType;
+          default = { };
+          description = "Map of job-set name to reusable workflow YAML attrset (before serialization).";
+        };
+
+        reusableWorkflowFiles = lib.mkOption {
+          internal = true;
+          type = types.attrsOf types.package;
+          default = lib.mapAttrs (
+            _: settings:
+            lib.pipe settings [
+              builtins.toJSON
+              (builtins.toFile "workflow.yml")
+            ]
+          ) config.pipeline.github-actions.reusableWorkflowSettings;
+          description = "Map of job-set name to generated reusable workflow file package.";
+        };
       };
 
       gitlab-ci = {
