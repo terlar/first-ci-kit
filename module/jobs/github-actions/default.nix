@@ -6,12 +6,17 @@ let
 
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
 
-  # Job-sets that opted into reusable workflow generation
-  reusableJobSets = lib.filterAttrs (_: js: js.github-actions.reusableWorkflow) config.jobSets;
+  # Job-sets that opted into reusable workflow generation, with at least one job
+  reusableJobSets = lib.filterAttrs (
+    _: js: js.github-actions.reusableWorkflow && js.jobs != [ ]
+  ) config.jobSets;
 
-  # Job-sets that should generate their own .yml file (reusable but NOT redirecting to external file)
+  # Job-sets that should generate their own .yml file (reusable, non-empty, NOT redirecting to external file)
   generatingJobSets = lib.filterAttrs (
-    _: js: js.github-actions.reusableWorkflow && js.github-actions.reusableWorkflowFile == null
+    _: js:
+    js.github-actions.reusableWorkflow
+    && js.jobs != [ ]
+    && js.github-actions.reusableWorkflowFile == null
   ) config.jobSets;
 
   # Lookup set of job names belonging to any reusable job-set
