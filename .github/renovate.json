@@ -3,7 +3,7 @@
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["/\\.nix$/"],
+      "managerFilePatterns": ["/\\.nix$/", "module/README.md"],
       "matchStrings": [
         "\"(?<depName>[\\w-]+/[\\w-]+)@(?<currentValue>[\\w.]+)\""
       ],
@@ -14,7 +14,13 @@
   ],
   "packageRules": [
     {
+      "matchDepNames": ["actions/checkout"],
       "matchCurrentVersion": "v5",
+      "enabled": false
+    },
+    {
+      "matchDepNames": ["actions/download-artifact", "actions/upload-artifact"],
+      "matchCurrentVersion": "v3",
       "enabled": false
     },
     {
