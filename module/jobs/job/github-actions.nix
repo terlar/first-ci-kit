@@ -8,7 +8,13 @@
 
 let
   inherit (rootConfig) jobs;
-  inherit (rootConfig.pipeline.github-actions) defaultRunsOn transformJobName checkoutAction;
+  inherit (rootConfig.pipeline.github-actions)
+    checkoutAction
+    defaultRunsOn
+    downloadArtifactAction
+    transformJobName
+    uploadArtifactAction
+    ;
 
   needs = lib.pipe config.needs [
     (builtins.filter (need: jobs.${need.job}.enable && jobs.${need.job}.github-actions.enable))
@@ -47,6 +53,30 @@ in
 
     (lib.mkIf (conditions != [ ]) {
       "if" = "\${{ ${lib.concatStringsSep " && " conditions} }}";
+    })
+
+    (lib.mkIf (config.artifacts.download != null) {
+      steps = lib.mkOrder 600 [
+        {
+          uses = downloadArtifactAction;
+          "with".name = config.artifacts.download.name;
+        }
+      ];
+    })
+
+    (lib.mkIf (config.artifacts.upload != null && config.artifacts.upload.paths != [ ]) {
+      steps = lib.mkOrder 1600 [
+        {
+          uses = uploadArtifactAction;
+          "with" = {
+            inherit (config.artifacts.upload) name;
+            path = builtins.concatStringsSep "\n" config.artifacts.upload.paths;
+          }
+          // lib.optionalAttrs (config.artifacts.upload.retentionDays != null) {
+            retention-days = config.artifacts.upload.retentionDays;
+          };
+        }
+      ];
     })
   ];
 }

@@ -60,5 +60,32 @@ in
     };
 
     script = lib.mkIf (config.commands != [ ]) config.commands;
+
+    artifacts = lib.mkIf (config.artifacts.upload != null) (
+      lib.mkDefault (
+        let
+          inherit (config.artifacts) upload;
+          effectiveExpireIn =
+            if upload.gitlab-ci.expire_in != null then
+              upload.gitlab-ci.expire_in
+            else if upload.retentionDays != null then
+              "${toString upload.retentionDays} days"
+            else
+              null;
+        in
+        {
+          public = false;
+        }
+        // lib.optionalAttrs (upload.paths != [ ]) {
+          inherit (upload) paths;
+        }
+        // lib.optionalAttrs (effectiveExpireIn != null) {
+          expire_in = effectiveExpireIn;
+        }
+        // lib.optionalAttrs (upload.gitlab-ci.reports != null) {
+          inherit (upload.gitlab-ci) reports;
+        }
+      )
+    );
   };
 }
