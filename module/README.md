@@ -207,6 +207,39 @@ boolean
 
 
 
+## jobs\.\<name>\.artifacts
+
+
+
+Artifact configuration for this job\.
+
+
+
+*Type:*
+submodule
+
+
+
+*Default:*
+` { } `
+
+
+
+*Example:*
+
+```
+{
+  upload = { name = "build-output"; paths = [ "dist/" ]; };
+  download = { name = "build-output"; };
+}
+
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.artifacts\.download
 
 
@@ -239,6 +272,11 @@ Name of the artifact to download\.
 *Type:*
 string
 
+
+
+*Example:*
+` "build-output" `
+
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
 
@@ -265,11 +303,32 @@ null or (submodule)
 
 
 
-## jobs\.\<name>\.artifacts\.upload\.expireIn
+## jobs\.\<name>\.artifacts\.upload\.gitlab-ci
 
 
 
-Artifact expiry (e\.g\. ‘1 week’)\. GitLab CI only\.
+GitLab CI-specific artifact upload options\.
+
+
+
+*Type:*
+submodule
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.artifacts\.upload\.gitlab-ci\.expire_in
+
+
+
+GitLab CI artifact expiry string\. Overrides retentionDays for GitLab CI when set\.
 
 
 
@@ -280,6 +339,37 @@ null or string
 
 *Default:*
 ` null `
+
+
+
+*Example:*
+` "1 week" `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.artifacts\.upload\.gitlab-ci\.reports
+
+
+
+GitLab CI report artifacts\.
+
+
+
+*Type:*
+null or (attribute set of string)
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` { terraform = ".ci/terraform/plan-summary.json"; } `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -296,6 +386,11 @@ Artifact name\.
 
 *Type:*
 string
+
+
+
+*Example:*
+` "build-output" `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -318,26 +413,10 @@ list of string
 *Default:*
 ` [ ] `
 
-*Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
 
 
-
-## jobs\.\<name>\.artifacts\.upload\.reports
-
-
-
-GitLab CI report artifacts (e\.g\. { terraform = “\.ci/terraform/plan-summary\.json”; })\.
-
-
-
-*Type:*
-null or (attribute set of string)
-
-
-
-*Default:*
-` null `
+*Example:*
+` [ "dist/" "result.log" ] `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -348,7 +427,7 @@ null or (attribute set of string)
 
 
 
-Artifact retention in days\. GitHub Actions only\.
+Artifact retention in days\. Used by both GitHub Actions and GitLab CI (as expire_in), unless overridden by gitlab-ci\.expire_in\.
 
 
 
@@ -359,6 +438,11 @@ null or signed integer
 
 *Default:*
 ` null `
+
+
+
+*Example:*
+` 7 `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -381,6 +465,18 @@ attribute set of (Job branch configuration)
 *Default:*
 ` { } `
 
+
+
+*Example:*
+
+```
+{
+  main.triggers.onPush = true;
+  main.changes.paths = [ "src/" ];
+}
+
+```
+
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
 
@@ -401,6 +497,11 @@ list of string
 
 *Default:*
 ` [ ] `
+
+
+
+*Example:*
+` [ "src/" "go.sum" ] `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -500,6 +601,11 @@ list of string
 
 *Default:*
 ` [ ] `
+
+
+
+*Example:*
+` [ "make build" "make test" ] `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -606,6 +712,11 @@ null or string
 *Default:*
 ` null `
 
+
+
+*Example:*
+` "ubuntu:24.04" `
+
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
 
@@ -626,6 +737,18 @@ list of (Job needs configuration)
 
 *Default:*
 ` [ ] `
+
+
+
+*Example:*
+
+```
+[
+  { job = "build"; }
+  { jobSet = "integration"; optional = true; }
+]
+
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -774,6 +897,11 @@ list of string
 *Default:*
 ` [ ] `
 
+
+
+*Example:*
+` [ "gke-runner" ] `
+
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
 
@@ -794,6 +922,11 @@ list of string
 
 *Default:*
 ` [ ] `
+
+
+
+*Example:*
+` [ "deploy" ] `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)

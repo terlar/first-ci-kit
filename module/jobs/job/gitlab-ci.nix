@@ -63,17 +63,27 @@ in
 
     artifacts = lib.mkIf (config.artifacts.upload != null) (
       lib.mkDefault (
+        let
+          inherit (config.artifacts) upload;
+          effectiveExpireIn =
+            if upload.gitlab-ci.expire_in != null then
+              upload.gitlab-ci.expire_in
+            else if upload.retentionDays != null then
+              "${toString upload.retentionDays} days"
+            else
+              null;
+        in
         {
           public = false;
         }
-        // lib.optionalAttrs (config.artifacts.upload.paths != [ ]) {
-          inherit (config.artifacts.upload) paths;
+        // lib.optionalAttrs (upload.paths != [ ]) {
+          inherit (upload) paths;
         }
-        // lib.optionalAttrs (config.artifacts.upload.expireIn != null) {
-          expire_in = config.artifacts.upload.expireIn;
+        // lib.optionalAttrs (effectiveExpireIn != null) {
+          expire_in = effectiveExpireIn;
         }
-        // lib.optionalAttrs (config.artifacts.upload.reports != null) {
-          inherit (config.artifacts.upload) reports;
+        // lib.optionalAttrs (upload.gitlab-ci.reports != null) {
+          inherit (upload.gitlab-ci) reports;
         }
       )
     );
