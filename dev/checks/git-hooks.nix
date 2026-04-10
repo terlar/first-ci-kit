@@ -16,6 +16,7 @@ let
     "gitlab-ci: hook name" = gl.name == "generate-gitlab-ci";
     "github-actions: pass_filenames is false" = !gh.pass_filenames;
     "gitlab-ci: pass_filenames is false" = !gl.pass_filenames;
+    "github-actions: reusableWorkflowsDir default is empty" = gh.settings.reusableWorkflowsDir == { };
   };
 in
 pkgs.runCommand "test-git-hooks" { } (

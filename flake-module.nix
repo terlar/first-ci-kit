@@ -24,6 +24,18 @@ in
         }) config.first-ci-kit.pipelines)
 
         (lib.mapAttrs' (name: value: {
+          name = "ci-pipeline-github-actions-${name}-reusable-workflows";
+          value = pkgs.runCommand "reusable-workflows-${name}" { nativeBuildInputs = [ pkgs.yq-go ]; } ''
+            mkdir -p $out
+            ${lib.concatStrings (
+              lib.mapAttrsToList (jobSetName: file: ''
+                yq --prettyPrint --output-format yaml ${file} > $out/${jobSetName}.yml
+              '') value.pipeline.github-actions.reusableWorkflowFiles
+            )}
+          '';
+        }) config.first-ci-kit.pipelines)
+
+        (lib.mapAttrs' (name: value: {
           name = "ci-pipeline-gitlab-ci-${name}";
           value = value.pipeline.gitlab-ci.file;
         }) config.first-ci-kit.pipelines)
