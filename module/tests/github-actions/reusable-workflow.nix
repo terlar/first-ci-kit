@@ -499,6 +499,40 @@
     };
   };
 
+  # A reusable job-set with no enabled jobs must not appear in reusableWorkflowSettings
+  test-github-actions-reusable-workflow-empty-jobset-no-yml = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
+          jobSets.empty-set = {
+            tags = [ "empty-set" ];
+            github-actions.reusableWorkflow = true;
+          };
+        };
+      in
+      cfg.pipeline.github-actions.reusableWorkflowSettings;
+    # No entry for "empty-set" — it has no jobs, so no workflow file should be generated
+    expected = { };
+  };
+
+  # A reusable job-set with no enabled jobs must not appear as a caller job in ci.yaml
+  test-github-actions-reusable-workflow-empty-jobset-no-caller = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
+      jobSets.empty-set = {
+        tags = [ "empty-set" ];
+        github-actions.reusableWorkflow = true;
+      };
+    };
+    # No caller job for "empty-set" — nothing to call
+    expected = {
+      jobs = { };
+    };
+  };
+
   # When reusableWorkflowFile is set, no .yml is generated for that job-set
   test-github-actions-reusable-workflow-redirect-no-yml = {
     expr =
