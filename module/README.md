@@ -847,6 +847,32 @@ null or string or list of string
 
 
 
+## pipeline\.github-actions\.downloadArtifactAction
+
+
+
+The download-artifact action to use for artifact download steps
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "actions/download-artifact@v4" `
+
+
+
+*Example:*
+` "actions/download-artifact@v3" `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## pipeline\.github-actions\.settings
 
 
@@ -896,6 +922,32 @@ function that evaluates to a(n) string
 
 *Default:*
 ` <function> `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## pipeline\.github-actions\.uploadArtifactAction
+
+
+
+The upload-artifact action to use for artifact upload steps
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "actions/upload-artifact@v4" `
+
+
+
+*Example:*
+` "actions/upload-artifact@v3" `
 
 *Declared by:*
  - [interface\.nix](interface.nix)

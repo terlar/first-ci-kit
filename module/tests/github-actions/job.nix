@@ -487,4 +487,64 @@
       };
     };
   };
+
+  test-github-actions-job-artifact-custom-upload-action = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        uploadArtifactAction = "actions/upload-artifact@v3";
+      };
+      jobs.plan = {
+        commands = [ "tf-plan svc dev" ];
+        artifacts.upload = {
+          name = "svc-dev-plan";
+          paths = [ ".ci/terraform/*" ];
+        };
+      };
+    };
+    expected = {
+      jobs.plan = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          { uses = "actions/checkout@v6"; }
+          { run = "tf-plan svc dev"; }
+          {
+            uses = "actions/upload-artifact@v3";
+            "with" = {
+              name = "svc-dev-plan";
+              path = ".ci/terraform/*";
+            };
+          }
+        ];
+      };
+    };
+  };
+
+  test-github-actions-job-artifact-custom-download-action = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        downloadArtifactAction = "actions/download-artifact@v3";
+      };
+      jobs.deploy = {
+        commands = [ "tf-deploy svc dev" ];
+        artifacts.download = {
+          name = "svc-dev-plan";
+        };
+      };
+    };
+    expected = {
+      jobs.deploy = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          { uses = "actions/checkout@v6"; }
+          {
+            uses = "actions/download-artifact@v3";
+            "with".name = "svc-dev-plan";
+          }
+          { run = "tf-deploy svc dev"; }
+        ];
+      };
+    };
+  };
 }

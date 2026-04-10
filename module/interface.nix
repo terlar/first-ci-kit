@@ -76,6 +76,20 @@ in
           example = "actions/checkout@v5";
         };
 
+        uploadArtifactAction = lib.mkOption {
+          type = types.str;
+          default = "actions/upload-artifact@v4";
+          description = "The upload-artifact action to use for artifact upload steps";
+          example = "actions/upload-artifact@v3";
+        };
+
+        downloadArtifactAction = lib.mkOption {
+          type = types.str;
+          default = "actions/download-artifact@v4";
+          description = "The download-artifact action to use for artifact download steps";
+          example = "actions/download-artifact@v3";
+        };
+
         file = lib.mkOption {
           internal = true;
           type = types.package;
