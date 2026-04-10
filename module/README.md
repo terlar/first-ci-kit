@@ -994,7 +994,7 @@ string
 
 
 *Default:*
-` "actions/download-artifact@v4" `
+` "actions/download-artifact@v8" `
 
 
 

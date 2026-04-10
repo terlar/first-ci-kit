@@ -85,7 +85,7 @@ in
 
         downloadArtifactAction = lib.mkOption {
           type = types.str;
-          default = "actions/download-artifact@v4";
+          default = "actions/download-artifact@v8";
           description = "The download-artifact action to use for artifact download steps";
           example = "actions/download-artifact@v3";
         };
