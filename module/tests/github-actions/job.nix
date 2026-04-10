@@ -479,7 +479,7 @@
         steps = [
           { uses = "actions/checkout@v6"; }
           {
-            uses = "actions/download-artifact@v4";
+            uses = "actions/download-artifact@v8";
             "with".name = "svc-dev-plan";
           }
           { run = "tf-deploy svc dev"; }
