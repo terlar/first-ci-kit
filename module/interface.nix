@@ -78,7 +78,7 @@ in
 
         uploadArtifactAction = lib.mkOption {
           type = types.str;
-          default = "actions/upload-artifact@v4";
+          default = "actions/upload-artifact@v7";
           description = "The upload-artifact action to use for artifact upload steps";
           example = "actions/upload-artifact@v3";
         };

@@ -1075,7 +1075,7 @@ string
 
 
 *Default:*
-` "actions/upload-artifact@v4" `
+` "actions/upload-artifact@v7" `
 
 
 
