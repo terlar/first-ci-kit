@@ -12,7 +12,11 @@ let
     }:
     let
       writePipelineGenerator =
-        { backend, pipelines }:
+        {
+          backend,
+          pipelines,
+          reusableWorkflowsDir ? { },
+        }:
         pkgs.writeShellApplication {
           name = "generate-${backend}";
           runtimeInputs = [ pkgs.yq-go ];
@@ -27,8 +31,23 @@ let
                 mkdir -p "$(dirname "${outputPath}")"
                 yq --prettyPrint --output-format yaml "$out" > "${outputPath}"
               '';
+
+              generateReusableWorkflowsDir = pipelineName: outputDir: ''
+                rwdir="$(nix build --extra-experimental-features 'nix-command flakes' \
+                  --print-out-paths \
+                  .#ci-pipeline-${backend}-${pipelineName}-reusable-workflows
+                )"
+
+                mkdir -p "${outputDir}"
+                if compgen -G "$rwdir/*.yml" > /dev/null 2>&1; then
+                  cp --no-preserve=all "$rwdir"/*.yml "${outputDir}/"
+                fi
+              '';
             in
-            lib.concatStringsSep "\n" (lib.mapAttrsToList generatePipeline pipelines);
+            lib.concatStringsSep "\n" (
+              lib.mapAttrsToList generatePipeline pipelines
+              ++ lib.mapAttrsToList generateReusableWorkflowsDir reusableWorkflowsDir
+            );
         };
     in
     {
@@ -48,6 +67,21 @@ let
                   {
                     default = ".github/workflows/ci.yaml";
                     nightly = ".github/workflows/nightly.yaml";
+                  }
+                '';
+              };
+              # GitHub Actions only — reusable workflows are a GitHub Actions concept.
+              reusableWorkflowsDir = lib.mkOption {
+                type = types.attrsOf types.str;
+                default = { };
+                description = ''
+                  Map of pipeline name to output directory path for reusable workflow files.
+                  Each entry triggers a single build of `.#ci-pipeline-github-actions-<pipeline>-reusable-workflows`
+                  and copies all resulting `.yml` files into the specified directory.
+                '';
+                example = lib.literalExpression ''
+                  {
+                    default = ".github/workflows";
                   }
                 '';
               };
@@ -84,7 +118,7 @@ let
           description = "generate GitHub Actions workflow";
           package = writePipelineGenerator {
             backend = "github-actions";
-            inherit (config.hooks.first-ci-kit-gen-github-actions.settings) pipelines;
+            inherit (config.hooks.first-ci-kit-gen-github-actions.settings) pipelines reusableWorkflowsDir;
           };
           entry = "${config.hooks.first-ci-kit-gen-github-actions.package}/bin/generate-github-actions";
           files = lib.mkDefault "\\.nix$";
