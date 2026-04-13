@@ -678,6 +678,66 @@
     };
   };
 
+  # External reusable workflow job-sets (reusableWorkflowFile != null) must contribute
+  # their jobs' changes.paths entries to the outer changes job in ci.yaml.
+  # Without this, callerIf conditions referencing those keys are always false.
+  test-github-actions-reusable-workflow-redirect-changes-in-outer-changes-job = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
+      jobs.deploy = {
+        tags = [ "myset" ];
+        commands = [ "tf-deploy svc dev" ];
+        branches.default.changes.paths = [
+          "services/svc/config/dev/*"
+          "services/svc/module/**/*"
+        ];
+      };
+
+      jobSets.myset = {
+        tags = [ "myset" ];
+        github-actions = {
+          reusableWorkflow = true;
+          reusableWorkflowFile = "./.github/workflows/profile-terraform.yml";
+          reusableWorkflowInputs = {
+            service = "svc";
+            deployment = "dev";
+          };
+        };
+      };
+    };
+    # The outer changes job must exist and include deploy's paths
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "deploy:services/svc/config/dev/*\\|services/svc/module/**/*";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        myset = {
+          uses = "./.github/workflows/profile-terraform.yml";
+          secrets = "inherit";
+          "with" = {
+            service = "svc";
+            deployment = "dev";
+          };
+        };
+      };
+    };
+  };
+
   # transformJobName is applied to job-set names used as caller job IDs
   # when reusableWorkflowFile redirects to an external workflow file
   test-github-actions-reusable-workflow-transform-redirect-jobset-name = {
