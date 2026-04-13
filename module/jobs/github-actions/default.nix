@@ -66,10 +66,10 @@ let
         (builtins.concatMap (
           { jobSet }:
           if reusableJobSets ? ${jobSet} then
-            [ jobSet ]
+            [ (transformJobName jobSet) ]
           else
             map (
-              jobName: jobNameToReusableJobSet.${jobName} or (transformJobName jobName)
+              jobName: transformJobName (jobNameToReusableJobSet.${jobName} or jobName)
             ) config.jobSets.${jobSet}.jobs
         ))
       ];
@@ -111,10 +111,14 @@ let
       "with" = js.github-actions.reusableWorkflowInputs;
     };
 
-  # Job-set names are used as-is (not run through transformJobName) because they
-  # also serve as the reusable workflow filename and cross-set needs references.
-  # Job-set names must already be valid GitHub Actions job identifiers.
-  callerJobSetJobs = lib.mapAttrs callerJobForJobSet reusableJobSets;
+  # transformJobName is applied to job-set names when used as caller job IDs,
+  # so that job-set names with characters invalid in GitHub Actions identifiers
+  # (e.g. ":") are sanitised the same way individual job names are.
+  # The workflow filename (jsName.yml) uses the raw job-set name, not the
+  # transformed one, so that the filename is stable and user-controlled.
+  callerJobSetJobs = lib.mapAttrs' (
+    jsName: js: lib.nameValuePair (transformJobName jsName) (callerJobForJobSet jsName js)
+  ) reusableJobSets;
 
   # -----------------------------------------------------------------------
   # Reusable workflow settings (one attrset per opted-in job-set)
