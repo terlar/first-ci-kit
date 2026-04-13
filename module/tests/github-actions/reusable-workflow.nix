@@ -738,6 +738,71 @@
     };
   };
 
+  # When reusableWorkflowInputs contains a changes_key, the outer changes job must
+  # use that key (not the job name) in DIFF_PATHS so that callerIf conditions work.
+  test-github-actions-reusable-workflow-redirect-changes-key-used-as-diff-paths-key = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
+      jobs.deploy = {
+        tags = [ "myset" ];
+        commands = [ "tf-deploy svc dev" ];
+        branches.default.changes.paths = [
+          "services/svc/config/dev/*"
+          "services/svc/module/**/*"
+        ];
+      };
+
+      jobSets.myset = {
+        tags = [ "myset" ];
+        github-actions = {
+          reusableWorkflow = true;
+          reusableWorkflowFile = "./.github/workflows/profile-terraform.yml";
+          reusableWorkflowInputs = {
+            changes_key = "svc:dev:plan";
+            service = "svc";
+            deployment = "dev";
+          };
+          callerIf = "\${{ fromJSON(needs.changes.outputs.changes)['svc:dev:plan'] == true }}";
+          callerExtraNeeds = [ "changes" ];
+        };
+      };
+    };
+    # DIFF_PATHS key must be "svc:dev:plan" (from changes_key), not "deploy" (the job name)
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "svc:dev:plan:services/svc/config/dev/*\\|services/svc/module/**/*";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        myset = {
+          uses = "./.github/workflows/profile-terraform.yml";
+          secrets = "inherit";
+          needs = [ "changes" ];
+          "with" = {
+            changes_key = "svc:dev:plan";
+            service = "svc";
+            deployment = "dev";
+          };
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['svc:dev:plan'] == true }}";
+        };
+      };
+    };
+  };
+
   # transformJobName is applied to job-set names used as caller job IDs
   # when reusableWorkflowFile redirects to an external workflow file
   test-github-actions-reusable-workflow-transform-redirect-jobset-name = {
