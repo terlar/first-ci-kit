@@ -562,4 +562,107 @@
     # No entry for "myset" — it is a redirect, not a generated workflow
     expected = { };
   };
+
+  # transformJobName is applied to job-set names used as caller job IDs:
+  # a reusable job-set named "set:dev" must appear as "set_dev" in ci.yaml
+  test-github-actions-reusable-workflow-transform-jobset-name = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
+      };
+
+      jobs."job:a".tags = [ "set:dev" ];
+
+      jobSets."set:dev" = {
+        tags = [ "set:dev" ];
+        github-actions.reusableWorkflow = true;
+      };
+    };
+    expected = {
+      jobs.set_dev = {
+        uses = "./.github/workflows/set:dev.yml";
+        secrets = "inherit";
+      };
+    };
+  };
+
+  # transformJobName is applied to cross-set needs references:
+  # when set:b depends on set:a both names must be transformed in the needs list
+  test-github-actions-reusable-workflow-transform-cross-set-needs = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
+      };
+
+      jobs = {
+        "job:a".tags = [ "set:a" ];
+        "job:b".tags = [ "set:b" ];
+      };
+
+      jobSets = {
+        "set:a" = {
+          tags = [ "set:a" ];
+          github-actions.reusableWorkflow = true;
+        };
+        "set:b" = {
+          tags = [ "set:b" ];
+          needs = [ { jobSet = "set:a"; } ];
+          github-actions.reusableWorkflow = true;
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        set_a = {
+          uses = "./.github/workflows/set:a.yml";
+          secrets = "inherit";
+        };
+        set_b = {
+          uses = "./.github/workflows/set:b.yml";
+          secrets = "inherit";
+          needs = [ "set_a" ];
+        };
+      };
+    };
+  };
+
+  # transformJobName is applied to job-set names used as caller job IDs
+  # when reusableWorkflowFile redirects to an external workflow file
+  test-github-actions-reusable-workflow-transform-redirect-jobset-name = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
+      };
+
+      jobs."deploy:dev" = {
+        tags = [ "set:dev" ];
+        commands = [ "tf-deploy svc dev" ];
+      };
+
+      jobSets."set:dev" = {
+        tags = [ "set:dev" ];
+        github-actions = {
+          reusableWorkflow = true;
+          reusableWorkflowFile = "./.github/workflows/profile-terraform.yml";
+          reusableWorkflowInputs = {
+            service = "svc";
+            deployment = "dev";
+          };
+        };
+      };
+    };
+    expected = {
+      jobs.set_dev = {
+        uses = "./.github/workflows/profile-terraform.yml";
+        secrets = "inherit";
+        "with" = {
+          service = "svc";
+          deployment = "dev";
+        };
+      };
+    };
+  };
 }
