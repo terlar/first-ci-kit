@@ -30,7 +30,7 @@ in
             ${lib.concatStrings (
               lib.mapAttrsToList (jobSetName: file: ''
                 yq --prettyPrint --output-format yaml ${file} > $out/${jobSetName}.yml
-              '') value.pipeline.github-actions.reusableWorkflowFiles
+              '') value.github-actions.reusableWorkflowFiles
             )}
           '';
         }) config.first-ci-kit.pipelines)

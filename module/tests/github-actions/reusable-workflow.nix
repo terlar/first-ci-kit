@@ -4,7 +4,7 @@
   # Opted-in job must NOT appear inline; caller workflow_call job must appear instead
   test-github-actions-reusable-workflow-jobs-not-in-caller = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs = {
         job-a = {
@@ -34,7 +34,7 @@
     expr =
       let
         cfg = test-lib.evalConfig {
-          pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+          github-actions.defaultRunsOn = "ubuntu-latest";
 
           jobs = {
             job-a = {
@@ -49,7 +49,7 @@
           };
         };
       in
-      cfg.pipeline.github-actions.reusableWorkflowSettings;
+      cfg.github-actions.reusableWorkflowSettings;
     expected = {
       myset = {
         on.workflow_call = { };
@@ -67,7 +67,7 @@
   # Cross-job-set needs: reusable set B needs reusable set A → caller job for B needs ["set-a"]
   test-github-actions-reusable-workflow-cross-jobset-needs = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs = {
         job-a.tags = [ "set-a" ];
@@ -107,7 +107,7 @@
   # names, not the hidden individual job names (which would be invalid in ci.yaml).
   test-github-actions-reusable-workflow-non-reusable-set-with-reusable-jobs = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs = {
         job-a.tags = [ "set-a" ];
@@ -163,7 +163,7 @@
   # Non-opted-in job-sets continue to inline their jobs as before (no regression)
   test-github-actions-reusable-workflow-inline-jobs-unchanged = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs = {
         job-a.tags = [ "inline-set" ];
@@ -187,7 +187,7 @@
     expr =
       let
         cfg = test-lib.evalConfig {
-          pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+          github-actions.defaultRunsOn = "ubuntu-latest";
 
           jobs = {
             job-a = {
@@ -203,7 +203,7 @@
           };
         };
       in
-      cfg.pipeline.github-actions.reusableWorkflowSettings;
+      cfg.github-actions.reusableWorkflowSettings;
     expected = {
       myset = {
         on.workflow_call = { };
@@ -244,7 +244,7 @@
   # job-set), the caller workflow_call job must wait for it via `needs`.
   test-github-actions-reusable-workflow-inline-dep-in-caller-needs = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs = {
         validate.commands = [ "echo validate" ];
@@ -292,7 +292,7 @@
     expr =
       let
         cfg = test-lib.evalConfig {
-          pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+          github-actions.defaultRunsOn = "ubuntu-latest";
 
           jobs = {
             job-a = {
@@ -319,7 +319,7 @@
           };
         };
       in
-      cfg.pipeline.github-actions.reusableWorkflowSettings.set-b;
+      cfg.github-actions.reusableWorkflowSettings.set-b;
     # job-b must have no `needs` (the cross-set need on job-a is stripped)
     expected = {
       on.workflow_call = { };
@@ -339,7 +339,7 @@
     expr =
       let
         cfg = test-lib.evalConfig {
-          pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+          github-actions.defaultRunsOn = "ubuntu-latest";
 
           jobs = {
             job-a = {
@@ -371,7 +371,7 @@
           };
         };
       in
-      cfg.pipeline.github-actions.reusableWorkflowSettings.set-b;
+      cfg.github-actions.reusableWorkflowSettings.set-b;
     # job-b must have no `needs` and no `if` (both stripped)
     expected = {
       on.workflow_call = { };
@@ -388,7 +388,7 @@
   # Mixed: inline job appears as-is, reusable job-set appears as workflow_call job
   test-github-actions-reusable-workflow-mixed = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs = {
         job-inline.tags = [ "inline-set" ];
@@ -420,7 +420,7 @@
   # When reusableWorkflowFile is set, the caller job uses that path as `uses:`
   test-github-actions-reusable-workflow-redirect-uses = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs.deploy = {
         tags = [ "myset" ];
@@ -454,7 +454,7 @@
   # callerExtraNeeds adds extra entries to the caller job's needs
   test-github-actions-reusable-workflow-caller-extra-needs = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs = {
         changes.commands = [ "echo changes" ];
@@ -504,7 +504,7 @@
     expr =
       let
         cfg = test-lib.evalConfig {
-          pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+          github-actions.defaultRunsOn = "ubuntu-latest";
 
           jobSets.empty-set = {
             tags = [ "empty-set" ];
@@ -512,7 +512,7 @@
           };
         };
       in
-      cfg.pipeline.github-actions.reusableWorkflowSettings;
+      cfg.github-actions.reusableWorkflowSettings;
     # No entry for "empty-set" — it has no jobs, so no workflow file should be generated
     expected = { };
   };
@@ -520,7 +520,7 @@
   # A reusable job-set with no enabled jobs must not appear as a caller job in ci.yaml
   test-github-actions-reusable-workflow-empty-jobset-no-caller = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobSets.empty-set = {
         tags = [ "empty-set" ];
@@ -538,7 +538,7 @@
     expr =
       let
         cfg = test-lib.evalConfig {
-          pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+          github-actions.defaultRunsOn = "ubuntu-latest";
 
           jobs.deploy = {
             tags = [ "myset" ];
@@ -558,7 +558,7 @@
           };
         };
       in
-      cfg.pipeline.github-actions.reusableWorkflowSettings;
+      cfg.github-actions.reusableWorkflowSettings;
     # No entry for "myset" — it is a redirect, not a generated workflow
     expected = { };
   };
@@ -567,7 +567,7 @@
   # a reusable job-set named "set:dev" must appear as "set_dev" in ci.yaml
   test-github-actions-reusable-workflow-transform-jobset-name = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions = {
+      github-actions = {
         defaultRunsOn = "ubuntu-latest";
         transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
       };
@@ -591,7 +591,7 @@
   # when set:b depends on set:a both names must be transformed in the needs list
   test-github-actions-reusable-workflow-transform-cross-set-needs = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions = {
+      github-actions = {
         defaultRunsOn = "ubuntu-latest";
         transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
       };
@@ -631,7 +631,7 @@
   # callerIf adds an `if:` condition to the caller job
   test-github-actions-reusable-workflow-caller-if = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs = {
         changes.commands = [ "echo changes" ];
@@ -683,7 +683,7 @@
   # Without this, callerIf conditions referencing those keys are always false.
   test-github-actions-reusable-workflow-redirect-changes-in-outer-changes-job = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs.deploy = {
         tags = [ "myset" ];
@@ -742,7 +742,7 @@
   # use that key (not the job name) in DIFF_PATHS so that callerIf conditions work.
   test-github-actions-reusable-workflow-redirect-changes-key-used-as-diff-paths-key = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs.deploy = {
         tags = [ "myset" ];
@@ -803,11 +803,78 @@
     };
   };
 
+  # When reusableWorkflowInputs contains a changes_key AND the job-set's jobs only
+  # have paths on a non-default branch (e.g. a production-only deployment), those
+  # paths must still appear in DIFF_PATHS so the callerIf condition fires.
+  test-github-actions-reusable-workflow-redirect-changes-key-non-default-branch = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+
+      jobs.deploy = {
+        tags = [ "myset" ];
+        commands = [ "tf-deploy svc prd" ];
+        # Only on production branch, NOT on default
+        branches.production.changes.paths = [
+          "services/svc/config/prd/*"
+          "services/svc/module/**/*"
+        ];
+      };
+
+      jobSets.myset = {
+        tags = [ "myset" ];
+        github-actions = {
+          reusableWorkflow = true;
+          reusableWorkflowFile = "./.github/workflows/profile-terraform.yml";
+          reusableWorkflowInputs = {
+            changes_key = "svc:prd:plan";
+            service = "svc";
+            deployment = "prd";
+          };
+          callerIf = "\${{ fromJSON(needs.changes.outputs.changes)['svc:prd:plan'] == true }}";
+          callerExtraNeeds = [ "changes" ];
+        };
+      };
+    };
+    # Even though paths are only on the production branch, they must appear in outer DIFF_PATHS
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "svc:prd:plan:services/svc/config/prd/*\\|services/svc/module/**/*";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        myset = {
+          uses = "./.github/workflows/profile-terraform.yml";
+          secrets = "inherit";
+          needs = [ "changes" ];
+          "with" = {
+            changes_key = "svc:prd:plan";
+            service = "svc";
+            deployment = "prd";
+          };
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['svc:prd:plan'] == true }}";
+        };
+      };
+    };
+  };
+
   # transformJobName is applied to job-set names used as caller job IDs
   # when reusableWorkflowFile redirects to an external workflow file
   test-github-actions-reusable-workflow-transform-redirect-jobset-name = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions = {
+      github-actions = {
         defaultRunsOn = "ubuntu-latest";
         transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
       };
