@@ -628,6 +628,56 @@
     };
   };
 
+  # callerIf adds an `if:` condition to the caller job
+  test-github-actions-reusable-workflow-caller-if = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
+      jobs = {
+        changes.commands = [ "echo changes" ];
+        deploy = {
+          tags = [ "myset" ];
+          commands = [ "tf-deploy svc dev" ];
+        };
+      };
+
+      jobSets.myset = {
+        tags = [ "myset" ];
+        github-actions = {
+          reusableWorkflow = true;
+          reusableWorkflowFile = "./.github/workflows/profile-terraform.yml";
+          reusableWorkflowInputs = {
+            service = "svc";
+            deployment = "dev";
+          };
+          callerExtraNeeds = [ "changes" ];
+          callerIf = "\${{ fromJSON(needs.changes.outputs.changes)['svc:dev:plan'] == true }}";
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            { run = "echo changes"; }
+          ];
+        };
+        myset = {
+          uses = "./.github/workflows/profile-terraform.yml";
+          secrets = "inherit";
+          needs = [ "changes" ];
+          "with" = {
+            service = "svc";
+            deployment = "dev";
+          };
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['svc:dev:plan'] == true }}";
+        };
+      };
+    };
+  };
+
   # transformJobName is applied to job-set names used as caller job IDs
   # when reusableWorkflowFile redirects to an external workflow file
   test-github-actions-reusable-workflow-transform-redirect-jobset-name = {
