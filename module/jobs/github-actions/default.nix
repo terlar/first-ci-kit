@@ -64,14 +64,34 @@ let
   # Collect changes.paths from all jobs in redirecting job-sets, directly from config.jobs.
   # Jobs in externally-redirected job-sets are not in inlineEnabledJobs, so their paths
   # must be collected separately to populate the outer changes job for callerIf conditions.
+  #
+  # Key selection: if the job-set has reusableWorkflowInputs.changes_key, use that as the
+  # DIFF_PATHS key (so it matches the callerIf condition). Otherwise fall back to the
+  # individual job name (backward-compatible behaviour).
   redirectingChanges =
     let
-      redirectingJobNamesAll = lib.genAttrs (lib.pipe redirectingJobSets [
-        builtins.attrValues
-        (builtins.concatMap (js: js.jobs))
-      ]) (_: true);
+      # Build one entry per redirecting job-set
+      entryForJobSet =
+        _jsName: js:
+        let
+          # Collect all unique paths from every job in this job-set
+          allPaths = lib.pipe js.jobs [
+            (builtins.concatMap (jobName: config.jobs.${jobName}.branches.default.changes.paths or [ ]))
+            lib.unique
+          ];
+          # Use the explicit changes_key if provided, otherwise fall back to per-job entries
+          changesKey = js.github-actions.reusableWorkflowInputs.changes_key or null;
+        in
+        if changesKey != null && allPaths != [ ] then
+          [ "${changesKey}:${builtins.concatStringsSep "\\|" allPaths}" ]
+        else
+          # No changes_key: fall back to per-job entries using job names as keys
+          mkChangesEntries (lib.filterAttrs (name: _: builtins.elem name js.jobs) config.jobs);
     in
-    mkChangesEntries (lib.filterAttrs (name: _: redirectingJobNamesAll ? ${name}) config.jobs);
+    lib.pipe redirectingJobSets [
+      (lib.mapAttrsToList entryForJobSet)
+      lib.flatten
+    ];
 
   allOuterChanges = inlineChanges ++ redirectingChanges;
   hasOuterChanges = allOuterChanges != [ ];
