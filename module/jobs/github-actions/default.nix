@@ -19,6 +19,15 @@ let
     && js.github-actions.reusableWorkflowFile == null
   ) config.jobSets;
 
+  # Job-sets that redirect to an external reusable workflow file (reusableWorkflowFile != null)
+  # Their jobs' changes.paths must still appear in the outer changes job so that callerIf conditions work.
+  redirectingJobSets = lib.filterAttrs (
+    _: js:
+    js.github-actions.reusableWorkflow
+    && js.jobs != [ ]
+    && js.github-actions.reusableWorkflowFile != null
+  ) config.jobSets;
+
   # Lookup set of job names belonging to any reusable job-set
   reusableJobNames = lib.genAttrs (lib.pipe reusableJobSets [
     builtins.attrValues
@@ -51,6 +60,21 @@ let
     ];
 
   inlineChanges = mkChangesEntries inlineEnabledJobs;
+
+  # Collect changes.paths from all jobs in redirecting job-sets, directly from config.jobs.
+  # Jobs in externally-redirected job-sets are not in inlineEnabledJobs, so their paths
+  # must be collected separately to populate the outer changes job for callerIf conditions.
+  redirectingChanges =
+    let
+      redirectingJobNamesAll = lib.genAttrs (lib.pipe redirectingJobSets [
+        builtins.attrValues
+        (builtins.concatMap (js: js.jobs))
+      ]) (_: true);
+    in
+    mkChangesEntries (lib.filterAttrs (name: _: redirectingJobNamesAll ? ${name}) config.jobs);
+
+  allOuterChanges = inlineChanges ++ redirectingChanges;
+  hasOuterChanges = allOuterChanges != [ ];
 
   # -----------------------------------------------------------------------
   # Caller: one workflow_call job per opted-in job-set
@@ -196,8 +220,8 @@ in
 {
   pipeline.github-actions = {
     settings.jobs = lib.mkMerge [
-      # Inline changes job (for inline jobs with path filters only)
-      (lib.mkIf (inlineChanges != [ ]) {
+      # Inline changes job (for inline and redirecting reusable jobs with path filters)
+      (lib.mkIf hasOuterChanges {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = defaultRunsOn;
@@ -207,7 +231,7 @@ in
               id = "diff";
               shell = "bash";
               env = {
-                DIFF_PATHS = builtins.concatStringsSep "\n" inlineChanges;
+                DIFF_PATHS = builtins.concatStringsSep "\n" allOuterChanges;
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
               };
