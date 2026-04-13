@@ -81,6 +81,29 @@ list of string
 
 
 
+## jobSets\.\<name>\.github-actions\.callerIf
+
+
+
+When set, adds an ` if: ` condition to the caller job in the main workflow\.
+Use this to skip dispatch entirely when there are no relevant changes\.
+Example: “${{ fromJSON(needs\.changes\.outputs\.changes)\[‘my-key’] == true }}”
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
+
+
+
 ## jobSets\.\<name>\.github-actions\.reusableWorkflow
 
 

@@ -109,6 +109,9 @@ let
     // lib.optionalAttrs (callerNeeds != [ ]) { needs = callerNeeds; }
     // lib.optionalAttrs (js.github-actions.reusableWorkflowInputs != { }) {
       "with" = js.github-actions.reusableWorkflowInputs;
+    }
+    // lib.optionalAttrs (js.github-actions.callerIf != null) {
+      "if" = js.github-actions.callerIf;
     };
 
   # transformJobName is applied to job-set names when used as caller job IDs,

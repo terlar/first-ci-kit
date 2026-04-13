@@ -82,6 +82,16 @@ in
           derived from the job-set's own needs.
         '';
       };
+
+      callerIf = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          When set, adds an `if:` condition to the caller job in the main workflow.
+          Use this to skip dispatch entirely when there are no relevant changes.
+          Example: "''${{ fromJSON(needs.changes.outputs.changes)['my-key'] == true }}"
+        '';
+      };
     };
   };
 }
