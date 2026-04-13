@@ -68,24 +68,40 @@ let
   # Key selection: if the job-set has reusableWorkflowInputs.changes_key, use that as the
   # DIFF_PATHS key (so it matches the callerIf condition). Otherwise fall back to the
   # individual job name (backward-compatible behaviour).
+  #
+  # Path collection: when changes_key is present, collect unique paths across ALL branches
+  # of all jobs in the job-set (not just branches.default) so that deployments whose
+  # branches.default is empty (e.g. prd-only deployments on a production branch) are
+  # still included.
   redirectingChanges =
     let
+      # Collect all unique paths across all branches of a single job
+      allPathsForJob =
+        jobName:
+        lib.pipe (config.jobs.${jobName}.branches or { }) [
+          builtins.attrValues
+          (builtins.concatMap (branch: branch.changes.paths or [ ]))
+          lib.unique
+        ];
+
       # Build one entry per redirecting job-set
       entryForJobSet =
         _jsName: js:
         let
-          # Collect all unique paths from every job in this job-set
-          allPaths = lib.pipe js.jobs [
-            (builtins.concatMap (jobName: config.jobs.${jobName}.branches.default.changes.paths or [ ]))
-            lib.unique
-          ];
           # Use the explicit changes_key if provided, otherwise fall back to per-job entries
           changesKey = js.github-actions.reusableWorkflowInputs.changes_key or null;
         in
-        if changesKey != null && allPaths != [ ] then
-          [ "${changesKey}:${builtins.concatStringsSep "\\|" allPaths}" ]
+        if changesKey != null then
+          let
+            # Collect all unique paths from every job in this job-set, across all branches
+            allPaths = lib.pipe js.jobs [
+              (builtins.concatMap allPathsForJob)
+              lib.unique
+            ];
+          in
+          lib.optional (allPaths != [ ]) "${changesKey}:${builtins.concatStringsSep "\\|" allPaths}"
         else
-          # No changes_key: fall back to per-job entries using job names as keys
+          # No changes_key: fall back to per-job entries using job names as keys (branches.default only)
           mkChangesEntries (lib.filterAttrs (name: _: builtins.elem name js.jobs) config.jobs);
     in
     lib.pipe redirectingJobSets [

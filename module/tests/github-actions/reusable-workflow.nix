@@ -803,6 +803,73 @@
     };
   };
 
+  # When reusableWorkflowInputs contains a changes_key AND the job-set's jobs only
+  # have paths on a non-default branch (e.g. a production-only deployment), those
+  # paths must still appear in DIFF_PATHS so the callerIf condition fires.
+  test-github-actions-reusable-workflow-redirect-changes-key-non-default-branch = {
+    expr = test-lib.eval-github-actions {
+      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+
+      jobs.deploy = {
+        tags = [ "myset" ];
+        commands = [ "tf-deploy svc prd" ];
+        # Only on production branch, NOT on default
+        branches.production.changes.paths = [
+          "services/svc/config/prd/*"
+          "services/svc/module/**/*"
+        ];
+      };
+
+      jobSets.myset = {
+        tags = [ "myset" ];
+        github-actions = {
+          reusableWorkflow = true;
+          reusableWorkflowFile = "./.github/workflows/profile-terraform.yml";
+          reusableWorkflowInputs = {
+            changes_key = "svc:prd:plan";
+            service = "svc";
+            deployment = "prd";
+          };
+          callerIf = "\${{ fromJSON(needs.changes.outputs.changes)['svc:prd:plan'] == true }}";
+          callerExtraNeeds = [ "changes" ];
+        };
+      };
+    };
+    # Even though paths are only on the production branch, they must appear in outer DIFF_PATHS
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "svc:prd:plan:services/svc/config/prd/*\\|services/svc/module/**/*";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        myset = {
+          uses = "./.github/workflows/profile-terraform.yml";
+          secrets = "inherit";
+          needs = [ "changes" ];
+          "with" = {
+            changes_key = "svc:prd:plan";
+            service = "svc";
+            deployment = "prd";
+          };
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['svc:prd:plan'] == true }}";
+        };
+      };
+    };
+  };
+
   # transformJobName is applied to job-set names used as caller job IDs
   # when reusableWorkflowFile redirects to an external workflow file
   test-github-actions-reusable-workflow-transform-redirect-jobset-name = {
