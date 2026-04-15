@@ -89,5 +89,25 @@ in
         };
       };
     };
+
+    github-actions.dispatch = {
+      callerIf = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "If condition on the caller job in ci.yaml.";
+      };
+
+      callerNeeds = lib.mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = "Extra GHA job IDs to add to the caller job's needs.";
+      };
+
+      settings = lib.mkOption {
+        type = types.attrsOf types.anything;
+        default = { };
+        description = "Freeform attrset merged into the reusable workflow root (same level as on:, jobs:).";
+      };
+    };
   };
 }
