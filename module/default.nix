@@ -6,6 +6,7 @@
     ./jobs
     ./job-interfaces
     ./job-sets
+    ./pipelines
   ];
 
   config = {
