@@ -3,6 +3,6 @@
 {
   perSystem.process-compose = lib.mapAttrs' (name: value: {
     name = "pipeline-${name}";
-    value = value.pipeline.process-compose;
+    value = value.process-compose;
   }) config.first-ci-kit.pipelines;
 }

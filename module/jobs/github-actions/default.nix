@@ -1,7 +1,7 @@
 { lib, config, ... }:
 
 let
-  inherit (config.pipeline.github-actions) checkoutAction;
+  inherit (config.github-actions) checkoutAction;
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
 
   changes = lib.pipe enabledJobs [
@@ -12,11 +12,11 @@ let
   ];
 in
 {
-  pipeline.github-actions.settings.jobs = lib.mkMerge [
+  github-actions.settings.jobs = lib.mkMerge [
     (lib.mkIf (changes != [ ]) {
       changes = {
         outputs.changes = "\${{ steps.diff.outputs.changes }}";
-        runs-on = config.pipeline.github-actions.defaultRunsOn;
+        runs-on = config.github-actions.defaultRunsOn;
         steps = [
           { uses = checkoutAction; }
           {
@@ -34,7 +34,7 @@ in
     })
 
     (lib.mapAttrs' (name: job: {
-      name = config.pipeline.github-actions.transformJobName name;
+      name = config.github-actions.transformJobName name;
       value = builtins.removeAttrs job.github-actions [ "enable" ];
     }) enabledJobs)
   ];

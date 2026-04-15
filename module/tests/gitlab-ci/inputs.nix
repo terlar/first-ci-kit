@@ -3,7 +3,7 @@
 {
   test-gitlab-ci-inputs = {
     expr = test-lib.eval-gitlab-ci-documents {
-      pipeline.gitlab-ci.inputs = {
+      gitlab-ci.inputs = {
         website = { };
         user.default = "test-user";
         flags.default = "";

@@ -11,11 +11,11 @@
   config = {
     _module.args.ci-lib = import ./lib { inherit lib; };
 
-    pipeline.gitlab-ci.fileDocuments = lib.mkMerge [
-      (lib.mkIf (config.pipeline.gitlab-ci.inputs != { }) [
-        { spec = { inherit (config.pipeline.gitlab-ci) inputs; }; }
+    gitlab-ci.fileDocuments = lib.mkMerge [
+      (lib.mkIf (config.gitlab-ci.inputs != { }) [
+        { spec = { inherit (config.gitlab-ci) inputs; }; }
       ])
-      [ config.pipeline.gitlab-ci.settings ]
+      [ config.gitlab-ci.settings ]
     ];
   };
 }

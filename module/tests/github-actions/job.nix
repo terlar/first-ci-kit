@@ -3,7 +3,7 @@
 {
   test-github-actions-job-basic = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
       jobs.job1 = {
         checkout = true;
         commands = [ "echo 'Run your script here'" ];
@@ -22,7 +22,7 @@
 
   test-github-actions-job-transform-name = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
+      github-actions.transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
       jobs = {
         "job:a" = { };
         "job:b".needs = [
@@ -116,7 +116,7 @@
 
   test-github-actions-job-with-default-branch-trigger-onMergeRequest-with-paths = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
 
       jobs = {
         job-a = {
@@ -177,8 +177,8 @@
 
   test-github-actions-job-custom-checkout-action = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
-      pipeline.github-actions.checkoutAction = "actions/checkout@v5";
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.checkoutAction = "actions/checkout@v5";
       jobs.job1 = {
         checkout = true;
         commands = [ "echo hello" ];
@@ -197,8 +197,8 @@
 
   test-github-actions-changes-job-uses-custom-checkout-action = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
-      pipeline.github-actions.checkoutAction = "actions/checkout@v5";
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.checkoutAction = "actions/checkout@v5";
       jobs = {
         job-a = {
           branches.default = {
@@ -241,7 +241,7 @@
 
   test-github-actions-job-per-backend-disable = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
       jobs = {
         job-a = {
           commands = [ "echo job-a" ];
@@ -302,7 +302,7 @@
 
   test-github-actions-job-with-changes-and-optional-need = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
       jobs = {
         job-a = { };
         job-b = {
@@ -355,7 +355,7 @@
 
   test-github-actions-job-with-changes-and-non-optional-need = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
       jobs = {
         job-a = { };
         job-b = {
@@ -407,7 +407,7 @@
 
   test-github-actions-job-global-disable-overrides-per-backend-enable = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
       jobs = {
         job-a = {
           commands = [ "echo job-a" ];
@@ -434,7 +434,7 @@
 
   test-github-actions-job-artifact-upload = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
       jobs.plan = {
         commands = [ "tf-plan svc dev" ];
         artifacts.upload = {
@@ -465,7 +465,7 @@
 
   test-github-actions-job-artifact-download = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.defaultRunsOn = "ubuntu-latest";
       jobs.deploy = {
         commands = [ "tf-deploy svc dev" ];
         artifacts.download = {
@@ -490,7 +490,7 @@
 
   test-github-actions-job-artifact-custom-upload-action = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions = {
+      github-actions = {
         defaultRunsOn = "ubuntu-latest";
         uploadArtifactAction = "actions/upload-artifact@v3";
       };
@@ -522,7 +522,7 @@
 
   test-github-actions-job-artifact-custom-download-action = {
     expr = test-lib.eval-github-actions {
-      pipeline.github-actions = {
+      github-actions = {
         defaultRunsOn = "ubuntu-latest";
         downloadArtifactAction = "actions/download-artifact@v3";
       };

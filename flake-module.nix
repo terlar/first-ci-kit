@@ -20,12 +20,12 @@ in
       legacyPackages = lib.mkMerge [
         (lib.mapAttrs' (name: value: {
           name = "ci-pipeline-github-actions-${name}";
-          value = value.pipeline.github-actions.file;
+          value = value.github-actions.file;
         }) config.first-ci-kit.pipelines)
 
         (lib.mapAttrs' (name: value: {
           name = "ci-pipeline-gitlab-ci-${name}";
-          value = value.pipeline.gitlab-ci.file;
+          value = value.gitlab-ci.file;
         }) config.first-ci-kit.pipelines)
       ];
     };

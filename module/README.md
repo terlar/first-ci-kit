@@ -1,4 +1,269 @@
+## github-actions\.checkoutAction
+
+The default checkout action to use for jobs
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "actions/checkout@v6" `
+
+
+
+*Example:*
+` "actions/checkout@v5" `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## github-actions\.defaultRunsOn
+
+
+
+The default runs-on to use for jobs
+
+
+
+*Type:*
+null or string or list of string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## github-actions\.downloadArtifactAction
+
+
+
+The download-artifact action to use for artifact download steps
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "actions/download-artifact@v8" `
+
+
+
+*Example:*
+` "actions/download-artifact@v3" `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## github-actions\.settings
+
+
+
+Configuration written for job to ` workflow.yml `\.
+
+
+
+*Type:*
+YAML value
+
+
+
+*Default:*
+` { } `
+
+
+
+*Example:*
+
+```
+{
+  name = "CI";
+  on = [ "push" ];
+  env.DAY_OF_WEEK = "Monday";
+}
+
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## github-actions\.transformJobName
+
+
+
+A function to transform job names
+
+
+
+*Type:*
+function that evaluates to a(n) string
+
+
+
+*Default:*
+` <function> `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## github-actions\.uploadArtifactAction
+
+
+
+The upload-artifact action to use for artifact upload steps
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "actions/upload-artifact@v7" `
+
+
+
+*Example:*
+` "actions/upload-artifact@v3" `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## gitlab-ci\.defaultStage
+
+
+
+The default stage to use for jobs
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## gitlab-ci\.inputs
+
+
+
+Define inputs for the CI/CD configuration\.
+This will be added as a separate YAML document at the top of the ` pipeline.yml `\.
+
+
+
+*Type:*
+YAML value
+
+
+
+*Default:*
+` { } `
+
+
+
+*Example:*
+
+```
+{
+  website = {};
+  user.default = "test-user";
+  flags.default = "";
+}
+
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## gitlab-ci\.settings
+
+
+
+Configuration written for job to ` pipeline.yml `\.
+
+
+
+*Type:*
+YAML value
+
+
+
+*Default:*
+` { } `
+
+
+
+*Example:*
+
+```
+{
+  image = "ubuntu";
+  stages = [ "validate" "test" "build" "deploy" ];
+  default.tags = [ "gke-runner" ];
+}
+
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## gitlab-ci\.transformJobName
+
+
+
+A function to transform job names
+
+
+
+*Type:*
+function that evaluates to a(n) string
+
+
+
+*Default:*
+` <function> `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## imageRegistry
+
+
 
 Image registry with image names
 
@@ -933,272 +1198,7 @@ list of string
 
 
 
-## pipeline\.github-actions\.checkoutAction
-
-
-
-The default checkout action to use for jobs
-
-
-
-*Type:*
-string
-
-
-
-*Default:*
-` "actions/checkout@v6" `
-
-
-
-*Example:*
-` "actions/checkout@v5" `
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.github-actions\.defaultRunsOn
-
-
-
-The default runs-on to use for jobs
-
-
-
-*Type:*
-null or string or list of string
-
-
-
-*Default:*
-` null `
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.github-actions\.downloadArtifactAction
-
-
-
-The download-artifact action to use for artifact download steps
-
-
-
-*Type:*
-string
-
-
-
-*Default:*
-` "actions/download-artifact@v8" `
-
-
-
-*Example:*
-` "actions/download-artifact@v3" `
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.github-actions\.settings
-
-
-
-Configuration written for job to ` workflow.yml `\.
-
-
-
-*Type:*
-YAML value
-
-
-
-*Default:*
-` { } `
-
-
-
-*Example:*
-
-```
-{
-  name = "CI";
-  on = [ "push" ];
-  env.DAY_OF_WEEK = "Monday";
-}
-
-```
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.github-actions\.transformJobName
-
-
-
-A function to transform job names
-
-
-
-*Type:*
-function that evaluates to a(n) string
-
-
-
-*Default:*
-` <function> `
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.github-actions\.uploadArtifactAction
-
-
-
-The upload-artifact action to use for artifact upload steps
-
-
-
-*Type:*
-string
-
-
-
-*Default:*
-` "actions/upload-artifact@v7" `
-
-
-
-*Example:*
-` "actions/upload-artifact@v3" `
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.gitlab-ci\.defaultStage
-
-
-
-The default stage to use for jobs
-
-
-
-*Type:*
-null or string
-
-
-
-*Default:*
-` null `
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.gitlab-ci\.inputs
-
-
-
-Define inputs for the CI/CD configuration\.
-This will be added as a separate YAML document at the top of the ` pipeline.yml `\.
-
-
-
-*Type:*
-YAML value
-
-
-
-*Default:*
-` { } `
-
-
-
-*Example:*
-
-```
-{
-  website = {};
-  user.default = "test-user";
-  flags.default = "";
-}
-
-```
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.gitlab-ci\.settings
-
-
-
-Configuration written for job to ` pipeline.yml `\.
-
-
-
-*Type:*
-YAML value
-
-
-
-*Default:*
-` { } `
-
-
-
-*Example:*
-
-```
-{
-  image = "ubuntu";
-  stages = [ "validate" "test" "build" "deploy" ];
-  default.tags = [ "gke-runner" ];
-}
-
-```
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.gitlab-ci\.transformJobName
-
-
-
-A function to transform job names
-
-
-
-*Type:*
-function that evaluates to a(n) string
-
-
-
-*Default:*
-` <function> `
-
-*Declared by:*
- - [interface\.nix](interface.nix)
-
-
-
-## pipeline\.process-compose\.cli
+## process-compose\.cli
 
 
 
@@ -1219,7 +1219,7 @@ raw value
 
 
 
-## pipeline\.process-compose\.settings
+## process-compose\.settings
 
 
 

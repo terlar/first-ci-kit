@@ -17,7 +17,7 @@
 
   test-gitlab-ci-job-transform-name = {
     expr = test-lib.eval-gitlab-ci {
-      pipeline.gitlab-ci.transformJobName = builtins.replaceStrings [ "_" ] [ ":" ];
+      gitlab-ci.transformJobName = builtins.replaceStrings [ "_" ] [ ":" ];
       jobs = {
         "job_a" = { };
         "job_b".needs = [
@@ -110,7 +110,7 @@
 
   test-gitlab-ci-job-default-stage = {
     expr = test-lib.eval-gitlab-ci {
-      pipeline.gitlab-ci = {
+      gitlab-ci = {
         settings.stages = [ "main" ];
         defaultStage = "main";
       };
@@ -284,7 +284,7 @@
 
   test-gitlab-ci-job-per-backend-disable = {
     expr = test-lib.eval-gitlab-ci {
-      pipeline.gitlab-ci.defaultStage = "test";
+      gitlab-ci.defaultStage = "test";
       jobs = {
         job-a = {
           commands = [ "echo job-a" ];
@@ -313,7 +313,7 @@
 
   test-gitlab-ci-job-global-disable-overrides-per-backend-enable = {
     expr = test-lib.eval-gitlab-ci {
-      pipeline.gitlab-ci.defaultStage = "test";
+      gitlab-ci.defaultStage = "test";
       jobs = {
         job-a = {
           commands = [ "echo job-a" ];
@@ -335,7 +335,7 @@
 
   test-gitlab-ci-job-artifacts-upload = {
     expr = test-lib.eval-gitlab-ci {
-      pipeline.gitlab-ci.defaultStage = "main";
+      gitlab-ci.defaultStage = "main";
       jobs.plan = {
         commands = [ "tf-plan svc dev" ];
         artifacts.upload = {
@@ -366,7 +366,7 @@
 
   test-gitlab-ci-job-artifacts-upload-retention-days = {
     expr = test-lib.eval-gitlab-ci {
-      pipeline.gitlab-ci.defaultStage = "main";
+      gitlab-ci.defaultStage = "main";
       jobs.plan = {
         commands = [ "tf-plan svc dev" ];
         artifacts.upload = {
@@ -391,7 +391,7 @@
 
   test-gitlab-ci-job-artifacts-upload-expire-in-overrides-retention-days = {
     expr = test-lib.eval-gitlab-ci {
-      pipeline.gitlab-ci.defaultStage = "main";
+      gitlab-ci.defaultStage = "main";
       jobs.plan = {
         commands = [ "tf-plan svc dev" ];
         artifacts.upload = {
@@ -417,7 +417,7 @@
 
   test-gitlab-ci-job-artifacts-upload-no-paths = {
     expr = test-lib.eval-gitlab-ci {
-      pipeline.gitlab-ci.defaultStage = "main";
+      gitlab-ci.defaultStage = "main";
       jobs.plan = {
         commands = [ "tf-plan svc dev" ];
         artifacts.upload = {
