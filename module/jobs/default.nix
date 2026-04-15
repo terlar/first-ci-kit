@@ -10,9 +10,9 @@ in
     ./github-actions
   ];
 
-  config.pipeline = {
+  config = {
     gitlab-ci.settings = lib.mapAttrs' (name: job: {
-      name = config.pipeline.gitlab-ci.transformJobName name;
+      name = config.gitlab-ci.transformJobName name;
       value = builtins.removeAttrs job.gitlab-ci [ "enable" ];
     }) (enabledForBackend "gitlab-ci");
 

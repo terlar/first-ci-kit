@@ -7,7 +7,7 @@
 
 let
   inherit (rootConfig) imageRegistry jobs;
-  inherit (rootConfig.pipeline.gitlab-ci) defaultStage transformJobName;
+  inherit (rootConfig.gitlab-ci) defaultStage transformJobName;
 
   needs = lib.pipe config.needs [
     (builtins.filter (need: jobs.${need.job}.enable && jobs.${need.job}.gitlab-ci.enable))

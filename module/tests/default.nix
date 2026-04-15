@@ -53,10 +53,10 @@ let
       in
       eval.config;
 
-    eval-github-actions = modules: (evalConfig modules).pipeline.github-actions.settings;
+    eval-github-actions = modules: (evalConfig modules).github-actions.settings;
 
-    eval-gitlab-ci = modules: (evalConfig modules).pipeline.gitlab-ci.settings;
-    eval-gitlab-ci-documents = modules: (evalConfig modules).pipeline.gitlab-ci.fileDocuments;
+    eval-gitlab-ci = modules: (evalConfig modules).gitlab-ci.settings;
+    eval-gitlab-ci-documents = modules: (evalConfig modules).gitlab-ci.fileDocuments;
   };
 
   tests = lib.pipe ./. [

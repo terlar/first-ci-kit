@@ -8,7 +8,7 @@
 
 let
   inherit (rootConfig) jobs;
-  inherit (rootConfig.pipeline.github-actions)
+  inherit (rootConfig.github-actions)
     checkoutAction
     defaultRunsOn
     downloadArtifactAction
