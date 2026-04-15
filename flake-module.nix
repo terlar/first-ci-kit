@@ -39,6 +39,37 @@ in
           name = "ci-pipeline-gitlab-ci-${name}";
           value = value.gitlab-ci.file;
         }) config.first-ci-kit.pipelines)
+
+        # Child pipeline legacyPackages: ci-pipeline-{backend}-{parent}-{child}
+        (lib.mkMerge (
+          lib.mapAttrsToList (
+            parentName: parentValue:
+            lib.mkMerge [
+              (lib.mapAttrs' (childName: childValue: {
+                name = "ci-pipeline-gitlab-ci-${parentName}-${childName}";
+                value = childValue.gitlab-ci.file;
+              }) parentValue.pipelines)
+              (lib.mapAttrs' (childName: childValue: {
+                name = "ci-pipeline-github-actions-${parentName}-${childName}";
+                value = childValue.github-actions.file;
+              }) parentValue.pipelines)
+              (lib.mapAttrs' (childName: childValue: {
+                name = "ci-pipeline-github-actions-${parentName}-${childName}-reusable-workflows";
+                value =
+                  pkgs.runCommand "reusable-workflows-${parentName}-${childName}"
+                    { nativeBuildInputs = [ pkgs.yq-go ]; }
+                    ''
+                      mkdir -p $out
+                      ${lib.concatStrings (
+                        lib.mapAttrsToList (jobSetName: file: ''
+                          yq --prettyPrint --output-format yaml ${file} > $out/${jobSetName}.yml
+                        '') childValue.github-actions.reusableWorkflowFiles
+                      )}
+                    '';
+              }) parentValue.pipelines)
+            ]
+          ) config.first-ci-kit.pipelines
+        ))
       ];
     };
 }
