@@ -2,6 +2,20 @@
 
 let
   inherit (lib) types;
+
+  expandPipelineNeed =
+    jobSets: need:
+    if need.jobSet != null then
+      map (job: {
+        inherit job;
+        inherit (need) optional artifacts;
+      }) jobSets.${need.jobSet}.jobs
+    else
+      [
+        {
+          inherit (need) job optional artifacts;
+        }
+      ];
 in
 {
   documentsToYAML = lib.concatMapStringsSep "---\n" (x: (builtins.toJSON x) + "\n");
@@ -44,6 +58,13 @@ in
     artifacts = false;
     optional = true;
   };
+
+  # Expand a single pipeline need given a jobSets attrset.
+  # Returns a list of { job, optional, artifacts }.
+  inherit expandPipelineNeed;
+
+  # Expand a list of pipeline needs into a flat list of { job, optional, artifacts }.
+  expandPipelineNeeds = jobSets: needs: lib.flatten (map (expandPipelineNeed jobSets) needs);
 
   replaceVariables =
     variables:
