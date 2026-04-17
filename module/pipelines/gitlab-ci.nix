@@ -17,7 +17,11 @@ let
       triggerJobName = "trigger-${childName}";
       buildTarget = "ci-pipeline-gitlab-ci-${parentPipelineName}-${childName}";
 
-      image = ci-lib.resolveImage child.tags config.imageRegistry;
+      image =
+        if child.gitlab-ci.image != null then
+          config.imageRegistry.${child.gitlab-ci.image} or child.gitlab-ci.image
+        else
+          null;
 
       generateJob =
         { }

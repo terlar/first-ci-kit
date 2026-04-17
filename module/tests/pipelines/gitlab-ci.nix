@@ -242,16 +242,16 @@
     expected = "main";
   };
 
-  # tags set image via imageRegistry
-  test-child-pipeline-gitlab-ci-generate-job-image = {
+  # gitlab-ci.image resolved via imageRegistry
+  test-child-pipeline-gitlab-ci-generate-job-image-from-registry = {
     expr =
       let
         cfg = test-lib.evalConfig {
           imageRegistry = {
-            "profile:nix" = "nix-image:latest";
+            nix = "nix-image:latest";
           };
           pipelines.child = {
-            tags = [ "profile:nix" ];
+            gitlab-ci.image = "nix";
             jobs.do-thing = {
               commands = [ "echo hello" ];
             };
@@ -260,6 +260,23 @@
       in
       cfg.gitlab-ci.settings.generate-child.image;
     expected = "nix-image:latest";
+  };
+
+  # gitlab-ci.image used literally when not in imageRegistry
+  test-child-pipeline-gitlab-ci-generate-job-image-literal = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          pipelines.child = {
+            gitlab-ci.image = "ubuntu:24.04";
+            jobs.do-thing = {
+              commands = [ "echo hello" ];
+            };
+          };
+        };
+      in
+      cfg.gitlab-ci.settings.generate-child.image;
+    expected = "ubuntu:24.04";
   };
 
   # generate job gets needs derived from pipeline needs (job reference)

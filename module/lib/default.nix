@@ -66,14 +66,6 @@ in
   # Expand a list of pipeline needs into a flat list of { job, optional, artifacts }.
   expandPipelineNeeds = jobSets: needs: lib.flatten (map (expandPipelineNeed jobSets) needs);
 
-  # Resolve an image from a list of tags via an imageRegistry attrset.
-  resolveImage =
-    tags: imageRegistry:
-    let
-      matchingTag = lib.findFirst (t: imageRegistry ? ${t}) null tags;
-    in
-    if matchingTag != null then imageRegistry.${matchingTag} else null;
-
   replaceVariables =
     variables:
     let

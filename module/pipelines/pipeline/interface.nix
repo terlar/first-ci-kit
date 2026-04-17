@@ -11,15 +11,6 @@ in
       description = "Parent jobs or job-sets that must complete before this pipeline is dispatched.";
     };
 
-    tags = lib.mkOption {
-      type = types.listOf types.str;
-      default = [ ];
-      description = ''
-        Runner tags for the generate job (GitLab) or caller job (GHA).
-        Defaults to the parent gitlab-ci.settings.default.tags when empty.
-      '';
-    };
-
     inputs = lib.mkOption {
       type = types.attrsOf (
         types.submoduleWith {
@@ -45,6 +36,15 @@ in
       description = ''
         Declared outputs for this pipeline.
         Becomes on.workflow_call.outputs on GitHub Actions.
+      '';
+    };
+
+    gitlab-ci.image = lib.mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Image for the generate job. Resolved via imageRegistry if a known key,
+        otherwise used as a literal image reference.
       '';
     };
 
