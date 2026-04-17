@@ -18,7 +18,7 @@ string
 ` "actions/checkout@v5" `
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [github-actions\.nix](github-actions.nix)
 
 
 
@@ -39,7 +39,7 @@ null or string or list of string
 ` null `
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [github-actions\.nix](github-actions.nix)
 
 
 
@@ -65,7 +65,7 @@ string
 ` "actions/download-artifact@v3" `
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [github-actions\.nix](github-actions.nix)
 
 
 
@@ -99,7 +99,7 @@ YAML value
 ```
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [github-actions\.nix](github-actions.nix)
 
 
 
@@ -120,7 +120,7 @@ function that evaluates to a(n) string
 ` <function> `
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [github-actions\.nix](github-actions.nix)
 
 
 
@@ -146,7 +146,7 @@ string
 ` "actions/upload-artifact@v3" `
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [github-actions\.nix](github-actions.nix)
 
 
 
@@ -167,7 +167,7 @@ null or string
 ` null `
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [gitlab-ci\.nix](gitlab-ci.nix)
 
 
 
@@ -202,7 +202,7 @@ YAML value
 ```
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [gitlab-ci\.nix](gitlab-ci.nix)
 
 
 
@@ -236,7 +236,7 @@ YAML value
 ```
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [gitlab-ci\.nix](gitlab-ci.nix)
 
 
 
@@ -257,7 +257,7 @@ function that evaluates to a(n) string
 ` <function> `
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [gitlab-ci\.nix](gitlab-ci.nix)
 
 
 
@@ -276,6 +276,133 @@ lazy attribute set of string
 
 *Default:*
 ` { } `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## inputs
+
+
+
+Declared inputs for this pipeline\.
+Becomes on\.workflow_call\.inputs on GitHub Actions and spec\.inputs on GitLab CI\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## inputs\.\<name>\.default
+
+
+
+Default value\. Must be a string (GitHub Actions requirement)\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## inputs\.\<name>\.description
+
+
+
+Human-readable description of this input\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "" `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## inputs\.\<name>\.options
+
+
+
+Valid choices\. Only meaningful when type = ‘choice’\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## inputs\.\<name>\.required
+
+
+
+Whether this input is required\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## inputs\.\<name>\.type
+
+
+
+Input type\.
+
+
+
+*Type:*
+one of “string”, “boolean”, “number”, “environment”, “choice”
+
+
+
+*Default:*
+` "string" `
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -1198,6 +1325,66 @@ list of string
 
 
 
+## outputs
+
+
+
+Declared outputs for this pipeline\.
+Becomes on\.workflow_call\.outputs on GitHub Actions\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## outputs\.\<name>\.description
+
+
+
+Human-readable description of this output\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "" `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## outputs\.\<name>\.value
+
+
+
+Expression referencing the job output\.
+Example: “${{ jobs\.plan\.outputs\.plan }}”
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## process-compose\.cli
 
 
@@ -1215,7 +1402,7 @@ raw value
 ` { } `
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [process-compose\.nix](process-compose.nix)
 
 
 
@@ -1236,6 +1423,6 @@ module
 ` { } `
 
 *Declared by:*
- - [interface\.nix](interface.nix)
+ - [process-compose\.nix](process-compose.nix)
 
 

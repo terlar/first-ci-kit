@@ -9,8 +9,6 @@
         modules = [
           ./..
           ./pipeline/interface.nix
-          ./pipeline/gitlab-ci-inputs.nix
-          ./pipeline/github-actions.nix
         ];
       }
     );

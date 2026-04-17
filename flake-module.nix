@@ -67,10 +67,12 @@ in
         # Bundle packages: one derivation per backend containing all pipeline files.
         # Used by git hooks to avoid N separate nix build invocations (one eval each).
         {
-          ci-pipelines-github-actions = pkgs.linkFarm "ci-pipelines-github-actions"
-            (allPipelineFiles (p: p.github-actions.file));
-          ci-pipelines-gitlab-ci = pkgs.linkFarm "ci-pipelines-gitlab-ci"
-            (allPipelineFiles (p: p.gitlab-ci.file));
+          ci-pipelines-github-actions = pkgs.linkFarm "ci-pipelines-github-actions" (
+            allPipelineFiles (p: p.github-actions.file)
+          );
+          ci-pipelines-gitlab-ci = pkgs.linkFarm "ci-pipelines-gitlab-ci" (
+            allPipelineFiles (p: p.gitlab-ci.file)
+          );
         }
       ];
     };
