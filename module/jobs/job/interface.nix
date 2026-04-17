@@ -1,5 +1,6 @@
 {
   lib,
+  ci-lib,
   name,
   rootConfig,
   config,
@@ -27,39 +28,6 @@ let
               description = "Paths affecting the job.";
               example = lib.literalExpression ''[ "src/" "go.sum" ]'';
             };
-          };
-        };
-      }
-    ];
-  };
-
-  needsType = types.submoduleWith {
-    description = "Job needs configuration";
-    modules = [
-      {
-        options = {
-          job = lib.mkOption {
-            type = types.nullOr types.str;
-            default = null;
-            description = "Name of the needed job.";
-          };
-
-          jobSet = lib.mkOption {
-            type = types.nullOr types.str;
-            default = null;
-            description = "Name of the needed job set.";
-          };
-
-          optional = lib.mkOption {
-            type = types.bool;
-            default = false;
-            description = "Whether need is optional.";
-          };
-
-          artifacts = lib.mkOption {
-            type = types.bool;
-            default = true;
-            description = "Whether artifacts from dependency is used.";
           };
         };
       }
@@ -144,7 +112,7 @@ in
     };
 
     needs = lib.mkOption {
-      type = types.listOf needsType;
+      type = types.listOf ci-lib.types.needsType;
       apply =
         v:
         lib.pipe v [

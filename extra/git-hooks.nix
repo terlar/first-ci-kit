@@ -11,6 +11,8 @@ let
       ...
     }:
     let
+      # Build a shell script that evaluates all pipelines in one nix build call
+      # by referencing the bundle derivation, then copies each file to its destination.
       writePipelineGenerator =
         { backend, pipelines }:
         pkgs.writeShellApplication {
@@ -18,17 +20,18 @@ let
           runtimeInputs = [ pkgs.yq-go ];
           text =
             let
-              generatePipeline = name: outputPath: ''
-                out="$(nix build --extra-experimental-features 'nix-command flakes' \
-                  --print-out-paths \
-                  .#ci-pipeline-${backend}-${name}
-                )"
-
+              copyPipeline = name: outputPath: ''
                 mkdir -p "$(dirname "${outputPath}")"
-                yq --prettyPrint --output-format yaml "$out" > "${outputPath}"
+                yq --prettyPrint --output-format yaml "$bundle/${name}.yml" > "${outputPath}"
               '';
             in
-            lib.concatStringsSep "\n" (lib.mapAttrsToList generatePipeline pipelines);
+            ''
+              bundle="$(nix build --extra-experimental-features 'nix-command flakes' \
+                --print-out-paths \
+                .#ci-pipelines-${backend}
+              )"
+            ''
+            + lib.concatStringsSep "\n" (lib.mapAttrsToList copyPipeline pipelines);
         };
     in
     {

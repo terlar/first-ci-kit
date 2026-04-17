@@ -996,7 +996,7 @@ Jobs needed by the job\.
 
 
 *Type:*
-list of (Job needs configuration)
+list of (Needs configuration)
 
 
 
@@ -1024,7 +1024,7 @@ list of (Job needs configuration)
 
 
 
-Whether artifacts from dependency is used\.
+Whether artifacts from dependency are used\.
 
 
 
