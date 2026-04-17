@@ -11,34 +11,6 @@ in
       description = "Parent jobs or job-sets that must complete before this pipeline is dispatched.";
     };
 
-    inputs = lib.mkOption {
-      type = types.attrsOf (
-        types.submoduleWith {
-          modules = [ ./input.nix ];
-          shorthandOnlyDefinesConfig = true;
-        }
-      );
-      default = { };
-      description = ''
-        Declared inputs for this pipeline.
-        Becomes on.workflow_call.inputs on GitHub Actions and spec.inputs on GitLab CI.
-      '';
-    };
-
-    outputs = lib.mkOption {
-      type = types.attrsOf (
-        types.submoduleWith {
-          modules = [ ./output.nix ];
-          shorthandOnlyDefinesConfig = true;
-        }
-      );
-      default = { };
-      description = ''
-        Declared outputs for this pipeline.
-        Becomes on.workflow_call.outputs on GitHub Actions.
-      '';
-    };
-
     gitlab-ci.image = lib.mkOption {
       type = types.nullOr types.str;
       default = null;

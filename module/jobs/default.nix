@@ -7,7 +7,7 @@ in
 {
   imports = [
     ./interface.nix
-    ./github-actions
+    ./github-actions.nix
   ];
 
   config = {

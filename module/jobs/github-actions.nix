@@ -27,7 +27,7 @@ in
               GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
               GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
             };
-            run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            run = builtins.readFile ../../packages/gha-path-changes/main.bash;
           }
         ];
       };

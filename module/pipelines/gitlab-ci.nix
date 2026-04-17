@@ -40,7 +40,7 @@ let
           needs = map (
             n:
             {
-              job = n.job;
+              inherit (n) job;
             }
             // lib.optionalAttrs (!n.artifacts) { artifacts = false; }
             // lib.optionalAttrs n.optional { optional = true; }
