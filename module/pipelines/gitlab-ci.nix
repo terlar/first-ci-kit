@@ -32,7 +32,7 @@ let
             "cp result ${artifactFile}"
           ];
           artifacts = {
-            paths = [ artifactFile ];
+            paths = [ artifactFile ] ++ child.gitlab-ci.dispatch.generateJob.extraArtifactPaths;
             expire_in = "1 week";
           };
         }

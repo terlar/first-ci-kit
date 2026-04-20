@@ -33,6 +33,12 @@ in
           default = [ ];
           description = "Extra rules prepended to the generate job's rules list.";
         };
+
+        extraArtifactPaths = lib.mkOption {
+          type = types.listOf types.str;
+          default = [ ];
+          description = "Extra artifact paths included in the generate job, in addition to the generated yml file.";
+        };
       };
 
       trigger = {
