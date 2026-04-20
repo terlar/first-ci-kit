@@ -14,20 +14,23 @@ let
         ci-lib.expandPipelineNeeds config.jobSets child.needs
       );
 
-      callerJob =
-        {
-          uses = "./.github/workflows/${childName}.yml";
-          secrets = "inherit";
-        }
-        // lib.optionalAttrs (child.github-actions.dispatch.callerIf != null) {
-          "if" = child.github-actions.dispatch.callerIf;
-        }
-        // lib.optionalAttrs (callerNeeds != [ ]) {
-          needs = callerNeeds;
-        };
+      callerJob = {
+        uses = "./.github/workflows/${childName}.yml";
+        secrets = "inherit";
+      }
+      // lib.optionalAttrs (child.github-actions.dispatch.callerIf != null) {
+        "if" = child.github-actions.dispatch.callerIf;
+      }
+      // lib.optionalAttrs (callerNeeds != [ ]) {
+        needs = callerNeeds;
+      };
     in
-    { ${childName} = callerJob; };
+    {
+      ${childName} = callerJob;
+    };
 in
 {
-  config.github-actions.settings.jobs = lib.mkMerge (lib.mapAttrsToList mkGhaDispatch config.pipelines);
+  config.github-actions.settings.jobs = lib.mkMerge (
+    lib.mapAttrsToList mkGhaDispatch config.pipelines
+  );
 }

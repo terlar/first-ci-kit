@@ -168,6 +168,18 @@ in
       example = lib.literalExpression ''[ "make build" "make test" ]'';
     };
 
+    uses = lib.mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        If set, render this job as a GitHub Actions reusable workflow caller (uses: …)
+        instead of a standard runs-on + steps job.
+        Setting this suppresses runs-on, checkout, commands, and artifact steps for GitHub Actions.
+        GitLab CI rendering is unaffected.
+      '';
+      example = "./.github/workflows/profile-k8s.yml";
+    };
+
     artifacts = lib.mkOption {
       type = types.submodule {
         options = {
