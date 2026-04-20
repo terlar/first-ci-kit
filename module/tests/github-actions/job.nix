@@ -520,6 +520,66 @@
     };
   };
 
+  test-github-actions-job-caller-basic = {
+    expr = test-lib.eval-github-actions {
+      jobs.deploy = {
+        uses = "./.github/workflows/profile-deploy.yml";
+        github-actions = {
+          secrets = "inherit";
+          "with".service = "my-service";
+        };
+      };
+    };
+    expected = {
+      jobs.deploy = {
+        uses = "./.github/workflows/profile-deploy.yml";
+        secrets = "inherit";
+        "with".service = "my-service";
+      };
+    };
+  };
+
+  test-github-actions-job-caller-with-changes = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.deploy = {
+        uses = "./.github/workflows/profile-deploy.yml";
+        branches.default = {
+          changes.paths = [ "src/**" ];
+          triggers.onMergeRequest = true;
+        };
+        github-actions."with".service = "my-service";
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "deploy:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        deploy = {
+          uses = "./.github/workflows/profile-deploy.yml";
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+          "with".service = "my-service";
+        };
+      };
+    };
+  };
+
   test-github-actions-job-artifact-custom-download-action = {
     expr = test-lib.eval-github-actions {
       github-actions = {
