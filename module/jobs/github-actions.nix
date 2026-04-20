@@ -35,7 +35,13 @@ in
 
     (lib.mapAttrs' (name: job: {
       name = config.github-actions.transformJobName name;
-      value = builtins.removeAttrs job.github-actions [ "enable" ];
+      value = builtins.removeAttrs job.github-actions (
+        [ "enable" ]
+        ++ lib.optionals (job.github-actions.uses or null != null) [
+          "runs-on"
+          "steps"
+        ]
+      );
     }) enabledJobs)
   ];
 }

@@ -1325,35 +1325,6 @@ list of string
 
 
 
-## jobs\.\<name>\.uses
-
-
-
-If set, render this job as a GitHub Actions reusable workflow caller (uses: …)
-instead of a standard runs-on + steps job\.
-Setting this suppresses runs-on, checkout, commands, and artifact steps for GitHub Actions\.
-GitLab CI rendering is unaffected\.
-
-
-
-*Type:*
-null or string
-
-
-
-*Default:*
-` null `
-
-
-
-*Example:*
-` "./.github/workflows/profile-k8s.yml" `
-
-*Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
-
-
-
 ## outputs
 
 
