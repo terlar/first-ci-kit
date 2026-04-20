@@ -523,8 +523,8 @@
   test-github-actions-job-caller-basic = {
     expr = test-lib.eval-github-actions {
       jobs.deploy = {
-        uses = "./.github/workflows/profile-deploy.yml";
         github-actions = {
+          uses = "./.github/workflows/profile-deploy.yml";
           secrets = "inherit";
           "with".service = "my-service";
         };
@@ -543,12 +543,14 @@
     expr = test-lib.eval-github-actions {
       github-actions.defaultRunsOn = "ubuntu-latest";
       jobs.deploy = {
-        uses = "./.github/workflows/profile-deploy.yml";
         branches.default = {
           changes.paths = [ "src/**" ];
           triggers.onMergeRequest = true;
         };
-        github-actions."with".service = "my-service";
+        github-actions = {
+          uses = "./.github/workflows/profile-deploy.yml";
+          "with".service = "my-service";
+        };
       };
     };
     expected = {
