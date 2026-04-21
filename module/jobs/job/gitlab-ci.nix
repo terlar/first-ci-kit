@@ -29,7 +29,7 @@ in
           branchCompare = if lib.hasPrefix "$" branch then branch else "'${branch}'";
 
           pathsFromTriggers = lib.pipe config.triggers [
-            (builtins.filter (job: jobs.${job}.enable && jobs.${job}.gitlab-ci.enable))
+            (builtins.filter (job: jobs ? ${job} && jobs.${job}.enable && jobs.${job}.gitlab-ci.enable))
             (map (job: jobs.${job}.branches.${name}.changes.paths))
             builtins.concatLists
             lib.unique
