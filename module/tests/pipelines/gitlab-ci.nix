@@ -311,4 +311,32 @@
       cfg.gitlab-ci.settings.generate-child.needs;
     expected = [ { job = "build"; } ];
   };
+
+  test-child-pipeline-gitlab-ci-as-component-no-generate-job = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          pipelines.child = {
+            gitlab-ci.asComponent = true;
+            jobs.do-thing.commands = [ "echo hello" ];
+          };
+        };
+      in
+      cfg.gitlab-ci.settings ? "generate-child";
+    expected = false;
+  };
+
+  test-child-pipeline-gitlab-ci-as-component-no-trigger-job = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          pipelines.child = {
+            gitlab-ci.asComponent = true;
+            jobs.do-thing.commands = [ "echo hello" ];
+          };
+        };
+      in
+      cfg.gitlab-ci.settings ? "trigger-child";
+    expected = false;
+  };
 }
