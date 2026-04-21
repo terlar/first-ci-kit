@@ -1,4 +1,34 @@
+## autoEnvInputs
+
+When true and inputs are declared, automatically inject each input as an
+uppercased environment variable available to all jobs\.
+
+GitHub Actions: adds ` env: ` at workflow level mapping e\.g\. SERVICE to
+` ${{ inputs.service }} `\.
+
+GitLab CI: adds ` variables: ` at pipeline level mapping e\.g\. SERVICE to
+` $[[ inputs.service ]] `\.
+
+Set to false to opt out and manage env/variables manually\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
 ## github-actions\.checkoutAction
+
+
 
 The default checkout action to use for jobs
 

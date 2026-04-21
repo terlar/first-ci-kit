@@ -172,4 +172,80 @@
       builtins.length cfg.gitlab-ci.fileDocuments;
     expected = 1;
   };
+
+  test-auto-env-inputs-gha = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          inputs.service = {
+            required = true;
+            description = "Service name.";
+          };
+          inputs.run_deploy = {
+            default = "true";
+            description = "Run deploy?";
+          };
+          jobs.deploy.commands = [ "deploy" ];
+        };
+      in
+      cfg.github-actions.settings.env;
+    expected = {
+      SERVICE = "\${{ inputs.service }}";
+      RUN_DEPLOY = "\${{ inputs.run_deploy }}";
+    };
+  };
+
+  test-auto-env-inputs-gitlab = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          inputs.service = {
+            required = true;
+            description = "Service name.";
+          };
+          inputs.run_deploy = {
+            default = "true";
+            description = "Run deploy?";
+          };
+          jobs.deploy.commands = [ "deploy" ];
+        };
+      in
+      cfg.gitlab-ci.settings.variables;
+    expected = {
+      SERVICE = "$[[ inputs.service ]]";
+      RUN_DEPLOY = "$[[ inputs.run_deploy ]]";
+    };
+  };
+
+  test-auto-env-inputs-opt-out-gha = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          autoEnvInputs = false;
+          inputs.service = {
+            required = true;
+            description = "Service name.";
+          };
+          jobs.deploy.commands = [ "deploy" ];
+        };
+      in
+      cfg.github-actions.settings ? "env";
+    expected = false;
+  };
+
+  test-auto-env-inputs-opt-out-gitlab = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          autoEnvInputs = false;
+          inputs.service = {
+            required = true;
+            description = "Service name.";
+          };
+          jobs.deploy.commands = [ "deploy" ];
+        };
+      in
+      cfg.gitlab-ci.settings ? "variables";
+    expected = false;
+  };
 }

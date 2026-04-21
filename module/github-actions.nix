@@ -86,7 +86,15 @@ in
     };
   };
 
-  config = lib.mkIf (workflowCall != { }) {
-    github-actions.settings.on.workflow_call = workflowCall;
-  };
+  config = lib.mkMerge [
+    (lib.mkIf (workflowCall != { }) {
+      github-actions.settings.on.workflow_call = workflowCall;
+    })
+    (lib.mkIf (config.autoEnvInputs && config.inputs != { }) {
+      github-actions.settings.env = lib.mapAttrs' (name: _: {
+        name = lib.strings.toUpper name;
+        value = "\${{ inputs.${name} }}";
+      }) config.inputs;
+    })
+  ];
 }

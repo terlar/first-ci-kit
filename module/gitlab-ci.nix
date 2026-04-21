@@ -78,5 +78,12 @@ in
 
   config = lib.mkIf (config.inputs != { }) {
     gitlab-ci.inputs = lib.mapAttrs renderGitlabInput config.inputs;
+
+    gitlab-ci.settings.variables = lib.mkIf config.autoEnvInputs (
+      lib.mapAttrs' (name: _: {
+        name = lib.strings.toUpper name;
+        value = "$[[ inputs.${name} ]]";
+      }) config.inputs
+    );
   };
 }
