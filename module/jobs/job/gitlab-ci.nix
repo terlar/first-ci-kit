@@ -13,7 +13,6 @@ let
     (builtins.filter (need: jobs.${need.job}.enable && jobs.${need.job}.gitlab-ci.enable))
     (map (need: need // { job = transformJobName need.job; }))
   ];
-  triggersBranchConfig = map (job: jobs.${job}.branches) config.triggers;
 in
 {
   config.gitlab-ci = {
@@ -29,8 +28,9 @@ in
           branch = if name == "default" then "$CI_DEFAULT_BRANCH" else name;
           branchCompare = if lib.hasPrefix "$" branch then branch else "'${branch}'";
 
-          pathsFromTriggers = lib.pipe triggersBranchConfig [
-            (map (cfg: cfg.${name}.changes.paths))
+          pathsFromTriggers = lib.pipe config.triggers [
+            (builtins.filter (job: jobs.${job}.enable && jobs.${job}.gitlab-ci.enable))
+            (map (job: jobs.${job}.branches.${name}.changes.paths))
             builtins.concatLists
             lib.unique
           ];

@@ -333,6 +333,48 @@
     };
   };
 
+  test-gitlab-ci-job-triggers-filter-disabled-job = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs = {
+        job-a = {
+          enable = false;
+          branches.default = {
+            changes.paths = [ "a-path" ];
+            triggers.onPush = true;
+          };
+        };
+        job-b = {
+          triggers = [ "job-a" ];
+          branches.default.triggers.onPush = true;
+        };
+      };
+    };
+    expected = {
+      job-b.rules = [ { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; } ];
+    };
+  };
+
+  test-gitlab-ci-job-triggers-filter-per-backend-disabled-job = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs = {
+        job-a = {
+          gitlab-ci.enable = false;
+          branches.default = {
+            changes.paths = [ "a-path" ];
+            triggers.onPush = true;
+          };
+        };
+        job-b = {
+          triggers = [ "job-a" ];
+          branches.default.triggers.onPush = true;
+        };
+      };
+    };
+    expected = {
+      job-b.rules = [ { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; } ];
+    };
+  };
+
   test-gitlab-ci-job-artifacts-upload = {
     expr = test-lib.eval-gitlab-ci {
       gitlab-ci.defaultStage = "main";
