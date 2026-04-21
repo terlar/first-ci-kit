@@ -9,9 +9,12 @@ let
   inherit (rootConfig) imageRegistry jobs;
   inherit (rootConfig.gitlab-ci) defaultStage transformJobName;
 
+  isEnabledJob = name: (jobs.${name}.enable or true) && (jobs.${name}.gitlab-ci.enable or true);
+  resolveJobName = name: if jobs ? ${name} then transformJobName name else name;
+
   needs = lib.pipe config.needs [
-    (builtins.filter (need: jobs.${need.job}.enable && jobs.${need.job}.gitlab-ci.enable))
-    (map (need: need // { job = transformJobName need.job; }))
+    (builtins.filter (need: isEnabledJob need.job))
+    (map (need: need // { job = resolveJobName need.job; }))
   ];
 in
 {
