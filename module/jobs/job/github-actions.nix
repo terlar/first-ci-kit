@@ -16,9 +16,12 @@ let
     uploadArtifactAction
     ;
 
+  isEnabledJob = name: (jobs.${name}.enable or true) && (jobs.${name}.github-actions.enable or true);
+  resolveJobName = name: if jobs ? ${name} then transformJobName name else name;
+
   needs = lib.pipe config.needs [
-    (builtins.filter (need: jobs.${need.job}.enable && jobs.${need.job}.github-actions.enable))
-    (map (need: need // { job = transformJobName need.job; }))
+    (builtins.filter (need: isEnabledJob need.job))
+    (map (need: need // { job = resolveJobName need.job; }))
   ];
 
   needJobs = builtins.catAttrs "job" needs;

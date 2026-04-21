@@ -78,6 +78,49 @@
     };
   };
 
+  test-gitlab-ci-job-with-external-needs = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job-a.needs = [ { job = "external-job"; } ];
+    };
+
+    expected = {
+      job-a.needs = [
+        {
+          artifacts = true;
+          job = "external-job";
+          optional = false;
+        }
+      ];
+    };
+  };
+
+  test-gitlab-ci-job-with-external-needs-and-transform = {
+    expr = test-lib.eval-gitlab-ci {
+      gitlab-ci.transformJobName = builtins.replaceStrings [ "_" ] [ ":" ];
+      jobs.job_a.needs = [
+        { job = "job_b"; }
+        { job = "external_job"; }
+      ];
+      jobs.job_b = { };
+    };
+
+    expected = {
+      "job:a".needs = [
+        {
+          artifacts = true;
+          job = "job:b";
+          optional = false;
+        }
+        {
+          artifacts = true;
+          job = "external_job";
+          optional = false;
+        }
+      ];
+      "job:b" = { };
+    };
+  };
+
   test-gitlab-ci-job-with-self-needs = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job-a.needs = [ { job = "job-a"; } ];

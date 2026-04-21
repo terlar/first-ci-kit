@@ -85,6 +85,43 @@
     };
   };
 
+  test-github-actions-job-with-external-needs = {
+    expr = test-lib.eval-github-actions {
+      jobs.job-a.needs = [ { job = "external-job"; } ];
+    };
+    expected = {
+      jobs.job-a = {
+        needs = [ "external-job" ];
+        steps = [ { uses = "actions/checkout@v6"; } ];
+      };
+    };
+  };
+
+  test-github-actions-job-with-external-needs-and-transform = {
+    expr = test-lib.eval-github-actions {
+      github-actions.transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
+      jobs = {
+        "job:a".needs = [
+          { job = "job:b"; }
+          { job = "external_job"; }
+        ];
+        "job:b" = { };
+      };
+    };
+    expected = {
+      jobs = {
+        job_a = {
+          needs = [
+            "job_b"
+            "external_job"
+          ];
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+        job_b.steps = [ { uses = "actions/checkout@v6"; } ];
+      };
+    };
+  };
+
   test-github-actions-job-with-self-needs = {
     expr = test-lib.eval-github-actions {
       jobs.job-a.needs = [ { job = "job-a"; } ];
