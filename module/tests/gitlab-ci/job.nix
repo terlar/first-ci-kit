@@ -333,6 +333,20 @@
     };
   };
 
+  test-gitlab-ci-job-triggers-filter-unknown-job = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs = {
+        job-b = {
+          triggers = [ "non-existent-job" ];
+          branches.default.triggers.onPush = true;
+        };
+      };
+    };
+    expected = {
+      job-b.rules = [ { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; } ];
+    };
+  };
+
   test-gitlab-ci-job-triggers-filter-disabled-job = {
     expr = test-lib.eval-gitlab-ci {
       jobs = {
