@@ -83,5 +83,9 @@ let
     };
 in
 {
-  config.gitlab-ci.settings = lib.mkMerge (lib.mapAttrsToList mkGitlabDispatchJobs config.pipelines);
+  config.gitlab-ci.settings = lib.pipe config.pipelines [
+    (lib.filterAttrs (_: child: !child.gitlab-ci.asComponent))
+    (lib.mapAttrsToList mkGitlabDispatchJobs)
+    lib.mkMerge
+  ];
 }

@@ -30,4 +30,5 @@ policies:
           - process-compose
           - renovate
           - template
+          - pipelines
         descriptionLength: 72
