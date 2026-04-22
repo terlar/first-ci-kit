@@ -1353,6 +1353,30 @@ attribute set of (string or list of string)
 
 
 
+## jobs\.\<name>\.pipelineCall\.gitlab-ci\.templatePath
+
+
+
+Local path to the GitLab CI component template for the called
+pipeline (e\.g\. “ci/gitlab-templates/profile-terraform/template\.yml”)\.
+When set, takes precedence over looking up the path via
+` config.pipelines.<pipeline>.gitlab-ci.templatePath `\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.pipelineCall\.inputs
 
 

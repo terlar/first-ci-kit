@@ -117,4 +117,37 @@
       };
     };
   };
+
+  test-gitlab-ci-job-pipeline-call-per-job-template-path-overrides-pipeline = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy.pipelineCall = {
+        pipeline = "my-pipeline";
+        gitlab-ci.templatePath = "ci/override/template.yml";
+      };
+    };
+    expected = {
+      include = [ { local = "ci/override/template.yml"; } ];
+    };
+  };
+
+  test-gitlab-ci-job-pipeline-call-per-job-template-path-no-pipeline-path = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy.pipelineCall = {
+        pipeline = "my-pipeline";
+        gitlab-ci.templatePath = "ci/override/template.yml";
+      };
+    };
+    expected = {
+      include = [ { local = "ci/override/template.yml"; } ];
+    };
+  };
 }

@@ -289,6 +289,17 @@ in
                 `plan_needs` (an array of upstream job names).
               '';
             };
+
+            gitlab-ci.templatePath = lib.mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = ''
+                Local path to the GitLab CI component template for the called
+                pipeline (e.g. "ci/gitlab-templates/profile-terraform/template.yml").
+                When set, takes precedence over looking up the path via
+                `config.pipelines.<pipeline>.gitlab-ci.templatePath`.
+              '';
+            };
           };
         }
       );
