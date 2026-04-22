@@ -19,6 +19,7 @@ let
 in
 {
   config.gitlab-ci = {
+    enable = lib.mkIf (config.pipelineCall != null) (lib.mkForce false);
     stage = lib.mkIf (defaultStage != null) (lib.mkDefault defaultStage);
     needs = lib.mkIf (needs != [ ]) needs;
 

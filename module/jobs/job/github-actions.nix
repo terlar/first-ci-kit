@@ -80,5 +80,18 @@ in
         }
       ];
     })
+
+    (lib.mkIf (config.pipelineCall != null) (
+      {
+        uses = "./.github/workflows/${config.pipelineCall.pipeline}.yml";
+        "with" =
+          config.pipelineCall.inputs
+          // lib.optionalAttrs hasChanges {
+            changes = "\${{ needs.changes.outputs.changes }}";
+            changes_key = name;
+          };
+      }
+      // lib.optionalAttrs config.pipelineCall."github-actions".passSecrets { secrets = "inherit"; }
+    ))
   ];
 }

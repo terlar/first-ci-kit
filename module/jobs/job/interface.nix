@@ -232,6 +232,49 @@ in
       description = "Job configuration targeting GitLab CI.";
     };
 
+    pipelineCall = lib.mkOption {
+      type = types.nullOr (
+        types.submodule {
+          options = {
+            pipeline = lib.mkOption {
+              type = types.str;
+              description = ''
+                Name of a pipeline declared in `config.pipelines` to call. On GitHub
+                Actions the job is rendered as a `uses:` reusable-workflow caller; on
+                GitLab CI the job is suppressed and an `include:` entry pointing to
+                the pipeline's `gitlab-ci.templatePath` is emitted instead.
+              '';
+            };
+
+            inputs = lib.mkOption {
+              type = types.attrsOf types.str;
+              default = { };
+              description = ''
+                Input values forwarded to the called pipeline. On GitHub Actions these
+                become the `with:` block; on GitLab CI they become the `inputs:` block
+                of the include entry. Changes-detection inputs (`changes`,
+                `changes_key`) are injected automatically on GitHub Actions when the
+                job has `branches.default.changes.paths` configured.
+              '';
+            };
+
+            github-actions.passSecrets = lib.mkOption {
+              type = types.bool;
+              default = true;
+              description = ''
+                Whether to pass `secrets: inherit` to the called reusable
+                workflow. Set to `false` to opt out, e.g. when calling a
+                public or cross-org workflow that does not accept inherited
+                secrets.
+              '';
+            };
+          };
+        }
+      );
+      default = null;
+      description = "Call a child pipeline (reusable workflow / template include) instead of running commands directly.";
+    };
+
     process-compose = lib.mkOption {
       type = types.submoduleWith {
         modules = [
