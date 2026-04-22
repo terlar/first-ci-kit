@@ -88,4 +88,24 @@
       };
     };
   };
+
+  test-github-actions-job-pipeline-call-extra-inputs-merged-into-with = {
+    expr = test-lib.eval-github-actions {
+      jobs.deploy.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs.environment = "prod";
+        github-actions.extraInputs.ref = "main";
+      };
+    };
+    expected = {
+      jobs.deploy = {
+        uses = "./.github/workflows/my-pipeline.yml";
+        secrets = "inherit";
+        "with" = {
+          environment = "prod";
+          ref = "main";
+        };
+      };
+    };
+  };
 }

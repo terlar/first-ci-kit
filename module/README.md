@@ -1282,6 +1282,30 @@ null or (submodule)
 
 
 
+## jobs\.\<name>\.pipelineCall\.github-actions\.extraInputs
+
+
+
+Additional GitHub Actions ` with: ` inputs that are NOT forwarded
+to the GitLab CI include\. Use this for GHA-only inputs such as
+` profile ` (Nix dev-shell selector) or a dynamic ` run_deploy `
+expression\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.pipelineCall\.github-actions\.passSecrets
 
 
@@ -1310,11 +1334,11 @@ boolean
 
 
 
-Input values forwarded to the called pipeline\. On GitHub Actions these
-become the ` with: ` block; on GitLab CI they become the ` inputs: ` block
-of the include entry\. Changes-detection inputs (` changes `,
-` changes_key `) are injected automatically on GitHub Actions when the
-job has ` branches.default.changes.paths ` configured\.
+Input values forwarded to the called pipeline on both GitHub
+Actions (` with: `) and GitLab CI (` inputs: `)\. Changes-detection
+inputs (` changes `, ` changes_key `) are injected automatically on
+GitHub Actions when the job has
+` branches.default.changes.paths ` configured\.
 
 
 

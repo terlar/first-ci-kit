@@ -250,11 +250,22 @@ in
               type = types.attrsOf types.str;
               default = { };
               description = ''
-                Input values forwarded to the called pipeline. On GitHub Actions these
-                become the `with:` block; on GitLab CI they become the `inputs:` block
-                of the include entry. Changes-detection inputs (`changes`,
-                `changes_key`) are injected automatically on GitHub Actions when the
-                job has `branches.default.changes.paths` configured.
+                Input values forwarded to the called pipeline on both GitHub
+                Actions (`with:`) and GitLab CI (`inputs:`). Changes-detection
+                inputs (`changes`, `changes_key`) are injected automatically on
+                GitHub Actions when the job has
+                `branches.default.changes.paths` configured.
+              '';
+            };
+
+            github-actions.extraInputs = lib.mkOption {
+              type = types.attrsOf types.str;
+              default = { };
+              description = ''
+                Additional GitHub Actions `with:` inputs that are NOT forwarded
+                to the GitLab CI include. Use this for GHA-only inputs such as
+                `profile` (Nix dev-shell selector) or a dynamic `run_deploy`
+                expression.
               '';
             };
 

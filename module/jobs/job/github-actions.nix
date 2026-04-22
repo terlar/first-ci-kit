@@ -86,9 +86,10 @@ in
         uses = "./.github/workflows/${config.pipelineCall.pipeline}.yml";
         "with" =
           config.pipelineCall.inputs
+          // config.pipelineCall."github-actions".extraInputs
           // lib.optionalAttrs hasChanges {
             changes = "\${{ needs.changes.outputs.changes }}";
-            changes_key = name;
+            changes_key = transformJobName name;
           };
       }
       // lib.optionalAttrs config.pipelineCall."github-actions".passSecrets { secrets = "inherit"; }

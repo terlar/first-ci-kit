@@ -51,4 +51,27 @@
       }) ? deploy;
     expected = false;
   };
+
+  test-gitlab-ci-job-pipeline-call-gha-extra-inputs-not-in-gitlab = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs.environment = "prod";
+        github-actions.extraInputs.ref = "main";
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs.environment = "prod";
+        }
+      ];
+    };
+  };
 }
