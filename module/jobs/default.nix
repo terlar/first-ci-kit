@@ -32,11 +32,14 @@ in
           assert lib.assertMsg (
             templatePath != null
           ) "pipelineCall: pipeline '${job.pipelineCall.pipeline}' has no gitlab-ci.templatePath set";
+          let
+            allInputs = job.pipelineCall.inputs // job.pipelineCall.gitlab-ci.extraInputs;
+          in
           {
             local = templatePath;
           }
-          // lib.optionalAttrs (job.pipelineCall.inputs != { }) {
-            inherit (job.pipelineCall) inputs;
+          // lib.optionalAttrs (allInputs != { }) {
+            inputs = allInputs;
           }
         ) pipelineCallJobs;
       })

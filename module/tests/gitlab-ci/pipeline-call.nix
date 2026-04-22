@@ -74,4 +74,47 @@
       ];
     };
   };
+
+  test-gitlab-ci-job-pipeline-call-gitlab-extra-inputs-merged = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs.environment = "prod";
+        gitlab-ci.extraInputs.plan_needs = "tf-plan";
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            environment = "prod";
+            plan_needs = "tf-plan";
+          };
+        }
+      ];
+    };
+  };
+
+  test-github-actions-job-pipeline-call-gitlab-extra-inputs-not-in-gha = {
+    expr = test-lib.eval-github-actions {
+      jobs.deploy.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs.environment = "prod";
+        gitlab-ci.extraInputs.plan_needs = "tf-plan";
+      };
+    };
+    expected = {
+      jobs.deploy = {
+        uses = "./.github/workflows/my-pipeline.yml";
+        secrets = "inherit";
+        "with".environment = "prod";
+      };
+    };
+  };
 }

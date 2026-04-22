@@ -1330,6 +1330,29 @@ boolean
 
 
 
+## jobs\.\<name>\.pipelineCall\.gitlab-ci\.extraInputs
+
+
+
+Additional GitLab CI ` inputs: ` values that are NOT forwarded to
+GitHub Actions\. Use this for GitLab CI-only inputs such as
+` plan_needs ` (an array of upstream job names)\.
+
+
+
+*Type:*
+attribute set of (string or list of string)
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.pipelineCall\.inputs
 
 

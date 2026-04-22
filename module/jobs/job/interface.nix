@@ -279,6 +279,16 @@ in
                 secrets.
               '';
             };
+
+            gitlab-ci.extraInputs = lib.mkOption {
+              type = types.attrsOf (types.either types.str (types.listOf types.str));
+              default = { };
+              description = ''
+                Additional GitLab CI `inputs:` values that are NOT forwarded to
+                GitHub Actions. Use this for GitLab CI-only inputs such as
+                `plan_needs` (an array of upstream job names).
+              '';
+            };
           };
         }
       );
