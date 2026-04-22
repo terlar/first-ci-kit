@@ -12,6 +12,17 @@ in
     };
 
     gitlab-ci = {
+      templatePath = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Local path to the GitLab CI component template for this pipeline (e.g.
+          "ci/gitlab-templates/profile-terraform/template.yml"). When set, jobs
+          that call this pipeline via `pipelineCall` will emit an `include:` entry
+          pointing to this path instead of a trigger job.
+        '';
+      };
+
       asComponent = lib.mkOption {
         type = types.bool;
         default = false;

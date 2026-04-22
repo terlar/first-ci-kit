@@ -1261,6 +1261,166 @@ boolean
 
 
 
+## jobs\.\<name>\.pipelineCall
+
+
+
+Call a child pipeline (reusable workflow / template include) instead of running commands directly\.
+
+
+
+*Type:*
+null or (submodule)
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.pipelineCall\.github-actions\.extraInputs
+
+
+
+Additional GitHub Actions ` with: ` inputs that are NOT forwarded
+to the GitLab CI include\. Use this for GHA-only inputs such as
+` profile ` (Nix dev-shell selector) or a dynamic ` run_deploy `
+expression\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.pipelineCall\.github-actions\.passSecrets
+
+
+
+Whether to pass ` secrets: inherit ` to the called reusable
+workflow\. Set to ` false ` to opt out, e\.g\. when calling a
+public or cross-org workflow that does not accept inherited
+secrets\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.pipelineCall\.gitlab-ci\.extraInputs
+
+
+
+Additional GitLab CI ` inputs: ` values that are NOT forwarded to
+GitHub Actions\. Use this for GitLab CI-only inputs such as
+` plan_needs ` (an array of upstream job names)\.
+
+
+
+*Type:*
+attribute set of (string or list of string)
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.pipelineCall\.gitlab-ci\.templatePath
+
+
+
+Local path to the GitLab CI component template for the called
+pipeline (e\.g\. “ci/gitlab-templates/profile-terraform/template\.yml”)\.
+When set, takes precedence over looking up the path via
+` config.pipelines.<pipeline>.gitlab-ci.templatePath `\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.pipelineCall\.inputs
+
+
+
+Input values forwarded to the called pipeline on both GitHub
+Actions (` with: `) and GitLab CI (` inputs: `)\. Changes-detection
+inputs (` changes `, ` changes_key `) are injected automatically on
+GitHub Actions when the job has
+` branches.default.changes.paths ` configured\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.pipelineCall\.pipeline
+
+
+
+Name of a pipeline declared in ` config.pipelines ` to call\. On GitHub
+Actions the job is rendered as a ` uses: ` reusable-workflow caller; on
+GitLab CI the job is suppressed and an ` include: ` entry pointing to
+the pipeline’s ` gitlab-ci.templatePath ` is emitted instead\.
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.process-compose
 
 
