@@ -1,4 +1,9 @@
-{ lib, ci-lib, ... }:
+{
+  lib,
+  ci-lib,
+  config,
+  ...
+}:
 
 let
   inherit (lib) types;
@@ -63,6 +68,11 @@ in
         };
 
         trigger = {
+          stage = lib.mkOption {
+            type = types.str;
+            description = "Stage for the trigger job.";
+          };
+
           strategy = lib.mkOption {
             type = types.nullOr types.str;
             default = null;
@@ -86,4 +96,8 @@ in
       };
     };
   };
+
+  config.gitlab-ci.dispatch.trigger.stage = lib.mkDefault (
+    if config.gitlab-ci.defaultStage != null then config.gitlab-ci.defaultStage else ".post"
+  );
 }

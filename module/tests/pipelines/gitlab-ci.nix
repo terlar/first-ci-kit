@@ -95,7 +95,7 @@
     };
   };
 
-  # trigger job is at .post stage
+  # trigger job is at .post stage when no defaultStage set
   test-child-pipeline-gitlab-ci-trigger-job-stage = {
     expr =
       let
@@ -125,6 +125,41 @@
       in
       cfg.gitlab-ci.settings.trigger-child.needs;
     expected = [ { job = "generate-child"; } ];
+  };
+
+  # trigger job inherits defaultStage from child
+  test-child-pipeline-gitlab-ci-trigger-job-stage-from-default-stage = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          pipelines.child = {
+            gitlab-ci.defaultStage = "main";
+            jobs.do-thing = {
+              commands = [ "echo hello" ];
+            };
+          };
+        };
+      in
+      cfg.gitlab-ci.settings.trigger-child.stage;
+    expected = "main";
+  };
+
+  # trigger job stage can be explicitly overridden
+  test-child-pipeline-gitlab-ci-trigger-job-stage-override = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          pipelines.child = {
+            gitlab-ci.defaultStage = "main";
+            jobs.do-thing = {
+              commands = [ "echo hello" ];
+            };
+            gitlab-ci.dispatch.trigger.stage = ".post";
+          };
+        };
+      in
+      cfg.gitlab-ci.settings.trigger-child.stage;
+    expected = ".post";
   };
 
   # strategy: depend passes through
