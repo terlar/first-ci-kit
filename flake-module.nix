@@ -15,23 +15,16 @@ in
   config.perSystem =
     { pkgs, ... }:
     let
-      # Collect all pipeline files (top-level + children) for a given backend getter.
+      # Collect top-level pipeline files for a given backend getter.
       # Returns a list of { name = "<key>.yml"; path = <drv>; } suitable for linkFarm.
+      # Child pipelines are intentionally excluded: they are dispatch targets built
+      # on-demand in CI via mkGitlabDispatchJobs, not generated locally.
       allPipelineFiles =
         getter:
         lib.mapAttrsToList (name: value: {
           name = "${name}.yml";
           path = getter value;
-        }) config.first-ci-kit.pipelines
-        ++ lib.concatLists (
-          lib.mapAttrsToList (
-            parentName: parentValue:
-            lib.mapAttrsToList (childName: childValue: {
-              name = "${parentName}-${childName}.yml";
-              path = getter childValue;
-            }) parentValue.pipelines
-          ) config.first-ci-kit.pipelines
-        );
+        }) config.first-ci-kit.pipelines;
     in
     {
       packages.gha-path-changes = pkgs.callPackage ./packages/gha-path-changes { };
