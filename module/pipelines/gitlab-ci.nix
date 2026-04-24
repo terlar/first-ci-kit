@@ -72,7 +72,7 @@ let
       };
 
       triggerJob = {
-        stage = ".post";
+        stage = if config.gitlab-ci.defaultStage != null then config.gitlab-ci.defaultStage else ".post";
         needs = [ { job = generateJobName; } ];
         trigger = triggerAttr;
       };
