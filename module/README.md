@@ -1341,7 +1341,7 @@ GitHub Actions\. Use this for GitLab CI-only inputs such as
 
 
 *Type:*
-attribute set of (string or list of string)
+attribute set of (string or list of anything)
 
 
 

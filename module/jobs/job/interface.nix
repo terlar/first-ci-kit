@@ -281,7 +281,7 @@ in
             };
 
             gitlab-ci.extraInputs = lib.mkOption {
-              type = types.attrsOf (types.either types.str (types.listOf types.str));
+              type = types.attrsOf (types.either types.str (types.listOf types.anything));
               default = { };
               description = ''
                 Additional GitLab CI `inputs:` values that are NOT forwarded to
