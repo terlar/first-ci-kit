@@ -118,6 +118,84 @@
     };
   };
 
+  test-gitlab-ci-job-pipeline-call-gitlab-extra-inputs-list-of-strings = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs.environment = "prod";
+        gitlab-ci.extraInputs.plan_needs = [
+          "network:dev:deploy"
+          "dns:dev:deploy"
+        ];
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            environment = "prod";
+            plan_needs = [
+              "network:dev:deploy"
+              "dns:dev:deploy"
+            ];
+          };
+        }
+      ];
+    };
+  };
+
+  test-gitlab-ci-job-pipeline-call-gitlab-extra-inputs-list-of-attrs = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs.environment = "prod";
+        gitlab-ci.extraInputs.plan_needs = [
+          {
+            job = "network:dev:deploy";
+            optional = true;
+          }
+          {
+            job = "dns:dev:deploy";
+            optional = true;
+          }
+        ];
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            environment = "prod";
+            plan_needs = [
+              {
+                artifacts = true;
+                job = "network:dev:deploy";
+                optional = true;
+              }
+              {
+                artifacts = true;
+                job = "dns:dev:deploy";
+                optional = true;
+              }
+            ];
+          };
+        }
+      ];
+    };
+  };
+
   test-gitlab-ci-job-pipeline-call-per-job-template-path-overrides-pipeline = {
     expr = test-lib.eval-gitlab-ci {
       pipelines.my-pipeline = {

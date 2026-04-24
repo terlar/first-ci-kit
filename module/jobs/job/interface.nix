@@ -86,6 +86,25 @@ let
     };
   };
 
+  needsEntryType = types.submodule {
+    options = {
+      job = lib.mkOption {
+        type = types.str;
+        description = "Name of the job to depend on.";
+      };
+      artifacts = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = "Whether to download artifacts from the job.";
+      };
+      optional = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Whether the job is optional (does not have to exist).";
+      };
+    };
+  };
+
   expandNeedJobSet =
     need:
     if need.jobSet == null then
@@ -281,12 +300,15 @@ in
             };
 
             gitlab-ci.extraInputs = lib.mkOption {
-              type = types.attrsOf (types.either types.str (types.listOf types.str));
+              type = types.attrsOf (
+                types.either types.str (types.listOf (types.either types.str needsEntryType))
+              );
               default = { };
               description = ''
                 Additional GitLab CI `inputs:` values that are NOT forwarded to
                 GitHub Actions. Use this for GitLab CI-only inputs such as
-                `plan_needs` (an array of upstream job names).
+                `plan_needs` (an array of job names or needs-entry objects with
+                `job`, `artifacts`, and `optional` keys).
               '';
             };
 
