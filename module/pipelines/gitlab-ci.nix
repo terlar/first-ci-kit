@@ -73,7 +73,12 @@ let
 
       triggerJob = {
         inherit (child.gitlab-ci.dispatch.trigger) stage;
-        needs = [ { job = generateJobName; } ];
+        needs = [
+          {
+            job = generateJobName;
+            optional = true;
+          }
+        ];
         trigger = triggerAttr;
       };
     in
