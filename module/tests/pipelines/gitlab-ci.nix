@@ -111,8 +111,67 @@
     expected = ".post";
   };
 
-  # trigger job needs the generate job
-  test-child-pipeline-gitlab-ci-trigger-job-needs = {
+  # trigger job needs the generate job when in the same stage
+  test-child-pipeline-gitlab-ci-trigger-job-needs-same-stage = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          gitlab-ci.defaultStage = "main";
+          pipelines.child = {
+            gitlab-ci.defaultStage = "main";
+            jobs.do-thing = {
+              commands = [ "echo hello" ];
+            };
+          };
+        };
+      in
+      cfg.gitlab-ci.settings.trigger-child.needs;
+    expected = [ { job = "generate-child"; } ];
+  };
+
+  # trigger job has no needs when at a later stage than generate (e.g. .post)
+  test-child-pipeline-gitlab-ci-trigger-job-no-needs-post-stage = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          gitlab-ci.defaultStage = "main";
+          pipelines.child = {
+            jobs.do-thing = {
+              commands = [ "echo hello" ];
+            };
+            gitlab-ci.dispatch.trigger.stage = ".post";
+          };
+        };
+      in
+      cfg.gitlab-ci.settings.trigger-child ? needs;
+    expected = false;
+  };
+
+  # trigger job mirrors generate job rules so it only runs when generate runs
+  test-child-pipeline-gitlab-ci-trigger-job-mirrors-generate-rules = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          pipelines.child = {
+            jobs.do-thing = {
+              commands = [ "echo hello" ];
+            };
+            gitlab-ci.dispatch.generateJob.extraRules = [
+              {
+                "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+              }
+            ];
+          };
+        };
+      in
+      cfg.gitlab-ci.settings.trigger-child.rules;
+    expected = [
+      { "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH"; }
+    ];
+  };
+
+  # trigger job has no rules when generate job has no extraRules
+  test-child-pipeline-gitlab-ci-trigger-job-no-rules-without-extra-rules = {
     expr =
       let
         cfg = test-lib.evalConfig {
@@ -123,13 +182,49 @@
           };
         };
       in
+      cfg.gitlab-ci.settings.trigger-child ? rules;
+    expected = false;
+  };
+
+  # trigger job needs the generate job when in the same stage (previously named test)
+  test-child-pipeline-gitlab-ci-trigger-job-needs = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          gitlab-ci.defaultStage = "main";
+          pipelines.child = {
+            gitlab-ci.defaultStage = "main";
+            jobs.do-thing = {
+              commands = [ "echo hello" ];
+            };
+          };
+        };
+      in
       cfg.gitlab-ci.settings.trigger-child.needs;
-    expected = [
-      {
-        job = "generate-child";
-        optional = true;
-      }
-    ];
+    expected = [ { job = "generate-child"; } ];
+  };
+
+  # trigger job needs are optional even when generate job has conditional rules
+  test-child-pipeline-gitlab-ci-trigger-job-needs-optional-with-extra-rules = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          gitlab-ci.defaultStage = "main";
+          pipelines.child = {
+            gitlab-ci.defaultStage = "main";
+            jobs.do-thing = {
+              commands = [ "echo hello" ];
+            };
+            gitlab-ci.dispatch.generateJob.extraRules = [
+              {
+                "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+              }
+            ];
+          };
+        };
+      in
+      cfg.gitlab-ci.settings.trigger-child.needs;
+    expected = [ { job = "generate-child"; } ];
   };
 
   # trigger job inherits defaultStage from child

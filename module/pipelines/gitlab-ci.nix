@@ -71,15 +71,24 @@ let
         inherit (child.gitlab-ci.dispatch.trigger) forward;
       };
 
+      generateStage = config.gitlab-ci.defaultStage;
+      triggerStage = child.gitlab-ci.dispatch.trigger.stage;
+
       triggerJob = {
-        inherit (child.gitlab-ci.dispatch.trigger) stage;
-        needs = [
-          {
-            job = generateJobName;
-            optional = true;
-          }
-        ];
+        stage = triggerStage;
         trigger = triggerAttr;
+      }
+      # When trigger and generate are in the same stage, explicit needs is
+      # required for ordering and artifact access. When the trigger is at a
+      # later stage (e.g. .post) stage ordering already guarantees the
+      # generate job has completed.
+      // lib.optionalAttrs (triggerStage == generateStage) {
+        needs = [ { job = generateJobName; } ];
+      }
+      # Mirror the generate job's rules so the trigger only runs when the
+      # generate job ran.
+      // lib.optionalAttrs (child.gitlab-ci.dispatch.generateJob.extraRules != [ ]) {
+        rules = child.gitlab-ci.dispatch.generateJob.extraRules;
       };
     in
     {
