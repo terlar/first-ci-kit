@@ -1336,12 +1336,13 @@ boolean
 
 Additional GitLab CI ` inputs: ` values that are NOT forwarded to
 GitHub Actions\. Use this for GitLab CI-only inputs such as
-` plan_needs ` (an array of upstream job names)\.
+` plan_needs ` (an array of job names or needs-entry objects with
+` job `, ` artifacts `, and ` optional ` keys)\.
 
 
 
 *Type:*
-attribute set of (string or list of anything)
+attribute set of (string or list of (string or (submodule)))
 
 
 

@@ -180,10 +180,12 @@
             environment = "prod";
             plan_needs = [
               {
+                artifacts = true;
                 job = "network:dev:deploy";
                 optional = true;
               }
               {
+                artifacts = true;
                 job = "dns:dev:deploy";
                 optional = true;
               }
