@@ -124,7 +124,12 @@
         };
       in
       cfg.gitlab-ci.settings.trigger-child.needs;
-    expected = [ { job = "generate-child"; } ];
+    expected = [
+      {
+        job = "generate-child";
+        optional = true;
+      }
+    ];
   };
 
   # trigger job inherits defaultStage from child
