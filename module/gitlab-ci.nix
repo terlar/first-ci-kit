@@ -10,10 +10,12 @@ let
 
   renderGitlabInput =
     _name: input:
-    lib.optionalAttrs (input.default != null) { inherit (input) default; }
-    // lib.optionalAttrs (input.description != "") { inherit (input) description; }
-    // lib.optionalAttrs (input.type == "boolean") { type = "boolean"; }
-    // lib.optionalAttrs (input.type == "choice" && input.options != [ ]) { inherit (input) options; };
+    lib.mergeAttrsList [
+      (lib.optionalAttrs (input.default != null) { inherit (input) default; })
+      (lib.optionalAttrs (input.description != "") { inherit (input) description; })
+      (lib.optionalAttrs (input.type == "boolean") { type = "boolean"; })
+      (lib.optionalAttrs (input.type == "choice" && input.options != [ ]) { inherit (input) options; })
+    ];
 in
 {
   options.gitlab-ci = {

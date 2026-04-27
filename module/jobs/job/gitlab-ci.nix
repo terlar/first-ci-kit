@@ -59,20 +59,17 @@ in
       lib.mkMerge
     ];
 
-    variables =
-      let
-        gitCheckout = lib.optionalAttrs (!config.checkout) {
-          GIT_CHECKOUT = lib.boolToString config.checkout;
-        };
-        envInputs = lib.optionalAttrs rootConfig.autoEnvInputs (
-          lib.mapAttrs' (name: _: {
-            name = lib.strings.toUpper name;
-            value = "$[[ inputs.${name} ]]";
-          }) rootConfig.inputs
-        );
-        combined = gitCheckout // envInputs;
-      in
-      lib.mkIf (combined != { }) combined;
+    variables = lib.mkMerge [
+      (lib.mkIf (!config.checkout) {
+        GIT_CHECKOUT = lib.boolToString config.checkout;
+      })
+      (lib.mkIf rootConfig.autoEnvInputs (
+        lib.mapAttrs' (name: _: {
+          name = lib.strings.toUpper name;
+          value = "$[[ inputs.${name} ]]";
+        }) rootConfig.inputs
+      ))
+    ];
 
     script = lib.mkIf (config.commands != [ ]) config.commands;
 
@@ -88,18 +85,12 @@ in
             else
               null;
         in
-        {
-          public = false;
-        }
-        // lib.optionalAttrs (upload.paths != [ ]) {
-          inherit (upload) paths;
-        }
-        // lib.optionalAttrs (effectiveExpireIn != null) {
-          expire_in = effectiveExpireIn;
-        }
-        // lib.optionalAttrs (upload.gitlab-ci.reports != null) {
-          inherit (upload.gitlab-ci) reports;
-        }
+        lib.mkMerge [
+          { public = false; }
+          (lib.mkIf (upload.paths != [ ]) { inherit (upload) paths; })
+          (lib.mkIf (effectiveExpireIn != null) { expire_in = effectiveExpireIn; })
+          (lib.mkIf (upload.gitlab-ci.reports != null) { inherit (upload.gitlab-ci) reports; })
+        ]
       )
     );
   };
