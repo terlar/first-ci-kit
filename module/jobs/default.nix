@@ -36,7 +36,7 @@ in
     gitlab-ci.settings = lib.mkMerge [
       (lib.mapAttrs' (name: job: {
         name = config.gitlab-ci.transformJobName name;
-        value = builtins.removeAttrs job.gitlab-ci [ "enable" ];
+        value = lib.filterAttrs (_: v: v != { }) (builtins.removeAttrs job.gitlab-ci [ "enable" ]);
       }) (enabledForBackend "gitlab-ci"))
 
       (lib.mkIf (pipelineCallJobs != { }) {
