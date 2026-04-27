@@ -59,9 +59,20 @@ in
       lib.mkMerge
     ];
 
-    variables = lib.mkIf (!config.checkout) {
-      GIT_CHECKOUT = lib.boolToString config.checkout;
-    };
+    variables =
+      let
+        gitCheckout = lib.optionalAttrs (!config.checkout) {
+          GIT_CHECKOUT = lib.boolToString config.checkout;
+        };
+        envInputs = lib.optionalAttrs rootConfig.autoEnvInputs (
+          lib.mapAttrs' (name: _: {
+            name = lib.strings.toUpper name;
+            value = "$[[ inputs.${name} ]]";
+          }) rootConfig.inputs
+        );
+        combined = gitCheckout // envInputs;
+      in
+      lib.mkIf (combined != { }) combined;
 
     script = lib.mkIf (config.commands != [ ]) config.commands;
 
