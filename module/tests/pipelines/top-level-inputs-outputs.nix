@@ -210,11 +210,26 @@
           jobs.deploy.commands = [ "deploy" ];
         };
       in
-      cfg.gitlab-ci.settings.variables;
+      cfg.jobs.deploy.gitlab-ci.variables;
     expected = {
       SERVICE = "$[[ inputs.service ]]";
       RUN_DEPLOY = "$[[ inputs.run_deploy ]]";
     };
+  };
+
+  test-auto-env-inputs-no-pipeline-variables-gitlab = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          inputs.service = {
+            required = true;
+            description = "Service name.";
+          };
+          jobs.deploy.commands = [ "deploy" ];
+        };
+      in
+      cfg.gitlab-ci.settings ? "variables";
+    expected = false;
   };
 
   test-auto-env-inputs-opt-out-gha = {
@@ -245,7 +260,7 @@
           jobs.deploy.commands = [ "deploy" ];
         };
       in
-      cfg.gitlab-ci.settings ? "variables";
+      cfg.jobs.deploy.gitlab-ci ? "variables";
     expected = false;
   };
 }
