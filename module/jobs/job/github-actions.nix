@@ -70,29 +70,34 @@ in
       steps = lib.mkOrder 1600 [
         {
           uses = uploadArtifactAction;
-          "with" = {
-            inherit (config.artifacts.upload) name;
-            path = builtins.concatStringsSep "\n" config.artifacts.upload.paths;
-          }
-          // lib.optionalAttrs (config.artifacts.upload.retentionDays != null) {
-            retention-days = config.artifacts.upload.retentionDays;
-          };
+          "with" = lib.mergeAttrsList [
+            {
+              inherit (config.artifacts.upload) name;
+              path = builtins.concatStringsSep "\n" config.artifacts.upload.paths;
+            }
+            (lib.optionalAttrs (config.artifacts.upload.retentionDays != null) {
+              retention-days = config.artifacts.upload.retentionDays;
+            })
+          ];
         }
       ];
     })
 
     (lib.mkIf (config.pipelineCall != null) (
-      {
-        uses = "./.github/workflows/${config.pipelineCall.pipeline}.yml";
-        "with" =
-          config.pipelineCall.inputs
-          // config.pipelineCall."github-actions".extraInputs
-          // lib.optionalAttrs hasChanges {
-            changes = "\${{ needs.changes.outputs.changes }}";
-            changes_key = transformJobName name;
-          };
-      }
-      // lib.optionalAttrs config.pipelineCall."github-actions".passSecrets { secrets = "inherit"; }
+      lib.mkMerge [
+        {
+          uses = "./.github/workflows/${config.pipelineCall.pipeline}.yml";
+          "with" = lib.mergeAttrsList [
+            config.pipelineCall.inputs
+            config.pipelineCall."github-actions".extraInputs
+            (lib.optionalAttrs hasChanges {
+              changes = "\${{ needs.changes.outputs.changes }}";
+              changes_key = transformJobName name;
+            })
+          ];
+        }
+        (lib.mkIf config.pipelineCall."github-actions".passSecrets { secrets = "inherit"; })
+      ]
     ))
   ];
 }
