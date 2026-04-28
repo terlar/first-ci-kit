@@ -37,6 +37,16 @@ let
       };
       expected = ''{"svc-a":false,"svc-b":false}'';
     }
+    {
+      name = "push: colon in group name, svc-a changed";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$BASE_SHA";
+        GITHUB_EVENT_AFTER = "$HEAD_SHA";
+        DIFF_PATHS = "org:svc-a:services/svc-a/**\norg:svc-b:services/svc-b/**";
+      };
+      expected = ''{"org:svc-a":true,"org:svc-b":false}'';
+    }
   ];
 
   runCase =
