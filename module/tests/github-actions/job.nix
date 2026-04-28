@@ -330,7 +330,8 @@
         };
         job-b = {
           needs = [ "job-a" ];
-          "if" = ''''${{ (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
+          "if" =
+            ''''${{ always() && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
           steps = [ { uses = "actions/checkout@v6"; } ];
         };
       };
@@ -382,7 +383,7 @@
             "job-a"
           ];
           "if" =
-            ''''${{ fromJSON(needs.changes.outputs.changes)['job-b'] == true && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
+            ''''${{ always() && fromJSON(needs.changes.outputs.changes)['job-b'] == true && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v6"; } ];
         };
