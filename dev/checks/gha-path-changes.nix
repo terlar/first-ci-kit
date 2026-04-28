@@ -63,13 +63,25 @@ let
       expected = ''{"svc-a":true,"svc-b":false}'';
     }
 
-    # **/\* should also match a deeply nested file (** = multiple dirs)
+    # **/\* should also match a deeply nested file (** = one subdir)
     {
-      name = "push: **/* matches deeply nested file under module";
+      name = "push: **/* matches deeply nested file under module (1 subdir)";
       env = {
         GITHUB_EVENT_NAME = "push";
         GITHUB_EVENT_BEFORE = "$BASE_SHA";
         GITHUB_EVENT_AFTER = "$MODULE_DEEP_SHA";
+        DIFF_PATHS = "svc-a:services/svc-a/module/**/*\nsvc-b:services/svc-b/module/**/*";
+      };
+      expected = ''{"svc-a":true,"svc-b":false}'';
+    }
+
+    # **/\* should match a file nested 2+ levels deep under module
+    {
+      name = "push: **/* matches deeply nested file under module (2 subdirs)";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$BASE_SHA";
+        GITHUB_EVENT_AFTER = "$MODULE_VERY_DEEP_SHA";
         DIFF_PATHS = "svc-a:services/svc-a/module/**/*\nsvc-b:services/svc-b/module/**/*";
       };
       expected = ''{"svc-a":true,"svc-b":false}'';
@@ -138,7 +150,8 @@ let
     in
     ''
       GITHUB_OUTPUT=$(mktemp)
-      export GITHUB_OUTPUT
+      GITHUB_STEP_SUMMARY=$(mktemp)
+      export GITHUB_OUTPUT GITHUB_STEP_SUMMARY
       (
         cd "$repo"
         ${exports}
@@ -177,11 +190,12 @@ pkgs.runCommand "test-gha-path-changes"
     git -C "$repo" config init.defaultBranch main
 
     # initial commit on main
-    mkdir -p "$repo/services/svc-a/module/subdir" "$repo/services/svc-b/module"
+    mkdir -p "$repo/services/svc-a/module/subdir" "$repo/services/svc-a/module/a/b" "$repo/services/svc-b/module"
     printf 'init' > "$repo/services/svc-a/file.txt"
     printf 'init' > "$repo/services/svc-b/file.txt"
     printf 'init' > "$repo/services/svc-a/module/main.tf"
     printf 'init' > "$repo/services/svc-a/module/subdir/vars.tf"
+    printf 'init' > "$repo/services/svc-a/module/a/b/deep.tf"
     printf 'init' > "$repo/services/svc-a/module/tag"
     git -C "$repo" add .
     git -C "$repo" commit -m "initial"
@@ -218,12 +232,19 @@ pkgs.runCommand "test-gha-path-changes"
     git -C "$repo" push origin main
     MODULE_SHALLOW_SHA=$(git -C "$repo" rev-parse HEAD)
 
-    # commit touching svc-a/module/subdir/vars.tf (deep under module)
+    # commit touching svc-a/module/subdir/vars.tf (one level deep under module)
     printf 'changed' > "$repo/services/svc-a/module/subdir/vars.tf"
     git -C "$repo" add .
     git -C "$repo" commit -m "change svc-a module deep"
     git -C "$repo" push origin main
     MODULE_DEEP_SHA=$(git -C "$repo" rev-parse HEAD)
+
+    # commit touching svc-a/module/a/b/deep.tf (two levels deep under module)
+    printf 'changed' > "$repo/services/svc-a/module/a/b/deep.tf"
+    git -C "$repo" add .
+    git -C "$repo" commit -m "change svc-a module very deep"
+    git -C "$repo" push origin main
+    MODULE_VERY_DEEP_SHA=$(git -C "$repo" rev-parse HEAD)
 
     # commit touching only svc-a/module/tag (exact-path test)
     printf 'v2' > "$repo/services/svc-a/module/tag"
