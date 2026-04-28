@@ -124,14 +124,14 @@ in
           changesNoCmp = lib.optionalAttrs (cfg.changes.paths != [ ]) {
             changes.paths = cfg.changes.paths;
           };
-          mrRule = {
-            "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == ${branchRef}";
-          }
-          // changesWithCmp;
-          pushRule = {
-            "if" = "$CI_COMMIT_BRANCH == ${branchRef}";
-          }
-          // changesNoCmp;
+          mrRule = lib.mergeAttrsList [
+            { "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == ${branchRef}"; }
+            changesWithCmp
+          ];
+          pushRule = lib.mergeAttrsList [
+            { "if" = "$CI_COMMIT_BRANCH == ${branchRef}"; }
+            changesNoCmp
+          ];
         in
         {
           allRules =

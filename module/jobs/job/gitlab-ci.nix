@@ -26,39 +26,28 @@ in
 
     image = lib.mkIf (!builtins.isNull config.image) imageRegistry.${config.image} or config.image;
 
-    rules = lib.pipe config.branches [
-      (lib.mapAttrsToList (
-        name: cfg:
-        let
-          branchRef = ci-lib.mkBranchRef name;
-          branch = ci-lib.resolveBranchName name;
-
-          pathsFromTriggers = lib.pipe config.triggers [
-            (builtins.filter (job: jobs ? ${job} && jobs.${job}.enable && jobs.${job}.gitlab-ci.enable))
-            (map (job: jobs.${job}.branches.${name}.changes.paths))
-            builtins.concatLists
-            lib.unique
-          ];
-          paths = cfg.changes.paths ++ pathsFromTriggers;
-        in
-        lib.mkAfter [
-          (lib.mkIf cfg.triggers.onMergeRequest {
-            "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == ${branchRef}";
-            changes = lib.mkIf (paths != [ ]) {
-              inherit paths;
-              compare_to = branch;
+    rules =
+      let
+        augmentedBranches = lib.mapAttrs (
+          name: cfg:
+          let
+            pathsFromTriggers = lib.pipe config.triggers [
+              (builtins.filter (job: jobs ? ${job} && jobs.${job}.enable && jobs.${job}.gitlab-ci.enable))
+              (map (job: jobs.${job}.branches.${name}.changes.paths))
+              builtins.concatLists
+              lib.unique
+            ];
+          in
+          cfg
+          // {
+            changes = cfg.changes // {
+              paths = lib.unique (cfg.changes.paths ++ pathsFromTriggers);
             };
-          })
-          (lib.mkIf cfg.triggers.onPush {
-            "if" = "$CI_COMMIT_BRANCH == ${branchRef}";
-            changes = lib.mkIf (paths != [ ]) {
-              inherit paths;
-            };
-          })
-        ]
-      ))
-      lib.mkMerge
-    ];
+          }
+        ) config.branches;
+        inherit (ci-lib.mkBranchRules augmentedBranches) allRules;
+      in
+      lib.mkIf (allRules != [ ]) (lib.mkAfter allRules);
 
     variables = lib.mkMerge [
       (lib.mkIf (!config.checkout) {
