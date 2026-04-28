@@ -1354,6 +1354,54 @@ attribute set of (string or list of (string or (submodule)))
 
 
 
+## jobs\.\<name>\.pipelineCall\.gitlab-ci\.pushRulesInput
+
+
+
+When set to an input name (e\.g\. ` "deploy_rules" `), automatically
+computes push-only GitLab CI rules from the job’s ` branches `
+config and passes them as that input to the child pipeline\.
+The computed value is merged after ` extraInputs `\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.pipelineCall\.gitlab-ci\.rulesInput
+
+
+
+When set to an input name (e\.g\. ` "rules" `), automatically
+computes all GitLab CI rules (MR + push) from the job’s
+` branches ` config and passes them as that input to the child
+pipeline\. The computed value is merged after ` extraInputs `\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.pipelineCall\.gitlab-ci\.templatePath
 
 

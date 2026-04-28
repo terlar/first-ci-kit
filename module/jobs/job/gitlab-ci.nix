@@ -1,5 +1,6 @@
 {
   lib,
+  ci-lib,
   config,
   rootConfig,
   ...
@@ -29,8 +30,8 @@ in
       (lib.mapAttrsToList (
         name: cfg:
         let
-          branch = if name == "default" then "$CI_DEFAULT_BRANCH" else name;
-          branchCompare = if lib.hasPrefix "$" branch then branch else "'${branch}'";
+          branchRef = ci-lib.mkBranchRef name;
+          branch = ci-lib.resolveBranchName name;
 
           pathsFromTriggers = lib.pipe config.triggers [
             (builtins.filter (job: jobs ? ${job} && jobs.${job}.enable && jobs.${job}.gitlab-ci.enable))
@@ -42,14 +43,14 @@ in
         in
         lib.mkAfter [
           (lib.mkIf cfg.triggers.onMergeRequest {
-            "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == ${branchCompare}";
+            "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == ${branchRef}";
             changes = lib.mkIf (paths != [ ]) {
               inherit paths;
               compare_to = branch;
             };
           })
           (lib.mkIf cfg.triggers.onPush {
-            "if" = "$CI_COMMIT_BRANCH == ${branchCompare}";
+            "if" = "$CI_COMMIT_BRANCH == ${branchRef}";
             changes = lib.mkIf (paths != [ ]) {
               inherit paths;
             };
