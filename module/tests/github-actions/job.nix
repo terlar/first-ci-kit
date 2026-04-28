@@ -619,6 +619,48 @@
     };
   };
 
+  test-github-actions-job-with-changes-and-colon-in-name = {
+    expr = test-lib.eval-github-actions {
+      github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        transformJobName = builtins.replaceStrings [ ":" ] [ "_" ];
+      };
+      jobs."org:svc-a" = {
+        branches.default = {
+          changes.paths = [ "src/**" ];
+          triggers.onMergeRequest = true;
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "org_svc-a:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        org_svc-a = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['org_svc-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
   test-github-actions-job-artifact-custom-download-action = {
     expr = test-lib.eval-github-actions {
       github-actions = {

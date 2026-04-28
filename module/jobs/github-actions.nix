@@ -1,14 +1,14 @@
 { lib, config, ... }:
 
 let
-  inherit (config.github-actions) checkoutAction;
+  inherit (config.github-actions) checkoutAction transformJobName;
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
 
   changes = lib.pipe enabledJobs [
     (builtins.mapAttrs (_: job: job.branches.default.changes.paths or [ ]))
     (lib.filterAttrs (_: paths: paths != [ ]))
     (builtins.mapAttrs (_: builtins.concatStringsSep "\\|"))
-    (lib.mapAttrsToList (name: paths: "${name}:${paths}"))
+    (lib.mapAttrsToList (name: paths: "${transformJobName name}:${paths}"))
   ];
 in
 {

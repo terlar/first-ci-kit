@@ -34,7 +34,9 @@ let
 
   conditions = lib.pipe optionalNeedJobs [
     (map (job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')"))
-    (lib.concat (lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${name}'] == true"))
+    (lib.concat (
+      lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${transformJobName name}'] == true"
+    ))
   ];
 in
 {
