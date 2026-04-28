@@ -228,4 +228,148 @@
       include = [ { local = "ci/override/template.yml"; } ];
     };
   };
+
+  test-gitlab-ci-job-pipeline-call-rules-input-default-branch = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy = {
+        branches.default = {
+          changes.paths = [ "src/" ];
+          triggers.onMergeRequest = true;
+          triggers.onPush = true;
+        };
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.rulesInput = "rules";
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs.rules = [
+            {
+              "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+              changes = {
+                paths = [ "src/" ];
+                compare_to = "$CI_DEFAULT_BRANCH";
+              };
+            }
+            {
+              "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
+              changes.paths = [ "src/" ];
+            }
+          ];
+        }
+      ];
+    };
+  };
+
+  test-gitlab-ci-job-pipeline-call-push-rules-input-non-default-branch = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy = {
+        branches = {
+          default = {
+            changes.paths = [ "src/" ];
+            triggers.onMergeRequest = true;
+          };
+          production = {
+            changes.paths = [ "src/" ];
+            triggers.onMergeRequest = true;
+            triggers.onPush = true;
+          };
+        };
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.pushRulesInput = "deploy_rules";
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs.deploy_rules = [
+            {
+              "if" = "$CI_COMMIT_BRANCH == 'production'";
+              changes.paths = [ "src/" ];
+            }
+          ];
+        }
+      ];
+    };
+  };
+
+  test-gitlab-ci-job-pipeline-call-rules-and-push-rules-inputs-combined = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy = {
+        branches = {
+          default = {
+            changes.paths = [ "src/" ];
+            triggers.onMergeRequest = true;
+          };
+          production = {
+            changes.paths = [ "src/" ];
+            triggers.onMergeRequest = true;
+            triggers.onPush = true;
+          };
+        };
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.rulesInput = "rules";
+          gitlab-ci.pushRulesInput = "deploy_rules";
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            rules = [
+              {
+                "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+                changes = {
+                  paths = [ "src/" ];
+                  compare_to = "$CI_DEFAULT_BRANCH";
+                };
+              }
+              {
+                "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'production'";
+                changes = {
+                  paths = [ "src/" ];
+                  compare_to = "production";
+                };
+              }
+              {
+                "if" = "$CI_COMMIT_BRANCH == 'production'";
+                changes.paths = [ "src/" ];
+              }
+            ];
+            deploy_rules = [
+              {
+                "if" = "$CI_COMMIT_BRANCH == 'production'";
+                changes.paths = [ "src/" ];
+              }
+            ];
+          };
+        }
+      ];
+    };
+  };
 }

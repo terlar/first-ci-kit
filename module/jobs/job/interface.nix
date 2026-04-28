@@ -299,28 +299,52 @@ in
               '';
             };
 
-            gitlab-ci.extraInputs = lib.mkOption {
-              type = types.attrsOf (
-                types.either types.str (types.listOf (types.either types.str needsEntryType))
-              );
-              default = { };
-              description = ''
-                Additional GitLab CI `inputs:` values that are NOT forwarded to
-                GitHub Actions. Use this for GitLab CI-only inputs such as
-                `plan_needs` (an array of job names or needs-entry objects with
-                `job`, `artifacts`, and `optional` keys).
-              '';
-            };
+            gitlab-ci = {
+              extraInputs = lib.mkOption {
+                type = types.attrsOf (
+                  types.either types.str (types.listOf (types.either types.str needsEntryType))
+                );
+                default = { };
+                description = ''
+                  Additional GitLab CI `inputs:` values that are NOT forwarded to
+                  GitHub Actions. Use this for GitLab CI-only inputs such as
+                  `plan_needs` (an array of job names or needs-entry objects with
+                  `job`, `artifacts`, and `optional` keys).
+                '';
+              };
 
-            gitlab-ci.templatePath = lib.mkOption {
-              type = types.nullOr types.str;
-              default = null;
-              description = ''
-                Local path to the GitLab CI component template for the called
-                pipeline (e.g. "ci/gitlab-templates/profile-terraform/template.yml").
-                When set, takes precedence over looking up the path via
-                `config.pipelines.<pipeline>.gitlab-ci.templatePath`.
-              '';
+              rulesInput = lib.mkOption {
+                type = types.nullOr types.str;
+                default = null;
+                description = ''
+                  When set to an input name (e.g. `"rules"`), automatically
+                  computes all GitLab CI rules (MR + push) from the job's
+                  `branches` config and passes them as that input to the child
+                  pipeline. The computed value is merged after `extraInputs`.
+                '';
+              };
+
+              pushRulesInput = lib.mkOption {
+                type = types.nullOr types.str;
+                default = null;
+                description = ''
+                  When set to an input name (e.g. `"deploy_rules"`), automatically
+                  computes push-only GitLab CI rules from the job's `branches`
+                  config and passes them as that input to the child pipeline.
+                  The computed value is merged after `extraInputs`.
+                '';
+              };
+
+              templatePath = lib.mkOption {
+                type = types.nullOr types.str;
+                default = null;
+                description = ''
+                  Local path to the GitLab CI component template for the called
+                  pipeline (e.g. "ci/gitlab-templates/profile-terraform/template.yml").
+                  When set, takes precedence over looking up the path via
+                  `config.pipelines.<pipeline>.gitlab-ci.templatePath`.
+                '';
+              };
             };
           };
         }

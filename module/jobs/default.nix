@@ -1,4 +1,9 @@
-{ lib, config, ... }:
+{
+  lib,
+  ci-lib,
+  config,
+  ...
+}:
 
 let
   enabledForBackend =
@@ -20,9 +25,22 @@ let
       config.pipelines.${pc.pipeline}.gitlab-ci.templatePath;
 
   mkIncludeEntry =
-    pc:
+    job:
     let
-      allInputs = pc.inputs // pc.gitlab-ci.extraInputs;
+      pc = job.pipelineCall;
+      computedRules = lib.mergeAttrsList [
+        (lib.optionalAttrs (pc.gitlab-ci.rulesInput != null) {
+          ${pc.gitlab-ci.rulesInput} = (ci-lib.mkBranchRules job.branches).allRules;
+        })
+        (lib.optionalAttrs (pc.gitlab-ci.pushRulesInput != null) {
+          ${pc.gitlab-ci.pushRulesInput} = (ci-lib.mkBranchRules job.branches).pushRules;
+        })
+      ];
+      allInputs = lib.mergeAttrsList [
+        pc.inputs
+        pc.gitlab-ci.extraInputs
+        computedRules
+      ];
     in
     { local = resolveTemplatePath pc; } // lib.optionalAttrs (allInputs != { }) { inputs = allInputs; };
 in
@@ -40,7 +58,7 @@ in
       }) (enabledForBackend "gitlab-ci"))
 
       (lib.mkIf (pipelineCallJobs != { }) {
-        include = lib.mapAttrsToList (_: job: mkIncludeEntry job.pipelineCall) pipelineCallJobs;
+        include = lib.mapAttrsToList (_: mkIncludeEntry) pipelineCallJobs;
       })
     ];
 
