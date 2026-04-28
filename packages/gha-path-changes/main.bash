@@ -16,7 +16,21 @@ change_lines=()
 for p in $DIFF_PATHS; do
 	group="${p%:*}"
 	pattern="${p##*:}"
-	if echo "$files" | grep "$pattern"; then
+	# Convert glob pattern to ERE for grep:
+	#   /**/   →  /(.*/)?   (zero or more intermediate directories)
+	#   /**    →  (/.*)?    (optional slash + anything, at end)
+	#   **     →  .*        (any characters including slashes)
+	#   *      →  [^/]*     (any characters within a single path component)
+	#   .      →  \.        (literal dot)
+	regex=$(printf '%s' "$pattern" |
+		sed \
+			-e 's/\./\\./g' \
+			-e 's|/\*\*/|/(.*/)?|g' \
+			-e 's|/\*\*|(/.*)?|g' \
+			-e 's|\*\*/|(.*/)?|g' \
+			-e 's|\*\*|.*|g' \
+			-e 's|\*|[^/]*|g')
+	if echo "$files" | grep -qE "^(${regex})$"; then
 		change_lines+=("\"$group\":true")
 	else
 		change_lines+=("\"$group\":false")

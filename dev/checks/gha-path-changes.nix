@@ -10,6 +10,7 @@ let
   # Each test case: attrset of env vars to export, plus the expected output.
   # DIFF_PATHS and GITHUB_OUTPUT are provided by the harness.
   testCases = [
+    # --- basic event handling ---
     {
       name = "push: svc-a changed";
       env = {
@@ -46,6 +47,79 @@ let
         DIFF_PATHS = "org:svc-a:services/svc-a/**\norg:svc-b:services/svc-b/**";
       };
       expected = ''{"org:svc-a":true,"org:svc-b":false}'';
+    }
+
+    # --- glob pattern matching ---
+
+    # **/\* should match a file directly in the directory (** = zero dirs)
+    {
+      name = "push: **/* matches single-level file under module";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$BASE_SHA";
+        GITHUB_EVENT_AFTER = "$MODULE_SHALLOW_SHA";
+        DIFF_PATHS = "svc-a:services/svc-a/module/**/*\nsvc-b:services/svc-b/module/**/*";
+      };
+      expected = ''{"svc-a":true,"svc-b":false}'';
+    }
+
+    # **/\* should also match a deeply nested file (** = multiple dirs)
+    {
+      name = "push: **/* matches deeply nested file under module";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$BASE_SHA";
+        GITHUB_EVENT_AFTER = "$MODULE_DEEP_SHA";
+        DIFF_PATHS = "svc-a:services/svc-a/module/**/*\nsvc-b:services/svc-b/module/**/*";
+      };
+      expected = ''{"svc-a":true,"svc-b":false}'';
+    }
+
+    # * should NOT match across a directory boundary — diff only the deep commit
+    {
+      name = "push: * does not match across directory boundary";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$MODULE_SHALLOW_SHA";
+        GITHUB_EVENT_AFTER = "$MODULE_DEEP_SHA";
+        DIFF_PATHS = "svc-a:services/svc-a/module/*\nsvc-b:services/svc-b/module/*";
+      };
+      expected = ''{"svc-a":false,"svc-b":false}'';
+    }
+
+    # alternation: | should trigger on either branch
+    {
+      name = "push: alternation matches via second pattern";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$BASE_SHA";
+        GITHUB_EVENT_AFTER = "$MODULE_SHALLOW_SHA";
+        DIFF_PATHS = "svc-a:services/svc-a/config/*|services/svc-a/module/**/*";
+      };
+      expected = ''{"svc-a":true}'';
+    }
+
+    # exact path (no glob) should match only that specific file
+    {
+      name = "push: exact path matches specific file";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$BASE_SHA";
+        GITHUB_EVENT_AFTER = "$TAG_SHA";
+        DIFF_PATHS = "svc-a:services/svc-a/module/tag";
+      };
+      expected = ''{"svc-a":true}'';
+    }
+
+    {
+      name = "push: exact path does not match other files";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$BASE_SHA";
+        GITHUB_EVENT_AFTER = "$MODULE_SHALLOW_SHA";
+        DIFF_PATHS = "svc-a:services/svc-a/module/tag";
+      };
+      expected = ''{"svc-a":false}'';
     }
   ];
 
@@ -103,16 +177,19 @@ pkgs.runCommand "test-gha-path-changes"
     git -C "$repo" config init.defaultBranch main
 
     # initial commit on main
-    mkdir -p "$repo/services/svc-a" "$repo/services/svc-b"
+    mkdir -p "$repo/services/svc-a/module/subdir" "$repo/services/svc-b/module"
     printf 'init' > "$repo/services/svc-a/file.txt"
     printf 'init' > "$repo/services/svc-b/file.txt"
+    printf 'init' > "$repo/services/svc-a/module/main.tf"
+    printf 'init' > "$repo/services/svc-a/module/subdir/vars.tf"
+    printf 'init' > "$repo/services/svc-a/module/tag"
     git -C "$repo" add .
     git -C "$repo" commit -m "initial"
     git -C "$repo" branch -M main
     git -C "$repo" push origin main
     BASE_SHA=$(git -C "$repo" rev-parse HEAD)
 
-    # second commit on main: only svc-a changes
+    # second commit: only svc-a/file.txt changes (used by basic event tests)
     printf 'changed' > "$repo/services/svc-a/file.txt"
     git -C "$repo" add .
     git -C "$repo" commit -m "change svc-a"
@@ -127,12 +204,33 @@ pkgs.runCommand "test-gha-path-changes"
     git -C "$repo" push origin feature
     git -C "$repo" checkout main
 
-    # unrelated commit on main (neither service touched)
+    # unrelated commit (neither service touched)
     printf 'unrelated' > "$repo/other.txt"
     git -C "$repo" add .
     git -C "$repo" commit -m "unrelated change"
     git -C "$repo" push origin main
     NEW_HEAD=$(git -C "$repo" rev-parse HEAD)
+
+    # commit touching svc-a/module/main.tf (single-level under module)
+    printf 'changed' > "$repo/services/svc-a/module/main.tf"
+    git -C "$repo" add .
+    git -C "$repo" commit -m "change svc-a module shallow"
+    git -C "$repo" push origin main
+    MODULE_SHALLOW_SHA=$(git -C "$repo" rev-parse HEAD)
+
+    # commit touching svc-a/module/subdir/vars.tf (deep under module)
+    printf 'changed' > "$repo/services/svc-a/module/subdir/vars.tf"
+    git -C "$repo" add .
+    git -C "$repo" commit -m "change svc-a module deep"
+    git -C "$repo" push origin main
+    MODULE_DEEP_SHA=$(git -C "$repo" rev-parse HEAD)
+
+    # commit touching only svc-a/module/tag (exact-path test)
+    printf 'v2' > "$repo/services/svc-a/module/tag"
+    git -C "$repo" add .
+    git -C "$repo" commit -m "bump svc-a tag"
+    git -C "$repo" push origin main
+    TAG_SHA=$(git -C "$repo" rev-parse HEAD)
 
     export DIFF_PATHS="svc-a:services/svc-a/**
     svc-b:services/svc-b/**"

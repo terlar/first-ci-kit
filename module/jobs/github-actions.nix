@@ -7,7 +7,7 @@ let
   changes = lib.pipe enabledJobs [
     (builtins.mapAttrs (_: job: job.branches.default.changes.paths or [ ]))
     (lib.filterAttrs (_: paths: paths != [ ]))
-    (builtins.mapAttrs (_: builtins.concatStringsSep "\\|"))
+    (builtins.mapAttrs (_: builtins.concatStringsSep "|"))
     (lib.mapAttrsToList (name: paths: "${transformJobName name}:${paths}"))
   ];
 in
