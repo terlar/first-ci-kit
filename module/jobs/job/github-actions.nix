@@ -56,7 +56,9 @@ in
     }
 
     (lib.mkIf (conditions != [ ]) {
-      "if" = "\${{ ${lib.concatStringsSep " && " conditions} }}";
+      "if" = "\${{ ${
+        lib.optionalString (optionalNeedJobs != [ ]) "always() && "
+      }${lib.concatStringsSep " && " conditions} }}";
     })
 
     (lib.mkIf (config.artifacts.download != null) {
