@@ -184,7 +184,7 @@
               id = "diff";
               shell = "bash";
               env = {
-                DIFF_PATHS = "job-a:config/**\\|terraform/**";
+                DIFF_PATHS = "job-a:config/**|terraform/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
               };
