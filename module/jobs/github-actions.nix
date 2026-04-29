@@ -5,7 +5,18 @@ let
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
 
   changes = lib.pipe enabledJobs [
-    (builtins.mapAttrs (_: job: job.branches.default.changes.paths or [ ]))
+    (builtins.mapAttrs (
+      _: job:
+      let
+        pathsFromTriggers = lib.pipe (job.triggers or [ ]) [
+          (builtins.filter (t: enabledJobs ? ${t}))
+          (map (t: enabledJobs.${t}.branches.default.changes.paths or [ ]))
+          builtins.concatLists
+          lib.unique
+        ];
+      in
+      lib.unique ((job.branches.default.changes.paths or [ ]) ++ pathsFromTriggers)
+    ))
     (lib.filterAttrs (_: paths: paths != [ ]))
     (builtins.mapAttrs (_: builtins.concatStringsSep "|"))
     (lib.mapAttrsToList (name: paths: "${transformJobName name}:${paths}"))
