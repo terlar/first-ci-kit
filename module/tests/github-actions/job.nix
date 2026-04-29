@@ -174,6 +174,7 @@
     };
 
     expected = {
+      on.pull_request.branches = [ "main" ];
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -246,6 +247,7 @@
       };
     };
     expected = {
+      on.pull_request.branches = [ "main" ];
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -621,6 +623,7 @@
       };
     };
     expected = {
+      on.pull_request.branches = [ "main" ];
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -663,6 +666,7 @@
       };
     };
     expected = {
+      on.pull_request.branches = [ "main" ];
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -740,6 +744,7 @@
       };
     };
     expected = {
+      on.pull_request.branches = [ "main" ];
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -801,6 +806,7 @@
       };
     };
     expected = {
+      on.pull_request.branches = [ "main" ];
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -837,6 +843,95 @@
             { uses = "actions/checkout@v6"; }
             { run = "run-tests"; }
           ];
+        };
+      };
+    };
+  };
+
+  # changes.paths on a non-default branch key are picked up automatically —
+  # no explicit changeBranches config needed.
+  test-github-actions-job-with-non-default-branch-changes = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.job-a = {
+        branches.main = {
+          changes.paths = [ "src/**" ];
+          triggers.onPush = true;
+        };
+      };
+    };
+    expected = {
+      on.push.branches = [ "main" ];
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "job-a:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        job-a = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  # branches.default trigger resolves to the configured defaultBranch (default: "main")
+  # in the auto-populated on.push.branches / on.pull_request.branches.
+  test-github-actions-on-branches-resolved-from-default-branch = {
+    expr = test-lib.eval-github-actions {
+      github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        defaultBranch = "master";
+      };
+      jobs.job-a = {
+        branches.default = {
+          changes.paths = [ "src/**" ];
+          triggers.onPush = true;
+          triggers.onMergeRequest = true;
+        };
+      };
+    };
+    expected = {
+      on.push.branches = [ "master" ];
+      on.pull_request.branches = [ "master" ];
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "job-a:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        job-a = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
         };
       };
     };
