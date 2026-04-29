@@ -526,6 +526,35 @@
     };
   };
 
+  test-github-actions-job-artifact-download-with-path = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.deploy = {
+        commands = [ "tf-deploy svc dev" ];
+        artifacts.download = {
+          name = "svc-dev-plan";
+          path = ".ci/terraform";
+        };
+      };
+    };
+    expected = {
+      jobs.deploy = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          { uses = "actions/checkout@v6"; }
+          {
+            uses = "actions/download-artifact@v8";
+            "with" = {
+              name = "svc-dev-plan";
+              path = ".ci/terraform";
+            };
+          }
+          { run = "tf-deploy svc dev"; }
+        ];
+      };
+    };
+  };
+
   test-github-actions-job-artifact-custom-upload-action = {
     expr = test-lib.eval-github-actions {
       github-actions = {

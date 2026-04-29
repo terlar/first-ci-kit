@@ -83,6 +83,12 @@ let
         description = "Name of the artifact to download.";
         example = "build-output";
       };
+      path = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Destination path for the downloaded artifact. Defaults to the workspace root when null.";
+        example = ".ci/terraform";
+      };
     };
   };
 
