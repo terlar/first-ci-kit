@@ -704,6 +704,32 @@ string
 
 
 
+## jobs\.\<name>\.artifacts\.download\.path
+
+
+
+Destination path for the downloaded artifact\. Defaults to the workspace root when null\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` ".ci/terraform" `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.artifacts\.upload
 
 
