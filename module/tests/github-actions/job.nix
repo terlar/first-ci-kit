@@ -718,4 +718,67 @@
       };
     };
   };
+
+  # A job with triggers should inherit changes.paths from its trigger jobs in the
+  # changes detection map, mirroring the GitLab CI behaviour in gitlab-ci.nix.
+  test-github-actions-changes-job-inherits-paths-from-triggers = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs = {
+        deploy = {
+          branches.default = {
+            changes.paths = [ "services/svc/**" ];
+            triggers.onMergeRequest = true;
+          };
+          commands = [ "deploy svc" ];
+        };
+        post-deploy-test = {
+          # Own path (e.g. the test script itself) plus triggers pointing at deploy.
+          branches.default.changes.paths = [ "ci/tests/**" ];
+          triggers = [ "deploy" ];
+          commands = [ "run-tests" ];
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                # post-deploy-test must include both its own path and deploy's path.
+                DIFF_PATHS = "deploy:services/svc/**\npost-deploy-test:ci/tests/**|services/svc/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        deploy = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            { run = "deploy svc"; }
+          ];
+        };
+        post-deploy-test = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['post-deploy-test'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            { run = "run-tests"; }
+          ];
+        };
+      };
+    };
+  };
 }
