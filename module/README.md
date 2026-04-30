@@ -52,6 +52,34 @@ string
 
 
 
+## github-actions\.defaultBranch
+
+
+
+The name of the default branch\. Used to resolve the special ` "default" `
+branch key in ` job.branches ` when auto-populating
+` on.push.branches ` and ` on.pull_request.branches `\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "main" `
+
+
+
+*Example:*
+` "master" `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.defaultRunsOn
 
 

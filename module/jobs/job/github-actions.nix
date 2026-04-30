@@ -30,7 +30,8 @@ let
     (builtins.catAttrs "job")
   ];
 
-  hasChanges = (config.branches.default.changes.paths or [ ]) != [ ];
+  # A job has changes detection if any of its branch configs have changes.paths set.
+  hasChanges = builtins.any (b: b.changes.paths != [ ]) (builtins.attrValues config.branches);
 
   conditions = lib.pipe optionalNeedJobs [
     (map (job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')"))

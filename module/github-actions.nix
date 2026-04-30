@@ -3,6 +3,26 @@
 let
   inherit (lib) types;
 
+  enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
+
+  resolveBranchKey = key: if key == "default" then config.github-actions.defaultBranch else key;
+
+  pushBranches = lib.pipe enabledJobs [
+    builtins.attrValues
+    (lib.concatMap (job: lib.attrNames (lib.filterAttrs (_: b: b.triggers.onPush) job.branches)))
+    (map resolveBranchKey)
+    lib.unique
+  ];
+
+  pullRequestBranches = lib.pipe enabledJobs [
+    builtins.attrValues
+    (lib.concatMap (
+      job: lib.attrNames (lib.filterAttrs (_: b: b.triggers.onMergeRequest) job.branches)
+    ))
+    (map resolveBranchKey)
+    lib.unique
+  ];
+
   renderInput =
     _name: input:
     lib.mergeAttrsList [
@@ -75,6 +95,17 @@ in
       example = "actions/download-artifact@v3";
     };
 
+    defaultBranch = lib.mkOption {
+      type = types.str;
+      default = "main";
+      description = ''
+        The name of the default branch. Used to resolve the special `"default"`
+        branch key in `job.branches` when auto-populating
+        `on.push.branches` and `on.pull_request.branches`.
+      '';
+      example = "master";
+    };
+
     file = lib.mkOption {
       internal = true;
       type = types.package;
@@ -87,6 +118,12 @@ in
   };
 
   config = lib.mkMerge [
+    (lib.mkIf (pushBranches != [ ]) {
+      github-actions.settings.on.push.branches = lib.mkDefault pushBranches;
+    })
+    (lib.mkIf (pullRequestBranches != [ ]) {
+      github-actions.settings.on.pull_request.branches = lib.mkDefault pullRequestBranches;
+    })
     (lib.mkIf (workflowCall != { }) {
       github-actions.settings.on.workflow_call = workflowCall;
     })

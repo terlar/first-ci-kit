@@ -8,15 +8,19 @@ let
     (builtins.mapAttrs (
       _: job:
       let
-        ownPaths = job.branches.default.changes.paths or [ ];
+        jobPaths = lib.pipe job.branches [
+          builtins.attrValues
+          (lib.concatMap (b: b.changes.paths))
+          lib.unique
+        ];
         pathsFromTriggers = lib.pipe (job.triggers or [ ]) [
           (builtins.filter (t: enabledJobs ? ${t}))
-          (map (t: enabledJobs.${t}.branches.default.changes.paths or [ ]))
+          (map (t: lib.concatMap (b: b.changes.paths) (builtins.attrValues enabledJobs.${t}.branches)))
           builtins.concatLists
           lib.unique
         ];
       in
-      lib.unique (ownPaths ++ (if ownPaths != [ ] then pathsFromTriggers else [ ]))
+      lib.unique (jobPaths ++ (if jobPaths != [ ] then pathsFromTriggers else [ ]))
     ))
     (lib.filterAttrs (_: paths: paths != [ ]))
     (builtins.mapAttrs (_: builtins.concatStringsSep "|"))
