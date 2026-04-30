@@ -1,5 +1,7 @@
 jobs_data=""
 page=1
+# Exit cleanly if the summary pipe closes (e.g. on ARC runners with no output).
+trap 'exit 0' PIPE
 while true; do
 	response=$(curl -fsSL \
 		-H "Authorization: Bearer ${GH_TOKEN}" \
