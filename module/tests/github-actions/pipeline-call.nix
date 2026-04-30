@@ -47,7 +47,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";

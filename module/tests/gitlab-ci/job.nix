@@ -538,4 +538,30 @@
       };
     };
   };
+
+  # fetchDepth = 0 sets GIT_DEPTH = "0" in the job variables.
+  test-gitlab-ci-job-fetch-depth = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job1 = {
+        fetchDepth = 0;
+        commands = [ "git log" ];
+      };
+    };
+    expected = {
+      job1 = {
+        script = [ "git log" ];
+        variables.GIT_DEPTH = "0";
+      };
+    };
+  };
+
+  # fetchDepth = null (default) does not set GIT_DEPTH.
+  test-gitlab-ci-job-fetch-depth-null-omits-variable = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job1.commands = [ "echo hi" ];
+    };
+    expected = {
+      job1.script = [ "echo hi" ];
+    };
+  };
 }

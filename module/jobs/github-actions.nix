@@ -1,7 +1,7 @@
 { lib, config, ... }:
 
 let
-  inherit (config.github-actions) checkoutAction transformJobName;
+  inherit (config.github-actions) changesFetchDepth checkoutAction transformJobName;
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
 
   changes = lib.pipe enabledJobs [
@@ -34,7 +34,10 @@ in
         outputs.changes = "\${{ steps.diff.outputs.changes }}";
         runs-on = config.github-actions.defaultRunsOn;
         steps = [
-          { uses = checkoutAction; }
+          {
+            uses = checkoutAction;
+            "with"."fetch-depth" = changesFetchDepth;
+          }
           {
             id = "diff";
             shell = "bash";

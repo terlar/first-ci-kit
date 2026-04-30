@@ -186,6 +186,18 @@ in
       default = true;
     };
 
+    fetchDepth = lib.mkOption {
+      type = types.nullOr types.int;
+      default = null;
+      description = ''
+        Number of commits to fetch during clone/checkout. `null` omits the
+        setting, relying on the backend default (GitHub Actions: 1,
+        GitLab CI: project-level Git shallow clone setting, typically 20).
+        Set to `0` for a full clone with complete history.
+      '';
+      example = 0;
+    };
+
     commands = lib.mkOption {
       type = types.listOf types.str;
       default = [ ];

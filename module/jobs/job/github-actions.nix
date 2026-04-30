@@ -51,7 +51,16 @@ in
       runs-on = lib.mkIf (defaultRunsOn != null) (lib.mkDefault defaultRunsOn);
 
       steps = lib.mkMerge [
-        (lib.mkIf config.checkout (lib.mkBefore [ { uses = checkoutAction; } ]))
+        (lib.mkIf config.checkout (
+          lib.mkBefore [
+            (lib.mergeAttrsList [
+              { uses = checkoutAction; }
+              (lib.optionalAttrs (config.fetchDepth != null) {
+                "with"."fetch-depth" = config.fetchDepth;
+              })
+            ])
+          ]
+        ))
         (lib.mkAfter (map (command: { run = command; }) config.commands))
       ];
     }
