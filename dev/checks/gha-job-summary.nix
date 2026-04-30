@@ -104,7 +104,7 @@ pkgs.runCommand "test-gha-job-summary"
       chmod +x "$tmpbin/curl"
       export GITHUB_STEP_SUMMARY
       GITHUB_STEP_SUMMARY=$(mktemp)
-      PATH="$tmpbin:$PATH" bash ${mainBash}
+      PATH="$tmpbin:$PATH" bash --noprofile --norc -e -o pipefail ${mainBash}
     }
 
     # ── Test 1: normal run ────────────────────────────────────────────────────

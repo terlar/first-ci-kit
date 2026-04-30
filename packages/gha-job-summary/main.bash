@@ -48,7 +48,7 @@ while true; do
 
 	jobs_data="${jobs_data}${page_jobs}"$'\n'
 
-	total=$(printf '%s\n' "$response" | awk '/"total_count":/ { val = $0; gsub(/[^0-9]/, "", val); print val + 0; exit }')
+	total=$(printf '%s\n' "$response" | awk '/"total_count":/ { val = $0; gsub(/[^0-9]/, "", val); print val + 0 }')
 	[ $((page * 100)) -ge "${total:-0}" ] && break
 	page=$((page + 1))
 done
@@ -74,4 +74,4 @@ done
 
 		printf '| %s | [%s](%s) |\n' "$icon" "$name" "$url"
 	done <<<"$jobs_data"
-} >>"$GITHUB_STEP_SUMMARY"
+} >>"$GITHUB_STEP_SUMMARY" || exit 0
