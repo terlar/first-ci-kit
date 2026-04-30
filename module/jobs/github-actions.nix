@@ -26,6 +26,15 @@ let
     (builtins.mapAttrs (_: builtins.concatStringsSep "|"))
     (lib.mapAttrsToList (name: paths: "${transformJobName name}:${paths}"))
   ];
+
+  summaryJobCfg = config.github-actions.summaryJob;
+
+  summaryJobNeeds =
+    (lib.optional (changes != [ ]) "changes")
+    ++ (map transformJobName (lib.attrNames enabledJobs));
+
+  effectiveSummaryRunsOn =
+    if summaryJobCfg.runsOn != null then summaryJobCfg.runsOn else config.github-actions.defaultRunsOn;
 in
 {
   github-actions.settings.jobs = lib.mkMerge [
@@ -62,5 +71,27 @@ in
         ]
       );
     }) enabledJobs)
+
+    (lib.mkIf summaryJobCfg.enable {
+      ${summaryJobCfg.name} = lib.mergeAttrsList [
+        {
+          "if" = "\${{ always() }}";
+          needs = summaryJobNeeds;
+          steps = [
+            {
+              shell = "bash";
+              env = {
+                GH_TOKEN = "\${{ github.token }}";
+                SUMMARY_JOB_NAME = summaryJobCfg.name;
+              };
+              run = builtins.readFile ../../packages/gha-job-summary/main.bash;
+            }
+          ];
+        }
+        (lib.optionalAttrs (effectiveSummaryRunsOn != null) {
+          runs-on = effectiveSummaryRunsOn;
+        })
+      ];
+    })
   ];
 }

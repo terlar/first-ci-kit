@@ -118,6 +118,27 @@ in
       example = 50;
     };
 
+    summaryJob = {
+      enable = lib.mkEnableOption "workflow summary job that runs last and links to all non-skipped jobs";
+
+      name = lib.mkOption {
+        type = types.str;
+        default = "summary";
+        description = "Key name for the generated summary job.";
+        example = "workflow-summary";
+      };
+
+      runsOn = lib.mkOption {
+        type = with types; nullOr (either str (listOf str));
+        default = null;
+        description = ''
+          `runs-on` for the summary job. Falls back to
+          `github-actions.defaultRunsOn` when `null`.
+        '';
+        example = "ubuntu-latest";
+      };
+    };
+
     file = lib.mkOption {
       internal = true;
       type = types.package;

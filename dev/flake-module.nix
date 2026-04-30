@@ -116,6 +116,7 @@
       };
 
       checks.gha-path-changes = pkgs.callPackage ./checks/gha-path-changes.nix { inherit lib config; };
+      checks.gha-job-summary = pkgs.callPackage ./checks/gha-job-summary.nix { inherit lib config; };
 
       checks.git-hooks = pkgs.callPackage ./checks/git-hooks.nix { inherit lib config; };
 
