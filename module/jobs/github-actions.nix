@@ -30,8 +30,7 @@ let
   summaryJobCfg = config.github-actions.summaryJob;
 
   summaryJobNeeds =
-    (lib.optional (changes != [ ]) "changes")
-    ++ (map transformJobName (lib.attrNames enabledJobs));
+    (lib.optional (changes != [ ]) "changes") ++ (map transformJobName (lib.attrNames enabledJobs));
 
   effectiveSummaryRunsOn =
     if summaryJobCfg.runsOn != null then summaryJobCfg.runsOn else config.github-actions.defaultRunsOn;

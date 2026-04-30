@@ -1,20 +1,47 @@
-{
-  pkgs,
-  lib,
-  config,
-}:
+{ pkgs }:
 
 let
   mainBash = ../../packages/gha-job-summary/main.bash;
 
-  # Fake gh binary: ignores all arguments and emits pre-formatted TSV rows
-  # as if `gh api --jq '.jobs[] | [.name, (.conclusion // .status), .html_url] | @tsv'`
-  # had been called against a run with four jobs.
-  fakeGh = pkgs.writeShellScript "gh" ''
-    printf '%s\t%s\t%s\n' "deploy"     "success"    "https://example.com/jobs/1"
-    printf '%s\t%s\t%s\n' "test"       "failure"    "https://example.com/jobs/2"
-    printf '%s\t%s\t%s\n' "smoke-test" "skipped"    "https://example.com/jobs/3"
-    printf '%s\t%s\t%s\n' "summary"    "success"    "https://example.com/jobs/4"
+  # Fake curl binary: ignores all arguments and emits a GitHub API JSON response
+  # as if GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs had been called
+  # against a run with four jobs (one page, total_count=4).
+  fakeCurl = pkgs.writeShellScript "curl" ''
+    cat <<'EOF'
+    {
+      "total_count": 4,
+      "jobs": [
+        {
+          "html_url": "https://github.com/org/repo/actions/runs/123/job/1",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "deploy",
+          "steps": []
+        },
+        {
+          "html_url": "https://github.com/org/repo/actions/runs/123/job/2",
+          "status": "completed",
+          "conclusion": "failure",
+          "name": "test",
+          "steps": []
+        },
+        {
+          "html_url": "https://github.com/org/repo/actions/runs/123/job/3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "name": "smoke-test",
+          "steps": []
+        },
+        {
+          "html_url": "https://github.com/org/repo/actions/runs/123/job/4",
+          "status": "completed",
+          "conclusion": "success",
+          "name": "summary",
+          "steps": []
+        }
+      ]
+    }
+    EOF
   '';
 in
 pkgs.runCommand "test-gha-job-summary"
@@ -22,6 +49,7 @@ pkgs.runCommand "test-gha-job-summary"
     nativeBuildInputs = [
       pkgs.bash
       pkgs.coreutils
+      pkgs.gawk
     ];
   }
   ''
@@ -29,14 +57,15 @@ pkgs.runCommand "test-gha-job-summary"
 
     export GITHUB_REPOSITORY="org/repo"
     export GITHUB_RUN_ID="123"
+    export GH_TOKEN="fake-token"
     export SUMMARY_JOB_NAME="summary"
     export GITHUB_STEP_SUMMARY
     GITHUB_STEP_SUMMARY=$(mktemp)
 
-    # Put the fake gh first on PATH so it wins over any real gh.
+    # Put the fake curl first on PATH so it wins over any real curl.
     tmpbin=$(mktemp -d)
-    cp ${fakeGh} "$tmpbin/gh"
-    chmod +x "$tmpbin/gh"
+    cp ${fakeCurl} "$tmpbin/curl"
+    chmod +x "$tmpbin/curl"
     export PATH="$tmpbin:$PATH"
 
     # Run the raw script with bash (bypasses writeShellApplication's PATH prepending).
@@ -45,14 +74,14 @@ pkgs.runCommand "test-gha-job-summary"
     summary=$(cat "$GITHUB_STEP_SUMMARY")
 
     # Must include deploy (success ✅) and test (failure ❌) with links.
-    echo "$summary" | grep -q "deploy"              || { echo "FAIL: deploy missing"; exit 1; }
-    echo "$summary" | grep -q "test"                || { echo "FAIL: test missing"; exit 1; }
-    echo "$summary" | grep -q "https://example.com" || { echo "FAIL: links missing"; exit 1; }
-    echo "$summary" | grep -q "✅"                  || { echo "FAIL: success icon missing"; exit 1; }
-    echo "$summary" | grep -q "❌"                  || { echo "FAIL: failure icon missing"; exit 1; }
+    echo "$summary" | grep -q "deploy"                        || { echo "FAIL: deploy missing"; exit 1; }
+    echo "$summary" | grep -q "test"                          || { echo "FAIL: test missing"; exit 1; }
+    echo "$summary" | grep -q "https://github.com/org/repo"   || { echo "FAIL: links missing"; exit 1; }
+    echo "$summary" | grep -q "✅"                            || { echo "FAIL: success icon missing"; exit 1; }
+    echo "$summary" | grep -q "❌"                            || { echo "FAIL: failure icon missing"; exit 1; }
 
     # Must NOT include the skipped smoke-test or the summary job itself.
-    echo "$summary" | grep -q "smoke-test"  && { echo "FAIL: skipped job should be excluded"; exit 1; } || true
+    echo "$summary" | grep -q "smoke-test"   && { echo "FAIL: skipped job should be excluded"; exit 1; } || true
     echo "$summary" | grep -qE "\[summary\]" && { echo "FAIL: summary job should exclude itself"; exit 1; } || true
 
     echo "All gha-job-summary tests passed" > "$out"
