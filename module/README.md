@@ -190,6 +190,85 @@ YAML value
 
 
 
+## github-actions\.summaryJob\.enable
+
+
+
+Whether to enable workflow summary job that runs last and links to all non-skipped jobs\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
+## github-actions\.summaryJob\.name
+
+
+
+Key name for the generated summary job\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "summary" `
+
+
+
+*Example:*
+` "workflow-summary" `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
+## github-actions\.summaryJob\.runsOn
+
+
+
+` runs-on ` for the summary job\. Falls back to
+` github-actions.defaultRunsOn ` when ` null `\.
+
+
+
+*Type:*
+null or string or list of string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` "ubuntu-latest" `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.transformJobName
 
 

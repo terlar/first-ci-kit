@@ -28,6 +28,7 @@ in
     in
     {
       packages.gha-path-changes = pkgs.callPackage ./packages/gha-path-changes { };
+      packages.gha-job-summary = pkgs.callPackage ./packages/gha-job-summary { };
 
       legacyPackages = lib.mkMerge [
         # Child pipeline legacyPackages for GitLab CI: ci-pipeline-gitlab-ci-{parent}-{child}
