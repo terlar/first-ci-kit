@@ -1155,6 +1155,7 @@
             "deploy"
             "test"
           ];
+          permissions.actions = "read";
           runs-on = "ubuntu-latest";
           steps = [
             {
@@ -1195,6 +1196,7 @@
         workflow-summary = {
           "if" = "\${{ always() }}";
           needs = [ "build" ];
+          permissions.actions = "read";
           runs-on = "ubuntu-latest";
           steps = [
             {

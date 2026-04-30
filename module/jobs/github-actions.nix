@@ -76,6 +76,7 @@ in
         {
           "if" = "\${{ always() }}";
           needs = summaryJobNeeds;
+          permissions.actions = "read";
           steps = [
             {
               shell = "bash";
