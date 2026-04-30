@@ -57,6 +57,7 @@ pkgs.runCommand "test-gha-job-summary"
 
     export GITHUB_REPOSITORY="org/repo"
     export GITHUB_RUN_ID="123"
+    export GITHUB_API_URL="https://api.github.com"
     export GH_TOKEN="fake-token"
     export SUMMARY_JOB_NAME="summary"
     export GITHUB_STEP_SUMMARY

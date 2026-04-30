@@ -4,7 +4,7 @@ while true; do
 	response=$(curl -fsSL \
 		-H "Authorization: Bearer ${GH_TOKEN}" \
 		-H "Accept: application/vnd.github+json" \
-		"https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100&page=${page}")
+		"${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100&page=${page}")
 
 	# Extract job fields using awk.
 	# The GitHub API returns fields in a consistent order within each job object:
