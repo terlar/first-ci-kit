@@ -47,7 +47,10 @@ in
         ) config.branches;
         inherit (ci-lib.mkBranchRules augmentedBranches) allRules;
       in
-      lib.mkIf (allRules != [ ]) (lib.mkAfter allRules);
+      # pipelineCall jobs are suppressed from GitLab CI rendering; branch rules
+      # are forwarded via rulesInput/pushRulesInput instead, so we do not append
+      # them here to keep job.gitlab-ci.rules to jobDefaults guard rules only.
+      lib.mkIf (config.pipelineCall == null && allRules != [ ]) (lib.mkAfter allRules);
 
     variables = lib.mkMerge [
       (lib.mkIf (!config.checkout) {

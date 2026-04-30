@@ -28,12 +28,13 @@ let
     job:
     let
       pc = job.pipelineCall;
+      jobRules = job.gitlab-ci.rules or [ ];
       computedRules = lib.mergeAttrsList [
         (lib.optionalAttrs (pc.gitlab-ci.rulesInput != null) {
-          ${pc.gitlab-ci.rulesInput} = (ci-lib.mkBranchRules job.branches).allRules;
+          ${pc.gitlab-ci.rulesInput} = jobRules ++ (ci-lib.mkBranchRules job.branches).allRules;
         })
         (lib.optionalAttrs (pc.gitlab-ci.pushRulesInput != null) {
-          ${pc.gitlab-ci.pushRulesInput} = (ci-lib.mkBranchRules job.branches).pushRules;
+          ${pc.gitlab-ci.pushRulesInput} = jobRules ++ (ci-lib.mkBranchRules job.branches).pushRules;
         })
       ];
       allInputs = lib.mergeAttrsList [
