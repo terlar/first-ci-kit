@@ -229,6 +229,68 @@
     };
   };
 
+  test-gitlab-ci-job-pipeline-call-rules-input-with-job-defaults = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobSets.service = {
+        jobs = [ "deploy" ];
+        jobDefaults.gitlab-ci.rules = [
+          {
+            "if" = "$CI_PIPELINE_SOURCE == 'schedule' && $SCHEDULE_JOB != 'production-release-automation'";
+            when = "never";
+          }
+          {
+            "if" = ''$[[ inputs.pipeline ]] != "default"'';
+            when = "never";
+          }
+        ];
+      };
+      jobs.deploy = {
+        branches.default = {
+          changes.paths = [ "src/" ];
+          triggers.onMergeRequest = true;
+          triggers.onPush = true;
+        };
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.rulesInput = "rules";
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs.rules = [
+            {
+              "if" = "$CI_PIPELINE_SOURCE == 'schedule' && $SCHEDULE_JOB != 'production-release-automation'";
+              when = "never";
+            }
+            {
+              "if" = ''$[[ inputs.pipeline ]] != "default"'';
+              when = "never";
+            }
+            {
+              "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+              changes = {
+                paths = [ "src/" ];
+                compare_to = "$CI_DEFAULT_BRANCH";
+              };
+            }
+            {
+              "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
+              changes.paths = [ "src/" ];
+            }
+          ];
+        }
+      ];
+    };
+  };
+
   test-gitlab-ci-job-pipeline-call-rules-input-default-branch = {
     expr = test-lib.eval-gitlab-ci {
       pipelines.my-pipeline = {
