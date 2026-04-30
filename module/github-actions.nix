@@ -106,6 +106,18 @@ in
       example = "master";
     };
 
+    changesFetchDepth = lib.mkOption {
+      type = types.int;
+      default = 0;
+      description = ''
+        `fetch-depth` passed to the checkout action in the auto-generated
+        `changes` job. Defaults to `0` (full history) because the change
+        detection script compares arbitrary commits and requires the full
+        git history to be available.
+      '';
+      example = 50;
+    };
+
     file = lib.mkOption {
       internal = true;
       type = types.package;

@@ -180,7 +180,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";
@@ -253,7 +256,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v5"; }
+            {
+              uses = "actions/checkout@v5";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";
@@ -362,7 +368,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";
@@ -415,7 +424,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";
@@ -629,7 +641,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";
@@ -672,7 +687,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";
@@ -750,7 +768,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";
@@ -812,7 +833,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";
@@ -867,7 +891,10 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
             {
               id = "diff";
               shell = "bash";
@@ -914,7 +941,131 @@
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "job-a:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        job-a = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  # fetchDepth = 0 on a job adds with.fetch-depth = 0 to the checkout step.
+  test-github-actions-job-fetch-depth = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.job1 = {
+        fetchDepth = 0;
+        commands = [ "git log" ];
+      };
+    };
+    expected = {
+      jobs.job1 = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          {
+            uses = "actions/checkout@v6";
+            "with"."fetch-depth" = 0;
+          }
+          { run = "git log"; }
+        ];
+      };
+    };
+  };
+
+  # fetchDepth = null (default) omits the with block entirely.
+  test-github-actions-job-fetch-depth-null-omits-with = {
+    expr = test-lib.eval-github-actions {
+      jobs.job1.commands = [ "echo hi" ];
+    };
+    expected = {
+      jobs.job1.steps = [
+        { uses = "actions/checkout@v6"; }
+        { run = "echo hi"; }
+      ];
+    };
+  };
+
+  # The auto-generated changes job defaults to fetch-depth = 0.
+  test-github-actions-changes-job-default-fetch-depth = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.job-a.branches.default = {
+        changes.paths = [ "src/**" ];
+        triggers.onPush = true;
+      };
+    };
+    expected = {
+      on.push.branches = [ "main" ];
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                DIFF_PATHS = "job-a:src/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        job-a = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  # changesFetchDepth can be overridden.
+  test-github-actions-changes-job-custom-fetch-depth = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      github-actions.changesFetchDepth = 50;
+      jobs.job-a.branches.default = {
+        changes.paths = [ "src/**" ];
+        triggers.onPush = true;
+      };
+    };
+    expected = {
+      on.push.branches = [ "main" ];
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 50;
+            }
             {
               id = "diff";
               shell = "bash";

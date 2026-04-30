@@ -26,6 +26,35 @@ boolean
 
 
 
+## github-actions\.changesFetchDepth
+
+
+
+` fetch-depth ` passed to the checkout action in the auto-generated
+` changes ` job\. Defaults to ` 0 ` (full history) because the change
+detection script compares arbitrary commits and requires the full
+git history to be available\.
+
+
+
+*Type:*
+signed integer
+
+
+
+*Default:*
+` 0 `
+
+
+
+*Example:*
+` 50 `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.checkoutAction
 
 
@@ -1082,6 +1111,35 @@ list of string
 
 *Example:*
 ` [ "make build" "make test" ] `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.fetchDepth
+
+
+
+Number of commits to fetch during clone/checkout\. ` null ` omits the
+setting, relying on the backend default (GitHub Actions: 1,
+GitLab CI: project-level Git shallow clone setting, typically 20)\.
+Set to ` 0 ` for a full clone with complete history\.
+
+
+
+*Type:*
+null or signed integer
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` 0 `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)

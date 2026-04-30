@@ -53,6 +53,9 @@ in
       (lib.mkIf (!config.checkout) {
         GIT_CHECKOUT = lib.boolToString config.checkout;
       })
+      (lib.mkIf (config.fetchDepth != null) {
+        GIT_DEPTH = toString config.fetchDepth;
+      })
       (lib.mkIf rootConfig.autoEnvInputs (
         lib.mapAttrs' (name: _: {
           name = lib.strings.toUpper name;
