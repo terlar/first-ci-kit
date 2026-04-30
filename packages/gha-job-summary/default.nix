@@ -1,14 +1,14 @@
 {
   writeShellApplication,
-  gh,
-  jq,
+  curl,
+  gawk,
 }:
 
 writeShellApplication {
   name = "gha-job-summary";
   runtimeInputs = [
-    gh
-    jq
+    curl
+    gawk
   ];
   text = builtins.readFile ./main.bash;
 }

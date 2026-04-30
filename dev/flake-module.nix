@@ -115,10 +115,11 @@
         };
       };
 
-      checks.gha-path-changes = pkgs.callPackage ./checks/gha-path-changes.nix { inherit lib config; };
-      checks.gha-job-summary = pkgs.callPackage ./checks/gha-job-summary.nix { inherit lib config; };
-
-      checks.git-hooks = pkgs.callPackage ./checks/git-hooks.nix { inherit lib config; };
+      checks = {
+        gha-path-changes = pkgs.callPackage ./checks/gha-path-changes.nix { inherit lib config; };
+        gha-job-summary = pkgs.callPackage ./checks/gha-job-summary.nix { };
+        git-hooks = pkgs.callPackage ./checks/git-hooks.nix { inherit lib config; };
+      };
 
       packages.module-docs = pkgs.callPackage ../packages/module-docs {
         moduleRoot = ../module;
