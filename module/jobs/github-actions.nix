@@ -8,6 +8,7 @@ let
     (builtins.mapAttrs (
       _: job:
       let
+        ownPaths = job.branches.default.changes.paths or [ ];
         pathsFromTriggers = lib.pipe (job.triggers or [ ]) [
           (builtins.filter (t: enabledJobs ? ${t}))
           (map (t: enabledJobs.${t}.branches.default.changes.paths or [ ]))
@@ -15,7 +16,7 @@ let
           lib.unique
         ];
       in
-      lib.unique ((job.branches.default.changes.paths or [ ]) ++ pathsFromTriggers)
+      lib.unique (ownPaths ++ (if ownPaths != [ ] then pathsFromTriggers else [ ]))
     ))
     (lib.filterAttrs (_: paths: paths != [ ]))
     (builtins.mapAttrs (_: builtins.concatStringsSep "|"))

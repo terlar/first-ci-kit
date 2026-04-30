@@ -719,6 +719,66 @@
     };
   };
 
+  # A job with triggers but NO own changes.paths must NOT appear in the changes
+  # detection map (smoke-test regression: inheriting paths without own paths is wrong).
+  test-github-actions-changes-job-without-own-paths-does-not-inherit-from-triggers = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs = {
+        deploy = {
+          branches.default = {
+            changes.paths = [ "services/svc/**" ];
+            triggers.onMergeRequest = true;
+          };
+          commands = [ "deploy svc" ];
+        };
+        smoke-test = {
+          # No own changes.paths — should NOT appear in DIFF_PATHS even though it has triggers.
+          triggers = [ "deploy" ];
+          commands = [ "run-smoke-tests" ];
+        };
+      };
+    };
+    expected = {
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            {
+              id = "diff";
+              shell = "bash";
+              env = {
+                # smoke-test must NOT appear here.
+                DIFF_PATHS = "deploy:services/svc/**";
+                GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+              };
+              run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
+            }
+          ];
+        };
+        deploy = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            { run = "deploy svc"; }
+          ];
+        };
+        smoke-test = {
+          runs-on = "ubuntu-latest";
+          steps = [
+            { uses = "actions/checkout@v6"; }
+            { run = "run-smoke-tests"; }
+          ];
+        };
+      };
+    };
+  };
+
   # A job with triggers should inherit changes.paths from its trigger jobs in the
   # changes detection map, mirroring the GitLab CI behaviour in gitlab-ci.nix.
   test-github-actions-changes-job-inherits-paths-from-triggers = {
