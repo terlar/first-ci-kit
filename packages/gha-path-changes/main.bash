@@ -48,22 +48,22 @@ done
 change_object_body="$(printf '%s\n' "${change_lines[@]}" | paste -sd,)"
 echo "changes={$change_object_body}" >>"$GITHUB_OUTPUT"
 
-triggered_jobs=()
+affected_jobs=()
 for line in "${change_lines[@]}"; do
 	if [[ "$line" == *":true"* ]]; then
-		triggered_jobs+=("${line//\"/}")
-		triggered_jobs[-1]="${triggered_jobs[-1]%:*}"
+		affected_jobs+=("${line//\"/}")
+		affected_jobs[-1]="${affected_jobs[-1]%:*}"
 	fi
 done
 
-if [[ ${#triggered_jobs[@]} -gt 0 ]]; then
-	echo "Triggered jobs (${#triggered_jobs[@]}):"
-	printf '  %s\n' "${triggered_jobs[@]}"
+if [[ ${#affected_jobs[@]} -gt 0 ]]; then
+	echo "Affected jobs (${#affected_jobs[@]}):"
+	printf '  %s\n' "${affected_jobs[@]}"
 	{
-		echo "## Triggered jobs (${#triggered_jobs[@]})"
-		printf -- '- %s\n' "${triggered_jobs[@]}"
+		echo "## Affected jobs (${#affected_jobs[@]})"
+		printf -- '- %s\n' "${affected_jobs[@]}"
 	} >>"$GITHUB_STEP_SUMMARY"
 else
-	echo "No jobs triggered."
-	echo "## No jobs triggered" >>"$GITHUB_STEP_SUMMARY"
+	echo "No affected jobs."
+	echo "## No affected jobs" >>"$GITHUB_STEP_SUMMARY"
 fi
