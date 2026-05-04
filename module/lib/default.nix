@@ -96,6 +96,44 @@ in
   # Expose helpers so modules (e.g. gitlab-ci.nix) can reuse them via ci-lib.
   inherit resolveBranchName mkBranchRef;
 
+  # augmentBranchesWithTriggers: merge changed-path rules from trigger jobs
+  # into a job's own branches config.
+  #
+  # Arguments:
+  #   branches : the job's `branches` attrset (from NixOS module evaluation)
+  #   triggers : list of job names (strings) that should trigger this job
+  #   jobs     : the full `jobs` attrset from root config
+  #
+  # For each branch, all `changes.paths` from enabled trigger jobs are merged
+  # (deduplicated) into the job's own `changes.paths` for that branch.
+  #
+  # Trigger jobs only need to be enabled at the job level (`enable == true`);
+  # they do NOT need to have `gitlab-ci.enable == true`. This allows pipelineCall
+  # jobs (whose `gitlab-ci.enable` is forced to `false`) to act as triggers.
+  augmentBranchesWithTriggers =
+    {
+      branches,
+      triggers,
+      jobs,
+    }:
+    lib.mapAttrs (
+      name: cfg:
+      let
+        pathsFromTriggers = lib.pipe triggers [
+          (builtins.filter (
+            job:
+            jobs ? ${job}
+            && jobs.${job}.enable
+            && (jobs.${job}.gitlab-ci.enable || jobs.${job}.pipelineCall != null)
+          ))
+          (map (job: jobs.${job}.branches.${name}.changes.paths))
+          builtins.concatLists
+          lib.unique
+        ];
+      in
+      lib.recursiveUpdate cfg { changes.paths = lib.unique (cfg.changes.paths ++ pathsFromTriggers); }
+    ) branches;
+
   # mkBranchRules: compute GitLab CI rule objects from a resolved `branches`
   # attrset (as found in job.branches after NixOS module evaluation).
   #

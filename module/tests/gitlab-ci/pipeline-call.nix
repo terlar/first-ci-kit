@@ -434,4 +434,59 @@
       ];
     };
   };
+
+  test-gitlab-ci-job-pipeline-call-rules-input-inherits-trigger-paths = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      # infra job: a pipelineCall job whose paths we want to inherit
+      jobs.infra = {
+        branches.default = {
+          changes.paths = [ "services/infra/**/*" ];
+          triggers.onMergeRequest = true;
+          triggers.onPush = true;
+        };
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.templatePath = "ci/templates/infra.yml";
+        };
+      };
+      # post-deploy job: no own paths, only triggers
+      jobs.deploy = {
+        triggers = [ "infra" ];
+        branches.default = {
+          triggers.onMergeRequest = true;
+          triggers.onPush = true;
+        };
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.rulesInput = "rules";
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs.rules = [
+            {
+              "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+              changes = {
+                paths = [ "services/infra/**/*" ];
+                compare_to = "$CI_DEFAULT_BRANCH";
+              };
+            }
+            {
+              "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
+              changes.paths = [ "services/infra/**/*" ];
+            }
+          ];
+        }
+        { local = "ci/templates/infra.yml"; }
+      ];
+    };
+  };
 }
