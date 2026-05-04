@@ -28,23 +28,10 @@ in
 
     rules =
       let
-        augmentedBranches = lib.mapAttrs (
-          name: cfg:
-          let
-            pathsFromTriggers = lib.pipe config.triggers [
-              (builtins.filter (job: jobs ? ${job} && jobs.${job}.enable && jobs.${job}.gitlab-ci.enable))
-              (map (job: jobs.${job}.branches.${name}.changes.paths))
-              builtins.concatLists
-              lib.unique
-            ];
-          in
-          cfg
-          // {
-            changes = cfg.changes // {
-              paths = lib.unique (cfg.changes.paths ++ pathsFromTriggers);
-            };
-          }
-        ) config.branches;
+        augmentedBranches = ci-lib.augmentBranchesWithTriggers {
+          inherit (config) branches triggers;
+          inherit jobs;
+        };
         inherit (ci-lib.mkBranchRules augmentedBranches) allRules;
       in
       # pipelineCall jobs are suppressed from GitLab CI rendering; branch rules
