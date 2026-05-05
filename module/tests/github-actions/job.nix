@@ -1,5 +1,12 @@
 { test-lib, ... }:
 
+let
+  forceRunAllInput = {
+    type = "boolean";
+    default = false;
+    description = "Skip change detection and run all jobs";
+  };
+in
 {
   test-github-actions-job-basic = {
     expr = test-lib.eval-github-actions {
@@ -175,6 +182,7 @@
 
     expected = {
       on.pull_request.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -191,6 +199,7 @@
                 DIFF_PATHS = "job-a:config/**|terraform/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -251,6 +260,7 @@
     };
     expected = {
       on.pull_request.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -267,6 +277,7 @@
                 DIFF_PATHS = "job-a:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -363,6 +374,7 @@
       };
     };
     expected = {
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -379,6 +391,7 @@
                 DIFF_PATHS = "job-b:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -419,6 +432,7 @@
       };
     };
     expected = {
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -435,6 +449,7 @@
                 DIFF_PATHS = "job-b:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -636,6 +651,7 @@
     };
     expected = {
       on.pull_request.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -652,6 +668,7 @@
                 DIFF_PATHS = "deploy:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -682,6 +699,7 @@
     };
     expected = {
       on.pull_request.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -698,6 +716,7 @@
                 DIFF_PATHS = "org_svc-a:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -763,6 +782,7 @@
     };
     expected = {
       on.pull_request.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -780,6 +800,7 @@
                 DIFF_PATHS = "deploy:services/svc/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -828,6 +849,7 @@
     };
     expected = {
       on.pull_request.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -845,6 +867,7 @@
                 DIFF_PATHS = "deploy:services/svc/**\npost-deploy-test:ci/tests/**|services/svc/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -886,6 +909,7 @@
     };
     expected = {
       on.push.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -902,6 +926,7 @@
                 DIFF_PATHS = "job-a:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -934,8 +959,11 @@
       };
     };
     expected = {
-      on.push.branches = [ "master" ];
-      on.pull_request.branches = [ "master" ];
+      on = {
+        push.branches = [ "master" ];
+        pull_request.branches = [ "master" ];
+        workflow_dispatch.inputs.force_run_all = forceRunAllInput;
+      };
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -952,6 +980,7 @@
                 DIFF_PATHS = "job-a:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -1014,6 +1043,7 @@
     };
     expected = {
       on.push.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -1030,6 +1060,7 @@
                 DIFF_PATHS = "job-a:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -1057,6 +1088,7 @@
     };
     expected = {
       on.push.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -1073,6 +1105,7 @@
                 DIFF_PATHS = "job-a:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }
@@ -1111,6 +1144,7 @@
     };
     expected = {
       on.pull_request.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -1127,6 +1161,7 @@
                 DIFF_PATHS = "deploy:services/svc/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }

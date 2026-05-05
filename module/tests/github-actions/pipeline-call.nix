@@ -1,5 +1,12 @@
 { test-lib, ... }:
 
+let
+  forceRunAllInput = {
+    type = "boolean";
+    default = false;
+    description = "Skip change detection and run all jobs";
+  };
+in
 {
   test-github-actions-job-pipeline-call-basic = {
     expr = test-lib.eval-github-actions {
@@ -42,6 +49,7 @@
       };
     };
     expected = {
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
       jobs = {
         changes = {
           outputs.changes = "\${{ steps.diff.outputs.changes }}";
@@ -58,6 +66,7 @@
                 DIFF_PATHS = "deploy:src/**";
                 GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
                 GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                FORCE_RUN_ALL = "\${{ inputs.force_run_all }}";
               };
               run = builtins.readFile ../../../packages/gha-path-changes/main.bash;
             }

@@ -156,6 +156,62 @@ string
 
 
 
+## github-actions\.forceRunAll\.enable
+
+
+
+Whether to enable auto-injection of a ` force_run_all ` boolean input and a ` workflow_dispatch `
+trigger into the generated workflow\. When the input is set to ` true ` at
+runtime, change detection is skipped and all jobs are treated as affected\.
+Enabled by default whenever the auto-generated ` changes ` job is present\.
+\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
+## github-actions\.forceRunAll\.inputName
+
+
+
+Name of the generated ` workflow_dispatch ` / ` workflow_call ` input\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "force_run_all" `
+
+
+
+*Example:*
+` "run_all" `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.settings
 
 

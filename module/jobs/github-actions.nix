@@ -1,7 +1,12 @@
 { lib, config, ... }:
 
 let
-  inherit (config.github-actions) changesFetchDepth checkoutAction transformJobName;
+  inherit (config.github-actions)
+    changesFetchDepth
+    checkoutAction
+    transformJobName
+    forceRunAll
+    ;
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
 
   changes = lib.pipe enabledJobs [
@@ -36,62 +41,79 @@ let
     if summaryJobCfg.runsOn != null then summaryJobCfg.runsOn else config.github-actions.defaultRunsOn;
 in
 {
-  github-actions.settings.jobs = lib.mkMerge [
-    (lib.mkIf (changes != [ ]) {
-      changes = {
-        outputs.changes = "\${{ steps.diff.outputs.changes }}";
-        runs-on = config.github-actions.defaultRunsOn;
-        steps = [
-          {
-            uses = checkoutAction;
-            "with"."fetch-depth" = changesFetchDepth;
-          }
-          {
-            id = "diff";
-            shell = "bash";
-            env = {
-              DIFF_PATHS = builtins.concatStringsSep "\n" changes;
-              GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
-              GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
-            };
-            run = builtins.readFile ../../packages/gha-path-changes/main.bash;
-          }
-        ];
-      };
-    })
+  github-actions.settings = lib.mkMerge [
+    {
+      jobs = lib.mkMerge [
+        (lib.mkIf (changes != [ ]) {
+          changes = {
+            outputs.changes = "\${{ steps.diff.outputs.changes }}";
+            runs-on = config.github-actions.defaultRunsOn;
+            steps = [
+              {
+                uses = checkoutAction;
+                "with"."fetch-depth" = changesFetchDepth;
+              }
+              {
+                id = "diff";
+                shell = "bash";
+                env = lib.mergeAttrsList [
+                  {
+                    DIFF_PATHS = builtins.concatStringsSep "\n" changes;
+                    GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+                    GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+                  }
+                  (lib.optionalAttrs forceRunAll.enable {
+                    FORCE_RUN_ALL = "\${{ inputs.${forceRunAll.inputName} }}";
+                  })
+                ];
+                run = builtins.readFile ../../packages/gha-path-changes/main.bash;
+              }
+            ];
+          };
+        })
 
-    (lib.mapAttrs' (name: job: {
-      name = config.github-actions.transformJobName name;
-      value = builtins.removeAttrs job.github-actions (
-        [ "enable" ]
-        ++ lib.optionals (job.github-actions.uses or null != null) [
-          "runs-on"
-          "steps"
-        ]
-      );
-    }) enabledJobs)
+        (lib.mapAttrs' (name: job: {
+          name = config.github-actions.transformJobName name;
+          value = builtins.removeAttrs job.github-actions (
+            [ "enable" ]
+            ++ lib.optionals (job.github-actions.uses or null != null) [
+              "runs-on"
+              "steps"
+            ]
+          );
+        }) enabledJobs)
 
-    (lib.mkIf summaryJobCfg.enable {
-      ${summaryJobCfg.name} = lib.mergeAttrsList [
-        {
-          "if" = "\${{ always() }}";
-          needs = summaryJobNeeds;
-          permissions.actions = "read";
-          steps = [
+        (lib.mkIf summaryJobCfg.enable {
+          ${summaryJobCfg.name} = lib.mergeAttrsList [
             {
-              shell = "bash";
-              env = {
-                GH_TOKEN = "\${{ github.token }}";
-                SUMMARY_JOB_NAME = summaryJobCfg.name;
-              };
-              run = builtins.readFile ../../packages/gha-job-summary/main.bash;
+              "if" = "\${{ always() }}";
+              needs = summaryJobNeeds;
+              permissions.actions = "read";
+              steps = [
+                {
+                  shell = "bash";
+                  env = {
+                    GH_TOKEN = "\${{ github.token }}";
+                    SUMMARY_JOB_NAME = summaryJobCfg.name;
+                  };
+                  run = builtins.readFile ../../packages/gha-job-summary/main.bash;
+                }
+              ];
             }
+            (lib.optionalAttrs (effectiveSummaryRunsOn != null) {
+              runs-on = effectiveSummaryRunsOn;
+            })
           ];
-        }
-        (lib.optionalAttrs (effectiveSummaryRunsOn != null) {
-          runs-on = effectiveSummaryRunsOn;
         })
       ];
+    }
+
+    (lib.mkIf (changes != [ ] && forceRunAll.enable) {
+      on.workflow_dispatch.inputs.${forceRunAll.inputName} = {
+        type = "boolean";
+        default = false;
+        description = "Skip change detection and run all jobs";
+      };
     })
   ];
 }
