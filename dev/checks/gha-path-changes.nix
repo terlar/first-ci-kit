@@ -133,6 +133,26 @@ let
       };
       expected = ''{"svc-a":false}'';
     }
+
+    # --- FORCE_RUN_ALL bypass ---
+    {
+      name = "force_run_all: all groups reported as true, no git ops needed";
+      env = {
+        FORCE_RUN_ALL = "true";
+        # No GITHUB_EVENT_NAME / refs — would fail if git fetch were attempted
+      };
+      expected = ''{"svc-a":true,"svc-b":true}'';
+    }
+    {
+      name = "force_run_all: empty string does not trigger bypass";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$BASE_SHA";
+        GITHUB_EVENT_AFTER = "$HEAD_SHA";
+        FORCE_RUN_ALL = "";
+      };
+      expected = ''{"svc-a":true,"svc-b":false}'';
+    }
   ];
 
   runCase =

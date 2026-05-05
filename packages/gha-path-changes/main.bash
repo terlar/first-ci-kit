@@ -1,3 +1,15 @@
+if [[ -n "${FORCE_RUN_ALL:-}" ]]; then
+	change_lines=()
+	for p in $DIFF_PATHS; do
+		group="${p%:*}"
+		change_lines+=("\"$group\":true")
+	done
+	change_object_body="$(printf '%s\n' "${change_lines[@]}" | paste -sd,)"
+	echo "changes={$change_object_body}" >>"$GITHUB_OUTPUT"
+	echo "## All jobs affected (change detection skipped)" >>"$GITHUB_STEP_SUMMARY"
+	exit 0
+fi
+
 case "$GITHUB_EVENT_NAME" in
 push)
 	first_commit="$GITHUB_EVENT_BEFORE"

@@ -106,6 +106,26 @@ in
       example = "master";
     };
 
+    forceRunAll = {
+      enable =
+        lib.mkEnableOption ''
+          auto-injection of a `force_run_all` boolean input and a `workflow_dispatch`
+          trigger into the generated workflow. When the input is set to `true` at
+          runtime, change detection is skipped and all jobs are treated as affected.
+          Enabled by default whenever the auto-generated `changes` job is present.
+        ''
+        // {
+          default = true;
+        };
+
+      inputName = lib.mkOption {
+        type = types.str;
+        default = "force_run_all";
+        description = "Name of the generated `workflow_dispatch` / `workflow_call` input.";
+        example = "run_all";
+      };
+    };
+
     changesFetchDepth = lib.mkOption {
       type = types.int;
       default = 0;
