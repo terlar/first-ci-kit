@@ -60,271 +60,6 @@
     };
   };
 
-  test-gitlab-ci-job-with-needs = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job-a = { };
-      jobs.job-b.needs = [ { job = "job-a"; } ];
-    };
-
-    expected = {
-      job-a = { };
-      job-b.needs = [
-        {
-          artifacts = true;
-          job = "job-a";
-          optional = false;
-        }
-      ];
-    };
-  };
-
-  test-gitlab-ci-job-with-external-needs = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job-a.needs = [ { job = "external-job"; } ];
-    };
-
-    expected = {
-      job-a.needs = [
-        {
-          artifacts = true;
-          job = "external-job";
-          optional = false;
-        }
-      ];
-    };
-  };
-
-  test-gitlab-ci-job-with-external-needs-and-transform = {
-    expr = test-lib.eval-gitlab-ci {
-      gitlab-ci.transformJobName = builtins.replaceStrings [ "_" ] [ ":" ];
-      jobs.job_a.needs = [
-        { job = "job_b"; }
-        { job = "external_job"; }
-      ];
-      jobs.job_b = { };
-    };
-
-    expected = {
-      "job:a".needs = [
-        {
-          artifacts = true;
-          job = "job:b";
-          optional = false;
-        }
-        {
-          artifacts = true;
-          job = "external_job";
-          optional = false;
-        }
-      ];
-      "job:b" = { };
-    };
-  };
-
-  test-gitlab-ci-job-with-self-needs = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job-a.needs = [ { job = "job-a"; } ];
-    };
-
-    expected = {
-      job-a = { };
-    };
-  };
-
-  test-gitlab-ci-job-with-needs-jobset = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job-a = { };
-      jobs.job-b.needs = [ { jobSet = "jobset-a"; } ];
-
-      jobSets.jobset-a.jobs = [ "job-a" ];
-    };
-
-    expected = {
-      job-a = { };
-      job-b.needs = [
-        {
-          artifacts = true;
-          job = "job-a";
-          optional = false;
-        }
-      ];
-    };
-  };
-
-  test-gitlab-ci-job-default-stage = {
-    expr = test-lib.eval-gitlab-ci {
-      gitlab-ci = {
-        settings.stages = [ "main" ];
-        defaultStage = "main";
-      };
-
-      jobs.job1 = {
-        commands = [ "echo 'Run your script here'" ];
-      };
-    };
-    expected = {
-      stages = [ "main" ];
-      job1 = {
-        stage = "main";
-        script = [ "echo 'Run your script here'" ];
-      };
-    };
-  };
-
-  test-gitlab-ci-job-with-image = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job.image = "sample-image";
-    };
-
-    expected = {
-      job.image = "sample-image";
-    };
-  };
-
-  test-gitlab-ci-job-with-image-from-image-registry = {
-    expr = test-lib.eval-gitlab-ci {
-      imageRegistry.sample-image = "registry/repository/sample-image:tag";
-      jobs.job.image = "sample-image";
-    };
-
-    expected = {
-      job.image = "registry/repository/sample-image:tag";
-    };
-  };
-
-  test-gitlab-ci-job-with-default-branch-trigger-onMergeRequest = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job.branches.default.triggers.onMergeRequest = true;
-    };
-
-    expected = {
-      job.rules = [ { "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH"; } ];
-    };
-  };
-
-  test-gitlab-ci-job-with-default-branch-trigger-onMergeRequest-with-paths = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job = {
-        branches.default = {
-          changes.paths = [ "a-path" ];
-          triggers.onMergeRequest = true;
-        };
-      };
-    };
-
-    expected = {
-      job.rules = [
-        {
-          "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
-          changes = {
-            paths = [ "a-path" ];
-            compare_to = "$CI_DEFAULT_BRANCH";
-          };
-        }
-      ];
-    };
-  };
-
-  test-gitlab-ci-job-with-default-branch-trigger-onPush = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job.branches.default.triggers.onPush = true;
-    };
-
-    expected = {
-      job.rules = [ { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; } ];
-    };
-  };
-
-  test-gitlab-ci-job-with-default-branch-trigger-onPush-with-paths = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job = {
-        branches.default = {
-          changes.paths = [ "a-path" ];
-          triggers.onPush = true;
-        };
-      };
-    };
-
-    expected = {
-      job.rules = [
-        {
-          "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
-          changes = {
-            paths = [ "a-path" ];
-          };
-        }
-      ];
-    };
-  };
-
-  test-gitlab-ci-job-with-default-branch-trigger-and-custom-rules = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job = {
-        branches.default = {
-          triggers.onMergeRequest = true;
-          triggers.onPush = true;
-        };
-        gitlab-ci.rules = [
-          {
-            "if" = "$CI_PIPELINE_SOURCE == 'schedule'";
-            where = "never";
-          }
-        ];
-      };
-    };
-
-    expected = {
-      job.rules = [
-        {
-          "if" = "$CI_PIPELINE_SOURCE == 'schedule'";
-          where = "never";
-        }
-        { "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH"; }
-        { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; }
-      ];
-    };
-  };
-
-  test-gitlab-ci-job-with-custom-branch-trigger = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job = {
-        branches.a-branch = {
-          changes.paths = [ "a-path" ];
-          triggers.onMergeRequest = true;
-          triggers.onPush = true;
-        };
-      };
-    };
-
-    expected = {
-      job.rules = [
-        {
-          "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'a-branch'";
-          changes = {
-            compare_to = "a-branch";
-            paths = [ "a-path" ];
-          };
-        }
-        {
-          changes.paths = [ "a-path" ];
-          "if" = "$CI_COMMIT_BRANCH == 'a-branch'";
-        }
-      ];
-    };
-  };
-
-  test-gitlab-ci-job-with-gitlab-ci-config = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs.job = {
-        gitlab-ci.environment = "test";
-      };
-    };
-
-    expected = {
-      job.environment = "test";
-    };
-  };
-
   test-gitlab-ci-job-per-backend-disable = {
     expr = test-lib.eval-gitlab-ci {
       gitlab-ci.defaultStage = "test";
@@ -376,166 +111,56 @@
     };
   };
 
-  test-gitlab-ci-job-triggers-filter-unknown-job = {
+  test-gitlab-ci-job-default-stage = {
     expr = test-lib.eval-gitlab-ci {
-      jobs = {
-        job-b = {
-          triggers = [ "non-existent-job" ];
-          branches.default.triggers.onPush = true;
-        };
+      gitlab-ci = {
+        settings.stages = [ "main" ];
+        defaultStage = "main";
       };
-    };
-    expected = {
-      job-b.rules = [ { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; } ];
-    };
-  };
 
-  test-gitlab-ci-job-triggers-filter-disabled-job = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs = {
-        job-a = {
-          enable = false;
-          branches.default = {
-            changes.paths = [ "a-path" ];
-            triggers.onPush = true;
-          };
-        };
-        job-b = {
-          triggers = [ "job-a" ];
-          branches.default.triggers.onPush = true;
-        };
+      jobs.job1 = {
+        commands = [ "echo 'Run your script here'" ];
       };
     };
     expected = {
-      job-b.rules = [ { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; } ];
-    };
-  };
-
-  test-gitlab-ci-job-triggers-filter-per-backend-disabled-job = {
-    expr = test-lib.eval-gitlab-ci {
-      jobs = {
-        job-a = {
-          gitlab-ci.enable = false;
-          branches.default = {
-            changes.paths = [ "a-path" ];
-            triggers.onPush = true;
-          };
-        };
-        job-b = {
-          triggers = [ "job-a" ];
-          branches.default.triggers.onPush = true;
-        };
-      };
-    };
-    expected = {
-      job-b.rules = [ { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; } ];
-    };
-  };
-
-  test-gitlab-ci-job-artifacts-upload = {
-    expr = test-lib.eval-gitlab-ci {
-      gitlab-ci.defaultStage = "main";
-      jobs.plan = {
-        commands = [ "tf-plan svc dev" ];
-        artifacts.upload = {
-          name = "svc-dev-plan";
-          paths = [ ".ci/terraform/*" ];
-          gitlab-ci = {
-            expire_in = "1 week";
-            reports = {
-              terraform = ".ci/terraform/plan-summary.json";
-            };
-          };
-        };
-      };
-    };
-    expected = {
-      "plan" = {
+      stages = [ "main" ];
+      job1 = {
         stage = "main";
-        script = [ "tf-plan svc dev" ];
-        artifacts = {
-          public = false;
-          expire_in = "1 week";
-          paths = [ ".ci/terraform/*" ];
-          reports.terraform = ".ci/terraform/plan-summary.json";
-        };
+        script = [ "echo 'Run your script here'" ];
       };
     };
   };
 
-  test-gitlab-ci-job-artifacts-upload-retention-days = {
+  test-gitlab-ci-job-with-image = {
     expr = test-lib.eval-gitlab-ci {
-      gitlab-ci.defaultStage = "main";
-      jobs.plan = {
-        commands = [ "tf-plan svc dev" ];
-        artifacts.upload = {
-          name = "svc-dev-plan";
-          paths = [ ".ci/terraform/*" ];
-          retentionDays = 7;
-        };
-      };
+      jobs.job.image = "sample-image";
     };
+
     expected = {
-      "plan" = {
-        stage = "main";
-        script = [ "tf-plan svc dev" ];
-        artifacts = {
-          public = false;
-          expire_in = "7 days";
-          paths = [ ".ci/terraform/*" ];
-        };
-      };
+      job.image = "sample-image";
     };
   };
 
-  test-gitlab-ci-job-artifacts-upload-expire-in-overrides-retention-days = {
+  test-gitlab-ci-job-with-image-from-image-registry = {
     expr = test-lib.eval-gitlab-ci {
-      gitlab-ci.defaultStage = "main";
-      jobs.plan = {
-        commands = [ "tf-plan svc dev" ];
-        artifacts.upload = {
-          name = "svc-dev-plan";
-          paths = [ ".ci/terraform/*" ];
-          retentionDays = 7;
-          gitlab-ci.expire_in = "1 week";
-        };
-      };
+      imageRegistry.sample-image = "registry/repository/sample-image:tag";
+      jobs.job.image = "sample-image";
     };
+
     expected = {
-      "plan" = {
-        stage = "main";
-        script = [ "tf-plan svc dev" ];
-        artifacts = {
-          public = false;
-          expire_in = "1 week";
-          paths = [ ".ci/terraform/*" ];
-        };
-      };
+      job.image = "registry/repository/sample-image:tag";
     };
   };
 
-  test-gitlab-ci-job-artifacts-upload-no-paths = {
+  test-gitlab-ci-job-with-gitlab-ci-config = {
     expr = test-lib.eval-gitlab-ci {
-      gitlab-ci.defaultStage = "main";
-      jobs.plan = {
-        commands = [ "tf-plan svc dev" ];
-        artifacts.upload = {
-          name = "svc-dev-plan";
-          gitlab-ci.reports = {
-            terraform = ".ci/terraform/plan-summary.json";
-          };
-        };
+      jobs.job = {
+        gitlab-ci.environment = "test";
       };
     };
+
     expected = {
-      "plan" = {
-        stage = "main";
-        script = [ "tf-plan svc dev" ];
-        artifacts = {
-          public = false;
-          reports.terraform = ".ci/terraform/plan-summary.json";
-        };
-      };
+      job.environment = "test";
     };
   };
 

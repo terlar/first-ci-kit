@@ -1,16 +1,18 @@
-{ test-lib, ... }:
+{ lib, test-lib, ... }:
 
 {
   # --- inputs option at top level ---
 
   test-top-level-pipeline-input-minimal = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           inputs.service = { };
-        };
-      in
-      cfg.inputs.service;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.inputs.service)
+        ];
     expected = {
       type = "string";
       required = false;
@@ -22,8 +24,8 @@
 
   test-top-level-pipeline-input-full = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           inputs.env = {
             type = "choice";
             required = true;
@@ -35,9 +37,11 @@
               "prd"
             ];
           };
-        };
-      in
-      cfg.inputs.env;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.inputs.env)
+        ];
     expected = {
       type = "choice";
       required = true;
@@ -55,14 +59,16 @@
 
   test-top-level-pipeline-output-minimal = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           outputs.plan = {
             value = "\${{ jobs.plan.outputs.plan }}";
           };
-        };
-      in
-      cfg.outputs.plan;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.outputs.plan)
+        ];
     expected = {
       value = "\${{ jobs.plan.outputs.plan }}";
       description = "";
@@ -73,27 +79,31 @@
 
   test-top-level-pipeline-gha-has-workflow-call-on-inputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           inputs.service.type = "string";
-        };
-      in
-      cfg.github-actions.settings.on ? "workflow_call";
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.on ? "workflow_call")
+        ];
     expected = true;
   };
 
   test-top-level-pipeline-gha-workflow-call-inputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           inputs.service = {
             type = "string";
             required = true;
             description = "Service name";
           };
-        };
-      in
-      cfg.github-actions.settings.on.workflow_call.inputs;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.on.workflow_call.inputs)
+        ];
     expected = {
       service = {
         type = "string";
@@ -105,15 +115,17 @@
 
   test-top-level-pipeline-gha-workflow-call-outputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           outputs.plan = {
             value = "\${{ jobs.plan.outputs.plan }}";
             description = "Plan output";
           };
-        };
-      in
-      cfg.github-actions.settings.on.workflow_call.outputs;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.on.workflow_call.outputs)
+        ];
     expected = {
       plan = {
         value = "\${{ jobs.plan.outputs.plan }}";
@@ -124,12 +136,14 @@
 
   test-top-level-pipeline-gha-no-workflow-call-without-inputs-outputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           jobs.build.commands = [ "make" ];
-        };
-      in
-      cfg.github-actions.settings ? "on";
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings ? "on")
+        ];
     expected = false;
   };
 
@@ -137,8 +151,8 @@
 
   test-top-level-pipeline-gitlab-ci-inputs-in-documents = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           inputs.env = {
             type = "choice";
             default = "dev";
@@ -148,9 +162,11 @@
             ];
           };
           jobs.deploy.commands = [ "deploy" ];
-        };
-      in
-      builtins.head cfg.gitlab-ci.fileDocuments;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: builtins.head cfg.gitlab-ci.fileDocuments)
+        ];
     expected = {
       spec.inputs.env = {
         default = "dev";
@@ -164,19 +180,21 @@
 
   test-top-level-pipeline-gitlab-ci-no-spec-without-inputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           jobs.build.commands = [ "make" ];
-        };
-      in
-      builtins.length cfg.gitlab-ci.fileDocuments;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: builtins.length cfg.gitlab-ci.fileDocuments)
+        ];
     expected = 1;
   };
 
-  test-auto-env-inputs-gha = {
+  test-github-actions-auto-env-inputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           inputs.service = {
             required = true;
             description = "Service name.";
@@ -186,19 +204,21 @@
             description = "Run deploy?";
           };
           jobs.deploy.commands = [ "deploy" ];
-        };
-      in
-      cfg.github-actions.settings.env;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.env)
+        ];
     expected = {
       SERVICE = "\${{ inputs.service }}";
       RUN_DEPLOY = "\${{ inputs.run_deploy }}";
     };
   };
 
-  test-auto-env-inputs-gitlab = {
+  test-gitlab-ci-auto-env-inputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           inputs.service = {
             required = true;
             description = "Service name.";
@@ -208,59 +228,67 @@
             description = "Run deploy?";
           };
           jobs.deploy.commands = [ "deploy" ];
-        };
-      in
-      cfg.jobs.deploy.gitlab-ci.variables;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.jobs.deploy.gitlab-ci.variables)
+        ];
     expected = {
       SERVICE = "$[[ inputs.service ]]";
       RUN_DEPLOY = "$[[ inputs.run_deploy ]]";
     };
   };
 
-  test-auto-env-inputs-no-pipeline-variables-gitlab = {
+  test-gitlab-ci-auto-env-inputs-no-pipeline-variables = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           inputs.service = {
             required = true;
             description = "Service name.";
           };
           jobs.deploy.commands = [ "deploy" ];
-        };
-      in
-      cfg.gitlab-ci.settings ? "variables";
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.gitlab-ci.settings ? "variables")
+        ];
     expected = false;
   };
 
-  test-auto-env-inputs-opt-out-gha = {
+  test-github-actions-auto-env-inputs-opt-out = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           autoEnvInputs = false;
           inputs.service = {
             required = true;
             description = "Service name.";
           };
           jobs.deploy.commands = [ "deploy" ];
-        };
-      in
-      cfg.github-actions.settings ? "env";
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings ? "env")
+        ];
     expected = false;
   };
 
-  test-auto-env-inputs-opt-out-gitlab = {
+  test-gitlab-ci-auto-env-inputs-opt-out = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           autoEnvInputs = false;
           inputs.service = {
             required = true;
             description = "Service name.";
           };
           jobs.deploy.commands = [ "deploy" ];
-        };
-      in
-      cfg.jobs.deploy.gitlab-ci ? "variables";
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.jobs.deploy.gitlab-ci ? "variables")
+        ];
     expected = false;
   };
 }

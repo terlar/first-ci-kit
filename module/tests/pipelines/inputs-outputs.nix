@@ -1,16 +1,18 @@
-{ test-lib, ... }:
+{ lib, test-lib, ... }:
 
 {
   test-pipeline-input-minimal = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           pipelines.child = {
             inputs.service = { };
           };
-        };
-      in
-      cfg.pipelines.child.inputs.service;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.pipelines.child.inputs.service)
+        ];
     expected = {
       type = "string";
       required = false;
@@ -22,8 +24,8 @@
 
   test-pipeline-input-full = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           pipelines.child = {
             inputs.env = {
               type = "choice";
@@ -37,9 +39,11 @@
               ];
             };
           };
-        };
-      in
-      cfg.pipelines.child.inputs.env;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.pipelines.child.inputs.env)
+        ];
     expected = {
       type = "choice";
       required = true;
@@ -55,16 +59,18 @@
 
   test-pipeline-output-minimal = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           pipelines.child = {
             outputs.plan = {
               value = "\${{ jobs.plan.outputs.plan }}";
             };
           };
-        };
-      in
-      cfg.pipelines.child.outputs.plan;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.pipelines.child.outputs.plan)
+        ];
     expected = {
       value = "\${{ jobs.plan.outputs.plan }}";
       description = "";
