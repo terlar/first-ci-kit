@@ -1,7 +1,7 @@
 { test-lib, ... }:
 
 {
-  test-job-set-with-needs = {
+  test-gitlab-ci-job-set-with-needs = {
     expr = test-lib.eval-gitlab-ci {
       jobs = {
         set1-job1 = { };
@@ -51,7 +51,7 @@
       };
   };
 
-  test-job-set-with-jobDefaults = {
+  test-gitlab-ci-job-set-with-job-defaults = {
     expr = test-lib.eval-gitlab-ci {
       jobs = {
         set1-job1 = { };
@@ -86,7 +86,7 @@
     };
   };
 
-  test-job-set-with-multiple-jobDefaults = {
+  test-gitlab-ci-job-set-with-multiple-job-defaults = {
     expr = test-lib.eval-gitlab-ci {
       jobs = {
         job1 = { };
@@ -122,7 +122,7 @@
     };
   };
 
-  test-job-set-with-tags = {
+  test-gitlab-ci-job-set-with-tags = {
     expr = test-lib.eval-gitlab-ci {
       jobs = {
         set1-job1 = {

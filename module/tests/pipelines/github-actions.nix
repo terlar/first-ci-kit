@@ -1,79 +1,68 @@
-{ test-lib, ... }:
+{ lib, test-lib, ... }:
 
 {
-  # caller job appears in parent github-actions.settings.jobs
-  test-child-pipeline-gha-caller-job-exists = {
-    expr =
-      let
-        cfg = test-lib.evalConfig {
-          github-actions.defaultRunsOn = "ubuntu-latest";
-          pipelines.child = {
-            jobs.do-thing = {
-              commands = [ "echo hello" ];
-            };
-          };
-        };
-      in
-      cfg.github-actions.settings.jobs ? "child";
-    expected = true;
-  };
-
   # caller job has correct uses path
-  test-child-pipeline-gha-caller-job-uses = {
+  test-github-actions-child-pipeline-caller-job-uses = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           pipelines.child = {
             jobs.do-thing = {
               commands = [ "echo hello" ];
             };
           };
-        };
-      in
-      cfg.github-actions.settings.jobs.child.uses;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.jobs.child.uses)
+        ];
     expected = "./.github/workflows/child.yml";
   };
 
   # caller job has secrets: inherit
-  test-child-pipeline-gha-caller-job-secrets = {
+  test-github-actions-child-pipeline-caller-job-secrets = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           pipelines.child = {
             jobs.do-thing = {
               commands = [ "echo hello" ];
             };
           };
-        };
-      in
-      cfg.github-actions.settings.jobs.child.secrets;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.jobs.child.secrets)
+        ];
     expected = "inherit";
   };
 
   # child jobs do NOT appear in parent settings.jobs
-  test-child-pipeline-gha-child-jobs-not-in-parent = {
+  test-github-actions-child-pipeline-child-jobs-not-in-parent = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           pipelines.child = {
             jobs.do-thing = {
               commands = [ "echo hello" ];
             };
           };
-        };
-      in
-      cfg.github-actions.settings.jobs ? "do-thing";
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.jobs ? "do-thing")
+        ];
     expected = false;
   };
 
   # child pipeline github-actions.settings has workflow_call when inputs exist
-  test-child-pipeline-gha-has-workflow-call-on-inputs = {
+  test-github-actions-child-pipeline-has-workflow-call-on-inputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           pipelines.child = {
             jobs.do-thing = {
@@ -83,17 +72,19 @@
               type = "string";
             };
           };
-        };
-      in
-      cfg.pipelines.child.github-actions.settings.on ? "workflow_call";
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.pipelines.child.github-actions.settings.on ? "workflow_call")
+        ];
     expected = true;
   };
 
   # workflow_call.inputs populated from child inputs
-  test-child-pipeline-gha-workflow-call-inputs = {
+  test-github-actions-child-pipeline-workflow-call-inputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           pipelines.child = {
             jobs.do-thing = {
@@ -105,9 +96,11 @@
               description = "Service name";
             };
           };
-        };
-      in
-      cfg.pipelines.child.github-actions.settings.on.workflow_call.inputs;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.pipelines.child.github-actions.settings.on.workflow_call.inputs)
+        ];
     expected = {
       service = {
         type = "string";
@@ -118,10 +111,10 @@
   };
 
   # workflow_call.outputs populated from child outputs
-  test-child-pipeline-gha-workflow-call-outputs = {
+  test-github-actions-child-pipeline-workflow-call-outputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           pipelines.child = {
             jobs.do-thing = {
@@ -132,9 +125,11 @@
               description = "Plan output";
             };
           };
-        };
-      in
-      cfg.pipelines.child.github-actions.settings.on.workflow_call.outputs;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.pipelines.child.github-actions.settings.on.workflow_call.outputs)
+        ];
     expected = {
       plan = {
         value = "\${{ jobs.do-thing.outputs.plan }}";
@@ -144,27 +139,29 @@
   };
 
   # no workflow_call when no inputs or outputs
-  test-child-pipeline-gha-no-workflow-call-without-inputs-outputs = {
+  test-github-actions-child-pipeline-no-workflow-call-without-inputs-outputs = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           pipelines.child = {
             jobs.do-thing = {
               commands = [ "echo hello" ];
             };
           };
-        };
-      in
-      cfg.pipelines.child.github-actions.settings ? "on";
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.pipelines.child.github-actions.settings ? "on")
+        ];
     expected = false;
   };
 
   # github-actions.settings.concurrency can be set directly on child pipeline
-  test-child-pipeline-gha-settings-concurrency = {
+  test-github-actions-child-pipeline-settings-concurrency = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           pipelines.child = {
             jobs.do-thing = {
@@ -172,18 +169,21 @@
             };
             github-actions.settings.concurrency.group = "deploy";
           };
-        };
-      in
-      cfg.pipelines.child.github-actions.settings.concurrency;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.pipelines.child.github-actions.settings.concurrency)
+        ];
     expected = {
       group = "deploy";
     };
   };
+
   # callerIf sets if on caller job
-  test-child-pipeline-gha-caller-if = {
+  test-github-actions-child-pipeline-caller-if = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           pipelines.child = {
             jobs.do-thing = {
@@ -191,34 +191,38 @@
             };
             github-actions.dispatch.callerIf = "github.event_name == 'push'";
           };
-        };
-      in
-      cfg.github-actions.settings.jobs.child."if";
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.jobs.child."if")
+        ];
     expected = "github.event_name == 'push'";
   };
 
   # caller job gets needs derived from pipeline needs (job reference)
-  test-child-pipeline-gha-caller-job-needs-from-job = {
+  test-github-actions-child-pipeline-caller-job-needs-from-job = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           jobs.build.commands = [ "make" ];
           pipelines.child = {
             needs = [ { job = "build"; } ];
             jobs.do-thing.commands = [ "echo hello" ];
           };
-        };
-      in
-      cfg.github-actions.settings.jobs.child.needs;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.jobs.child.needs)
+        ];
     expected = [ "build" ];
   };
 
   # caller job gets needs derived from pipeline needs (jobSet reference)
-  test-child-pipeline-gha-caller-job-needs-from-job-set = {
+  test-github-actions-child-pipeline-caller-job-needs-from-job-set = {
     expr =
-      let
-        cfg = test-lib.evalConfig {
+      lib.pipe
+        {
           github-actions.defaultRunsOn = "ubuntu-latest";
           jobs.build.commands = [ "make" ];
           jobSets.infra.jobs = [ "build" ];
@@ -226,9 +230,11 @@
             needs = [ { jobSet = "infra"; } ];
             jobs.do-thing.commands = [ "echo hello" ];
           };
-        };
-      in
-      cfg.github-actions.settings.jobs.child.needs;
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.jobs.child.needs)
+        ];
     expected = [ "build" ];
   };
 }

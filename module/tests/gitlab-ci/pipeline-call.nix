@@ -1,6 +1,20 @@
 { test-lib, ... }:
 
 {
+  test-gitlab-ci-job-pipeline-call-basic-no-inputs-key = {
+    expr =
+      (test-lib.eval-gitlab-ci {
+        pipelines.my-pipeline = {
+          gitlab-ci.asComponent = true;
+          gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+          jobs.do-thing.commands = [ "echo hello" ];
+        };
+        jobs.deploy.pipelineCall.pipeline = "my-pipeline";
+      }).include;
+    # A basic pipeline call with no inputs should produce no `inputs` key in the include entry.
+    expected = [ { local = "ci/templates/my-pipeline.yml"; } ];
+  };
+
   test-gitlab-ci-job-pipeline-call-basic = {
     expr = test-lib.eval-gitlab-ci {
       pipelines.my-pipeline = {
@@ -98,23 +112,6 @@
           };
         }
       ];
-    };
-  };
-
-  test-github-actions-job-pipeline-call-gitlab-extra-inputs-not-in-gha = {
-    expr = test-lib.eval-github-actions {
-      jobs.deploy.pipelineCall = {
-        pipeline = "my-pipeline";
-        inputs.environment = "prod";
-        gitlab-ci.extraInputs.plan_needs = "tf-plan";
-      };
-    };
-    expected = {
-      jobs.deploy = {
-        uses = "./.github/workflows/my-pipeline.yml";
-        secrets = "inherit";
-        "with".environment = "prod";
-      };
     };
   };
 
@@ -229,7 +226,47 @@
     };
   };
 
-  test-gitlab-ci-job-pipeline-call-rules-input-with-job-defaults = {
+  # jobDefaults.gitlab-ci.rules appear in rulesInput
+  test-gitlab-ci-job-pipeline-call-rules-input-includes-job-defaults-rules = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobSets.service = {
+        jobs = [ "deploy" ];
+        jobDefaults.gitlab-ci.rules = [
+          {
+            "if" = "$CI_PIPELINE_SOURCE == 'schedule'";
+            when = "never";
+          }
+        ];
+      };
+      jobs.deploy = {
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.rulesInput = "rules";
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs.rules = [
+            {
+              "if" = "$CI_PIPELINE_SOURCE == 'schedule'";
+              when = "never";
+            }
+          ];
+        }
+      ];
+    };
+  };
+
+  # jobDefaults rules appear before branch trigger rules in rulesInput
+  test-gitlab-ci-job-pipeline-call-rules-input-job-defaults-before-trigger-rules = {
     expr = test-lib.eval-gitlab-ci {
       pipelines.my-pipeline = {
         gitlab-ci.asComponent = true;

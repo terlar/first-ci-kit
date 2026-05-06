@@ -40,6 +40,15 @@ in
     };
   };
 
+  # The pipeline-call job itself does NOT appear as a regular jobs entry.
+  test-github-actions-job-pipeline-call-job-suppressed = {
+    expr =
+      (test-lib.eval-github-actions {
+        jobs.deploy.pipelineCall.pipeline = "my-pipeline";
+      }).jobs.deploy ? "steps";
+    expected = false;
+  };
+
   test-github-actions-job-pipeline-call-with-changes = {
     expr = test-lib.eval-github-actions {
       github-actions.defaultRunsOn = "ubuntu-latest";
@@ -117,6 +126,24 @@ in
           environment = "prod";
           ref = "main";
         };
+      };
+    };
+  };
+
+  # GitLab-specific extraInputs must NOT appear in the GHA with block.
+  test-github-actions-job-pipeline-call-gitlab-extra-inputs-not-in-gha = {
+    expr = test-lib.eval-github-actions {
+      jobs.deploy.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs.environment = "prod";
+        gitlab-ci.extraInputs.plan_needs = "tf-plan";
+      };
+    };
+    expected = {
+      jobs.deploy = {
+        uses = "./.github/workflows/my-pipeline.yml";
+        secrets = "inherit";
+        "with".environment = "prod";
       };
     };
   };

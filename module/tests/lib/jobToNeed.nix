@@ -1,7 +1,7 @@
 { ci-lib, ... }:
 
 {
-  test-lib-jobToNeed = {
+  test-lib-job-to-need = {
     expr = ci-lib.jobToNeed "job1";
 
     expected = {

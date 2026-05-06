@@ -1,7 +1,7 @@
 { lib, test-lib, ... }:
 
 {
-  test-job-interface = {
+  test-gitlab-ci-job-interface = {
     expr = test-lib.eval-gitlab-ci (
       { config, ... }:
       {
