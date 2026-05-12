@@ -37,6 +37,9 @@ let
         (lib.optionalAttrs (pc.gitlab-ci.rulesInput != null) {
           ${pc.gitlab-ci.rulesInput} = jobRules ++ (ci-lib.mkBranchRules augmentedBranches).allRules;
         })
+        (lib.optionalAttrs (pc.gitlab-ci.allRulesInput != null) {
+          ${pc.gitlab-ci.allRulesInput} = jobRules ++ (ci-lib.mkBranchRules augmentedBranches).allRules;
+        })
         (lib.optionalAttrs (pc.gitlab-ci.pushRulesInput != null) {
           ${pc.gitlab-ci.pushRulesInput} = jobRules ++ (ci-lib.mkBranchRules augmentedBranches).pushRules;
         })

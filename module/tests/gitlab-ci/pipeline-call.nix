@@ -472,6 +472,180 @@
     };
   };
 
+  test-gitlab-ci-job-pipeline-call-all-rules-input = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy = {
+        branches = {
+          default = {
+            changes.paths = [ "src/" ];
+            triggers.onMergeRequest = true;
+            triggers.onPush = true;
+          };
+        };
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.allRulesInput = "plan_rules";
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs.plan_rules = [
+            {
+              "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+              changes = {
+                paths = [ "src/" ];
+                compare_to = "$CI_DEFAULT_BRANCH";
+              };
+            }
+            {
+              "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
+              changes.paths = [ "src/" ];
+            }
+          ];
+        }
+      ];
+    };
+  };
+
+  test-gitlab-ci-job-pipeline-call-all-rules-and-push-rules-inputs-combined = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy = {
+        branches = {
+          default = {
+            changes.paths = [ "src/" ];
+            triggers.onMergeRequest = true;
+            triggers.onPush = true;
+          };
+          production = {
+            changes.paths = [ "src/" ];
+            triggers.onMergeRequest = true;
+            triggers.onPush = true;
+          };
+        };
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.allRulesInput = "plan_rules";
+          gitlab-ci.pushRulesInput = "deploy_rules";
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            plan_rules = [
+              {
+                "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+                changes = {
+                  paths = [ "src/" ];
+                  compare_to = "$CI_DEFAULT_BRANCH";
+                };
+              }
+              {
+                "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
+                changes.paths = [ "src/" ];
+              }
+              {
+                "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'production'";
+                changes = {
+                  paths = [ "src/" ];
+                  compare_to = "production";
+                };
+              }
+              {
+                "if" = "$CI_COMMIT_BRANCH == 'production'";
+                changes.paths = [ "src/" ];
+              }
+            ];
+            deploy_rules = [
+              {
+                "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
+                changes.paths = [ "src/" ];
+              }
+              {
+                "if" = "$CI_COMMIT_BRANCH == 'production'";
+                changes.paths = [ "src/" ];
+              }
+            ];
+          };
+        }
+      ];
+    };
+  };
+
+  test-gitlab-ci-job-pipeline-call-rules-and-all-rules-inputs-combined = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci.asComponent = true;
+        gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        jobs.do-thing.commands = [ "echo hello" ];
+      };
+      jobs.deploy = {
+        branches = {
+          default = {
+            changes.paths = [ "src/" ];
+            triggers.onMergeRequest = true;
+            triggers.onPush = true;
+          };
+        };
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          gitlab-ci.rulesInput = "plan_rules";
+          gitlab-ci.allRulesInput = "deploy_rules";
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            plan_rules = [
+              {
+                "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+                changes = {
+                  paths = [ "src/" ];
+                  compare_to = "$CI_DEFAULT_BRANCH";
+                };
+              }
+              {
+                "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
+                changes.paths = [ "src/" ];
+              }
+            ];
+            deploy_rules = [
+              {
+                "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH";
+                changes = {
+                  paths = [ "src/" ];
+                  compare_to = "$CI_DEFAULT_BRANCH";
+                };
+              }
+              {
+                "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH";
+                changes.paths = [ "src/" ];
+              }
+            ];
+          };
+        }
+      ];
+    };
+  };
+
   test-gitlab-ci-job-pipeline-call-rules-input-inherits-trigger-paths = {
     expr = test-lib.eval-gitlab-ci {
       pipelines.my-pipeline = {
