@@ -1,15 +1,3 @@
-if [[ "${FORCE_RUN_ALL:-}" == "true" ]]; then
-	change_lines=()
-	for p in $DIFF_PATHS; do
-		group="${p%:*}"
-		change_lines+=("\"$group\":true")
-	done
-	change_object_body="$(printf '%s\n' "${change_lines[@]}" | paste -sd,)"
-	echo "changes={$change_object_body}" >>"$GITHUB_OUTPUT"
-	echo "## All jobs affected (change detection skipped)" >>"$GITHUB_STEP_SUMMARY"
-	exit 0
-fi
-
 case "$GITHUB_EVENT_NAME" in
 push)
 	first_commit="$GITHUB_EVENT_BEFORE"
@@ -20,6 +8,25 @@ pull_request)
 	first_commit="origin/$GITHUB_BASE_REF"
 	last_commit="origin/$GITHUB_HEAD_REF"
 	git fetch origin "$GITHUB_BASE_REF" "$GITHUB_HEAD_REF"
+	;;
+workflow_dispatch)
+	change_lines=()
+	for p in $DIFF_PATHS; do
+		group="${p%:*}"
+		if [[ "${FORCE_RUN_ALL:-}" == "true" ]]; then
+			change_lines+=("\"$group\":true")
+		else
+			change_lines+=("\"$group\":false")
+		fi
+	done
+	change_object_body="$(printf '%s\n' "${change_lines[@]}" | paste -sd,)"
+	echo "changes={$change_object_body}" >>"$GITHUB_OUTPUT"
+	if [[ "${FORCE_RUN_ALL:-}" == "true" ]]; then
+		echo "## All jobs affected (change detection skipped)" >>"$GITHUB_STEP_SUMMARY"
+	else
+		echo "## No jobs affected (set force_run_all to run all jobs)" >>"$GITHUB_STEP_SUMMARY"
+	fi
+	exit 0
 	;;
 esac
 
