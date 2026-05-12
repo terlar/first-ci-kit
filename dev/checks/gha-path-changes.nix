@@ -134,34 +134,29 @@ let
       expected = ''{"svc-a":false}'';
     }
 
-    # --- FORCE_RUN_ALL bypass ---
+    # --- workflow_dispatch + FORCE_RUN_ALL ---
     {
-      name = "force_run_all: all groups reported as true, no git ops needed";
+      name = "workflow_dispatch: all jobs run when force_run_all=true";
       env = {
+        GITHUB_EVENT_NAME = "workflow_dispatch";
         FORCE_RUN_ALL = "true";
-        # No GITHUB_EVENT_NAME / refs — would fail if git fetch were attempted
       };
       expected = ''{"svc-a":true,"svc-b":true}'';
     }
     {
-      name = "force_run_all: empty string does not trigger bypass";
+      name = "workflow_dispatch: all jobs skipped when force_run_all not set";
       env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$HEAD_SHA";
-        FORCE_RUN_ALL = "";
+        GITHUB_EVENT_NAME = "workflow_dispatch";
       };
-      expected = ''{"svc-a":true,"svc-b":false}'';
+      expected = ''{"svc-a":false,"svc-b":false}'';
     }
     {
-      name = "force_run_all: string 'false' does not trigger bypass";
+      name = "workflow_dispatch: all jobs skipped when force_run_all=false";
       env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$HEAD_SHA";
+        GITHUB_EVENT_NAME = "workflow_dispatch";
         FORCE_RUN_ALL = "false";
       };
-      expected = ''{"svc-a":true,"svc-b":false}'';
+      expected = ''{"svc-a":false,"svc-b":false}'';
     }
   ];
 
