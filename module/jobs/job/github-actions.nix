@@ -30,14 +30,22 @@ let
     (builtins.catAttrs "job")
   ];
 
-  # A job has changes detection if any of its branch configs have changes.paths set.
-  hasChanges = builtins.any (b: b.changes.paths != [ ]) (builtins.attrValues config.branches);
+  anyBranch = fn: lib.pipe config.branches [
+    builtins.attrValues
+    (builtins.any fn)
+  ];
 
-  conditions = lib.pipe optionalNeedJobs [
-    (map (job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')"))
-    (lib.concat (
-      lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${transformJobName name}'] == true"
-    ))
+  # A job has changes detection if any of its branch configs have changes.paths set.
+  hasChanges = anyBranch (b: b.changes.paths != [ ]);
+
+  # A job is MR-only if it has onMergeRequest branches but no onPush branches.
+  # Such jobs need an explicit event_name guard so they don't run on push pipelines.
+  onlyOnMergeRequest = anyBranch (b: b.triggers.onMergeRequest) && !anyBranch (b: b.triggers.onPush);
+
+  conditions = builtins.concatLists [
+    (lib.optional onlyOnMergeRequest "github.event_name == 'pull_request'")
+    (lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${transformJobName name}'] == true")
+    (map (job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')") optionalNeedJobs)
   ];
 in
 {

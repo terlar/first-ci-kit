@@ -120,6 +120,7 @@
     expected = {
       on.pull_request.branches = [ "main" ];
       jobs.job = {
+        "if" = ''''${{ github.event_name == 'pull_request' }}'';
         runs-on = "ubuntu-latest";
         steps = [ { uses = "actions/checkout@v6"; } ];
       };

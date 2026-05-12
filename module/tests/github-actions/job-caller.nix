@@ -69,7 +69,8 @@ in
         deploy = {
           uses = "./.github/workflows/profile-deploy.yml";
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+          "if" =
+            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
           "with".service = "my-service";
         };
       };

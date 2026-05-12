@@ -57,7 +57,8 @@ in
 
         job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          "if" =
+            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v6"; }
@@ -123,7 +124,8 @@ in
         };
         job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          "if" =
+            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v5"; }
@@ -258,7 +260,8 @@ in
         };
         org_svc-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['org_svc-a'] == true }}'';
+          "if" =
+            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['org_svc-a'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v6"; } ];
         };
@@ -304,7 +307,8 @@ in
         };
         deploy = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+          "if" =
+            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v6"; }
@@ -361,7 +365,8 @@ in
         };
         deploy = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+          "if" =
+            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v6"; }
@@ -517,6 +522,86 @@ in
             {
               uses = "actions/checkout@v6";
               "with"."fetch-depth" = 50;
+            }
+            (diffStep { DIFF_PATHS = "job-a:src/**"; })
+          ];
+        };
+        job-a = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  # A job with only onMergeRequest (no onPush) must restrict its if condition to
+  # pull_request events so it does not run on push-to-main pipelines.
+  test-github-actions-merge-request-only-job-restricts-to-pull-request-event = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.job-a = {
+        branches.default = {
+          changes.paths = [ "src/**" ];
+          triggers.onMergeRequest = true;
+        };
+      };
+    };
+    expected = {
+      on.pull_request.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
+            }
+            (diffStep { DIFF_PATHS = "job-a:src/**"; })
+          ];
+        };
+        job-a = {
+          needs = [ "changes" ];
+          "if" =
+            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  # A job with both onMergeRequest and onPush must NOT add the event_name guard.
+  test-github-actions-push-and-merge-request-job-does-not-restrict-event = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.job-a = {
+        branches.default = {
+          changes.paths = [ "src/**" ];
+          triggers = {
+            onPush = true;
+            onMergeRequest = true;
+          };
+        };
+      };
+    };
+    expected = {
+      on = {
+        push.branches = [ "main" ];
+        pull_request.branches = [ "main" ];
+        workflow_dispatch.inputs.force_run_all = forceRunAllInput;
+      };
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            {
+              uses = "actions/checkout@v6";
+              "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "job-a:src/**"; })
           ];

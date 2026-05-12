@@ -56,7 +56,8 @@ in
         };
         deploy = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+          "if" =
+            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v6"; }
