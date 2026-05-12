@@ -353,6 +353,20 @@ in
                 '';
               };
 
+              allRulesInput = lib.mkOption {
+                type = types.nullOr types.str;
+                default = null;
+                description = ''
+                  When set to an input name, automatically computes all GitLab CI
+                  rules (MR + push) from the job's `branches` config and passes
+                  them as that input to the child pipeline. Unlike `rulesInput`,
+                  this can be set alongside `rulesInput` to populate a second
+                  input with the same rule set — useful when both plan and deploy
+                  inputs need full (MR + push) rules, e.g. for branch-deploy
+                  environments. The computed value is merged after `extraInputs`.
+                '';
+              };
+
               templatePath = lib.mkOption {
                 type = types.nullOr types.str;
                 default = null;
