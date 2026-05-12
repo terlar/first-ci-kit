@@ -1,4 +1,4 @@
-if [[ -n "${FORCE_RUN_ALL:-}" ]]; then
+if [[ "${FORCE_RUN_ALL:-}" == "true" ]]; then
 	change_lines=()
 	for p in $DIFF_PATHS; do
 		group="${p%:*}"

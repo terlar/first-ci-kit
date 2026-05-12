@@ -153,6 +153,16 @@ let
       };
       expected = ''{"svc-a":true,"svc-b":false}'';
     }
+    {
+      name = "force_run_all: string 'false' does not trigger bypass";
+      env = {
+        GITHUB_EVENT_NAME = "push";
+        GITHUB_EVENT_BEFORE = "$BASE_SHA";
+        GITHUB_EVENT_AFTER = "$HEAD_SHA";
+        FORCE_RUN_ALL = "false";
+      };
+      expected = ''{"svc-a":true,"svc-b":false}'';
+    }
   ];
 
   runCase =
