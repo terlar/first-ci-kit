@@ -1252,6 +1252,41 @@ list of string
 
 
 
+## jobs\.\<name>\.env
+
+
+
+Environment variables set for all backends\. Merged into GitHub Actions
+job-level ` env: ` and GitLab CI ` variables: `\. Backend-specific settings
+(` github-actions.env ` and ` gitlab-ci.variables `) take precedence\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+` { } `
+
+
+
+*Example:*
+
+```
+{
+  LOG_LEVEL = "debug";
+  CONFIG_FILE = "config.json";
+}
+
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.fetchDepth
 
 

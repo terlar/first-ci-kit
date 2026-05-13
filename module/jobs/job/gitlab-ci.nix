@@ -40,6 +40,7 @@ in
       lib.mkIf (config.pipelineCall == null && allRules != [ ]) (lib.mkAfter allRules);
 
     variables = lib.mkMerge [
+      (lib.mkIf (config.env != { }) (lib.mapAttrs (_: lib.mkDefault) config.env))
       (lib.mkIf (!config.checkout) {
         GIT_CHECKOUT = lib.boolToString config.checkout;
       })

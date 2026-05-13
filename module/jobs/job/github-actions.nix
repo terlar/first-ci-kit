@@ -30,10 +30,12 @@ let
     (builtins.catAttrs "job")
   ];
 
-  anyBranch = fn: lib.pipe config.branches [
-    builtins.attrValues
-    (builtins.any fn)
-  ];
+  anyBranch =
+    fn:
+    lib.pipe config.branches [
+      builtins.attrValues
+      (builtins.any fn)
+    ];
 
   # A job has changes detection if any of its branch configs have changes.paths set.
   hasChanges = anyBranch (b: b.changes.paths != [ ]);
@@ -45,7 +47,9 @@ let
   conditions = builtins.concatLists [
     (lib.optional onlyOnMergeRequest "github.event_name == 'pull_request'")
     (lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${transformJobName name}'] == true")
-    (map (job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')") optionalNeedJobs)
+    (map (
+      job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')"
+    ) optionalNeedJobs)
   ];
 in
 {
@@ -72,6 +76,10 @@ in
         (lib.mkAfter (map (command: { run = command; }) config.commands))
       ];
     }
+
+    (lib.mkIf (config.env != { }) {
+      env = lib.mapAttrs (_: lib.mkDefault) config.env;
+    })
 
     (lib.mkIf (conditions != [ ]) {
       "if" = "\${{ ${

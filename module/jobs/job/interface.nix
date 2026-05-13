@@ -205,6 +205,22 @@ in
       example = lib.literalExpression ''[ "make build" "make test" ]'';
     };
 
+    env = lib.mkOption {
+      type = types.attrsOf types.str;
+      default = { };
+      description = ''
+        Environment variables set for all backends. Merged into GitHub Actions
+        job-level `env:` and GitLab CI `variables:`. Backend-specific settings
+        (`github-actions.env` and `gitlab-ci.variables`) take precedence.
+      '';
+      example = lib.literalExpression ''
+        {
+          LOG_LEVEL = "debug";
+          CONFIG_FILE = "config.json";
+        }
+      '';
+    };
+
     artifacts = lib.mkOption {
       type = types.submodule {
         options = {
