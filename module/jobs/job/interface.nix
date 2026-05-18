@@ -129,6 +129,18 @@ in
       default = true;
     };
 
+    runAlways = lib.mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Whether the job should run regardless of dependency failure.
+        Equivalent to GitLab CI's `when: always`.
+        On GitHub Actions, adds `always()` to the `if` condition and guards
+        required needs with `result != 'skipped'` to avoid running when
+        dependencies were never triggered (e.g. on pull requests).
+      '';
+    };
+
     tags = lib.mkOption {
       type = types.listOf types.str;
       default = [ ];

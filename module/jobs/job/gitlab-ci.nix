@@ -23,6 +23,7 @@ in
     enable = lib.mkIf (config.pipelineCall != null) (lib.mkForce false);
     stage = lib.mkIf (defaultStage != null) (lib.mkDefault defaultStage);
     needs = lib.mkIf (needs != [ ]) needs;
+    when = lib.mkIf config.runAlways (lib.mkDefault "always");
 
     image = lib.mkIf (!builtins.isNull config.image) imageRegistry.${config.image} or config.image;
 

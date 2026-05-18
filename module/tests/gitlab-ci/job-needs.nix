@@ -115,4 +115,29 @@
       ];
     };
   };
+
+  # runAlways = true sets when: always on the GitLab CI job.
+  test-gitlab-ci-job-run-always = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job-a = { };
+      jobs.job-b = {
+        runAlways = true;
+        needs = [ { job = "job-a"; } ];
+      };
+    };
+
+    expected = {
+      job-a = { };
+      job-b = {
+        needs = [
+          {
+            artifacts = true;
+            job = "job-a";
+            optional = false;
+          }
+        ];
+        when = "always";
+      };
+    };
+  };
 }

@@ -110,6 +110,35 @@
     };
   };
 
+  test-github-actions-job-run-always = {
+    expr = test-lib.eval-github-actions {
+      jobs.job-a = { };
+      jobs.job-b = {
+        runAlways = true;
+        needs = [ { job = "job-a"; } ];
+      };
+    };
+    expected = {
+      jobs = {
+        job-a.steps = [ { uses = "actions/checkout@v6"; } ];
+        job-b = {
+          needs = [ "job-a" ];
+          "if" = ''''${{ always() && needs.job-a.result != 'skipped' }}'';
+          steps = [ { uses = "actions/checkout@v6"; } ];
+        };
+      };
+    };
+  };
+
+  test-github-actions-job-run-always-no-needs = {
+    expr = test-lib.eval-github-actions {
+      jobs.job-a.runAlways = true;
+    };
+    expected = {
+      jobs.job-a.steps = [ { uses = "actions/checkout@v6"; } ];
+    };
+  };
+
   # No changes.paths — trigger sets on.pull_request but no changes detection job is created.
   test-github-actions-job-with-default-branch-trigger-on-merge-request = {
     expr = test-lib.eval-github-actions {
