@@ -147,4 +147,30 @@ in
       };
     };
   };
+
+  # A pipeline with github-actions.changes.enable = true automatically declares
+  # changes and changes_key as workflow_call inputs, so GitHub Actions accepts
+  # the inputs injected by a parent job that has change detection configured.
+  test-github-actions-pipeline-changes-inputs-auto-injected = {
+    expr = test-lib.eval-github-actions {
+      github-actions.changes.enable = true;
+    };
+    expected = {
+      env = {
+        CHANGES = "\${{ inputs.changes }}";
+        CHANGES_KEY = "\${{ inputs.changes_key }}";
+      };
+      jobs = { };
+      on.workflow_call.inputs = {
+        changes = {
+          type = "string";
+          description = "Change detection JSON passed from the calling workflow.";
+        };
+        changes_key = {
+          type = "string";
+          description = "Key identifying this job in the change detection map.";
+        };
+      };
+    };
+  };
 }
