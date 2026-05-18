@@ -156,10 +156,6 @@ in
       github-actions.changes.enable = true;
     };
     expected = {
-      env = {
-        CHANGES = "\${{ inputs.changes }}";
-        CHANGES_KEY = "\${{ inputs.changes_key }}";
-      };
       jobs = { };
       on.workflow_call.inputs = {
         changes = {

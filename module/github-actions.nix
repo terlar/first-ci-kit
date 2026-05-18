@@ -182,13 +182,15 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf config.github-actions.changes.enable {
-      inputs.changes = {
-        type = "string";
-        description = "Change detection JSON passed from the calling workflow.";
-      };
-      inputs.changes_key = {
-        type = "string";
-        description = "Key identifying this job in the change detection map.";
+      github-actions.settings.on.workflow_call.inputs = {
+        changes = {
+          type = "string";
+          description = "Change detection JSON passed from the calling workflow.";
+        };
+        changes_key = {
+          type = "string";
+          description = "Key identifying this job in the change detection map.";
+        };
       };
     })
     (lib.mkIf (pushBranches != [ ]) {

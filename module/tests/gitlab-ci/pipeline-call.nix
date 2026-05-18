@@ -700,4 +700,23 @@
       ];
     };
   };
+
+  # github-actions.changes.enable must NOT leak changes/changes_key into GitLab CI spec.inputs.
+  # Those inputs are GitHub Actions-only and must never be required by the GitLab component.
+  test-gitlab-ci-pipeline-changes-enable-not-in-spec-inputs = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          pipelines.my-pipeline = {
+            github-actions.changes.enable = true;
+            gitlab-ci.asComponent = true;
+            gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+            inputs.stack.description = "Stack name";
+            jobs.plan.commands = [ "tofu plan" ];
+          };
+        };
+      in
+      builtins.attrNames cfg.pipelines.my-pipeline.gitlab-ci.inputs;
+    expected = [ "stack" ];
+  };
 }
