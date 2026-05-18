@@ -29,6 +29,10 @@ let
     (builtins.filter (need: need.optional))
     (builtins.catAttrs "job")
   ];
+  requiredNeedJobs = lib.pipe needs [
+    (builtins.filter (need: !need.optional))
+    (builtins.catAttrs "job")
+  ];
 
   anyBranch =
     fn:
@@ -44,12 +48,18 @@ let
   # Such jobs need an explicit event_name guard so they don't run on push pipelines.
   onlyOnMergeRequest = anyBranch (b: b.triggers.onMergeRequest) && !anyBranch (b: b.triggers.onPush);
 
+  # Whether always() must be prepended to the if condition.
+  needsAlways = optionalNeedJobs != [ ] || config.runAlways;
+
   conditions = builtins.concatLists [
     (lib.optional onlyOnMergeRequest "github.event_name == 'pull_request'")
     (lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${transformJobName name}'] == true")
     (map (
       job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')"
     ) optionalNeedJobs)
+    # runAlways: run even on failure, but guard required needs against 'skipped'
+    # so the job doesn't run when its dependencies were never triggered (e.g. on PRs).
+    (lib.optionals config.runAlways (map (job: "needs.${job}.result != 'skipped'") requiredNeedJobs))
   ];
 in
 {
@@ -82,9 +92,8 @@ in
     })
 
     (lib.mkIf (conditions != [ ]) {
-      "if" = "\${{ ${
-        lib.optionalString (optionalNeedJobs != [ ]) "always() && "
-      }${lib.concatStringsSep " && " conditions} }}";
+      "if" =
+        "\${{ ${lib.optionalString needsAlways "always() && "}${lib.concatStringsSep " && " conditions} }}";
     })
 
     (lib.mkIf (config.artifacts.download != null) {

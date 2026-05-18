@@ -1821,6 +1821,31 @@ boolean
 
 
 
+## jobs\.\<name>\.runAlways
+
+
+
+Whether the job should run regardless of dependency failure\.
+Equivalent to GitLab CI’s ` when: always `\.
+On GitHub Actions, adds ` always() ` to the ` if ` condition and guards
+required needs with ` result != 'skipped' ` to avoid running when
+dependencies were never triggered (e\.g\. on pull requests)\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.tags
 
 
