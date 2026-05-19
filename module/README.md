@@ -1694,6 +1694,35 @@ attribute set of (string or list of (string or (submodule)))
 
 
 
+## jobs\.\<name>\.pipelineCall\.gitlab-ci\.needsInputs
+
+
+
+Maps GitLab CI input names to child job name suffixes\. For each
+entry, automatically computes the child job names for all
+dependency pipelineCall jobs (derived from this job’s ` needs `,
+which are populated by jobSet integration) and passes them as
+that input to the child pipeline\. The full child job name for
+each dependency is produced by calling that dependency’s
+` pipelineCall.gitlab-ci.toChildJobName ` with the given suffix\.
+The computed values are merged after ` extraInputs `\.
+Example: ` { "plan_needs" = "deploy"; } `
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+` { } `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.pipelineCall\.gitlab-ci\.pushRulesInput
 
 
@@ -1760,6 +1789,45 @@ null or string
 
 *Default:*
 ` null `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.pipelineCall\.gitlab-ci\.toChildJobName
+
+
+
+Function from a child job name suffix (e\.g\. ` "deploy" `) to the
+full child job name as it appears in the parent GitLab CI
+pipeline (e\.g\. ` "networking_vpc_dev_deploy" `)\. Used by
+dependent jobs’ ` needsInputs ` to compute the actual job names
+to pass as inputs\.
+
+This encodes the same separator/naming convention as the child
+pipeline’s ` gitlab-ci.transformJobName `, but cannot simply
+delegate to it: when the child pipeline is a GitLab CI
+component (` asComponent = true `), ` transformJobName ` contains
+` $[[ inputs.X ]] ` expressions that are only resolved at GitLab
+CI runtime, not at Nix evaluation time\. The default therefore
+reconstructs the name using the parent job key as prefix with
+an underscore separator, which is correct whenever the parent
+job key encodes the same information as the component inputs
+(the common convention)\. Override when a different separator is
+used, e\.g\.
+` childJobSuffix: "${name}:${childJobSuffix}" ` when
+` transformJobName ` uses colons\.
+
+
+
+*Type:*
+function that evaluates to a(n) string
+
+
+
+*Default:*
+` "childJobSuffix: \"${name}_${childJobSuffix}\"" `
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)

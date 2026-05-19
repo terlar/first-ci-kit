@@ -26,15 +26,18 @@ let
       # or manually set by the user) in addition to job-level env keys.
       # Sort longest-first so that e.g. STACK_REGION is replaced before STACK,
       # preventing a shorter name from matching inside a longer one.
-      varNames = lib.pipe [
-        config.env
-        (rootConfig.github-actions.settings.env or { })
-      ] [
-        (map builtins.attrNames)
-        lib.flatten
-        lib.lists.unique
-        (builtins.sort (a: b: builtins.stringLength a > builtins.stringLength b))
-      ];
+      varNames =
+        lib.pipe
+          [
+            config.env
+            (rootConfig.github-actions.settings.env or { })
+          ]
+          [
+            (map builtins.attrNames)
+            lib.flatten
+            lib.lists.unique
+            (builtins.sort (a: b: builtins.stringLength a > builtins.stringLength b))
+          ];
     in
     builtins.foldl' (
       acc: varName:

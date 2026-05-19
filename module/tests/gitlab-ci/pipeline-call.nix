@@ -719,4 +719,217 @@
       builtins.attrNames cfg.pipelines.my-pipeline.gitlab-ci.inputs;
     expected = [ "stack" ];
   };
+
+  # needsInputs: single dependency pipelineCall job via jobSet
+  test-gitlab-ci-job-pipeline-call-plan-needs-input-single = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci = {
+          asComponent = true;
+          templatePath = "ci/templates/my-pipeline.yml";
+          transformJobName =
+            name: "$[[ inputs.stack ]]_$[[ inputs.component ]]_$[[ inputs.deployment ]]_${name}";
+        };
+        jobs = {
+          plan.commands = [ "tofu plan" ];
+          deploy.commands = [ "tofu apply" ];
+        };
+      };
+      jobSets.networking_dev = {
+        jobs = [ "networking_vpc_dev" ];
+      };
+      jobSets.cluster_dev = {
+        tags = [ "cluster_dev" ];
+        needs = [ { jobSet = "networking_dev"; } ];
+      };
+      jobs.networking_vpc_dev = {
+        tags = [ "cluster_dev" ];
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          inputs = {
+            stack = "networking";
+            component = "vpc";
+            deployment = "dev";
+          };
+          gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        };
+      };
+      jobs.cluster_cp_dev = {
+        tags = [ "cluster_dev" ];
+        pipelineCall = {
+          pipeline = "my-pipeline";
+          inputs = {
+            stack = "cluster";
+            component = "cp";
+            deployment = "dev";
+          };
+          gitlab-ci = {
+            templatePath = "ci/templates/my-pipeline.yml";
+            needsInputs = {
+              "plan_needs" = "deploy";
+            };
+          };
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            stack = "cluster";
+            component = "cp";
+            deployment = "dev";
+            plan_needs = [ "networking_vpc_dev_deploy" ];
+          };
+        }
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            stack = "networking";
+            component = "vpc";
+            deployment = "dev";
+          };
+        }
+      ];
+    };
+  };
+
+  # needsInputs: multiple dependency pipelineCall jobs via jobSet
+  test-gitlab-ci-job-pipeline-call-plan-needs-input-multiple = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci = {
+          asComponent = true;
+          templatePath = "ci/templates/my-pipeline.yml";
+          transformJobName =
+            name: "$[[ inputs.stack ]]_$[[ inputs.component ]]_$[[ inputs.deployment ]]_${name}";
+        };
+        jobs = {
+          plan.commands = [ "tofu plan" ];
+          deploy.commands = [ "tofu apply" ];
+        };
+      };
+      jobSets.networking_dev.jobs = [
+        "networking_vpc_dev"
+        "networking_dns_dev"
+      ];
+      jobs = {
+        networking_vpc_dev.pipelineCall = {
+          pipeline = "my-pipeline";
+          inputs = {
+            stack = "networking";
+            component = "vpc";
+            deployment = "dev";
+          };
+          gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        };
+        networking_dns_dev.pipelineCall = {
+          pipeline = "my-pipeline";
+          inputs = {
+            stack = "networking";
+            component = "dns";
+            deployment = "dev";
+          };
+          gitlab-ci.templatePath = "ci/templates/my-pipeline.yml";
+        };
+        cluster_cp_dev = {
+          needs = [
+            { job = "networking_vpc_dev"; }
+            { job = "networking_dns_dev"; }
+          ];
+          pipelineCall = {
+            pipeline = "my-pipeline";
+            inputs = {
+              stack = "cluster";
+              component = "cp";
+              deployment = "dev";
+            };
+            gitlab-ci = {
+              templatePath = "ci/templates/my-pipeline.yml";
+              needsInputs = {
+                "plan_needs" = "deploy";
+              };
+            };
+          };
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            stack = "cluster";
+            component = "cp";
+            deployment = "dev";
+            plan_needs = [
+              "networking_vpc_dev_deploy"
+              "networking_dns_dev_deploy"
+            ];
+          };
+        }
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            stack = "networking";
+            component = "dns";
+            deployment = "dev";
+          };
+        }
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            stack = "networking";
+            component = "vpc";
+            deployment = "dev";
+          };
+        }
+      ];
+    };
+  };
+
+  # needsInputs: omitted when no pipelineCall dependencies exist
+  test-gitlab-ci-job-pipeline-call-plan-needs-input-omitted-when-no-deps = {
+    expr = test-lib.eval-gitlab-ci {
+      pipelines.my-pipeline = {
+        gitlab-ci = {
+          asComponent = true;
+          templatePath = "ci/templates/my-pipeline.yml";
+          transformJobName =
+            name: "$[[ inputs.stack ]]_$[[ inputs.component ]]_$[[ inputs.deployment ]]_${name}";
+        };
+        jobs = {
+          plan.commands = [ "tofu plan" ];
+          deploy.commands = [ "tofu apply" ];
+        };
+      };
+      jobs.networking_vpc_dev.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs = {
+          stack = "networking";
+          component = "vpc";
+          deployment = "dev";
+        };
+        gitlab-ci = {
+          templatePath = "ci/templates/my-pipeline.yml";
+          needsInputs = {
+            "plan_needs" = "deploy";
+          };
+        };
+      };
+    };
+    expected = {
+      include = [
+        {
+          local = "ci/templates/my-pipeline.yml";
+          inputs = {
+            stack = "networking";
+            component = "vpc";
+            deployment = "dev";
+          };
+        }
+      ];
+    };
+  };
 }
