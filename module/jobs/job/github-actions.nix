@@ -85,9 +85,11 @@ let
     (map (
       job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')"
     ) optionalNeedJobs)
-    # runAlways: run even on failure, but guard required needs against 'skipped'
-    # so the job doesn't run when its dependencies were never triggered (e.g. on PRs).
-    (lib.optionals config.runAlways (map (job: "needs.${job}.result != 'skipped'") requiredNeedJobs))
+    # runAlways: run even on failure, but guard required needs with an allowlist
+    # so the job doesn't run when dependencies were skipped or canceled (e.g. on PRs).
+    (lib.optionals config.runAlways (
+      map (job: "(needs.${job}.result == 'success' || needs.${job}.result == 'failure')") requiredNeedJobs
+    ))
   ];
 in
 {
