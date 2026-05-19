@@ -1,4 +1,4 @@
-{ test-lib, ... }:
+{ lib, test-lib, ... }:
 
 {
   test-github-actions-job-artifacts-upload = {
@@ -254,5 +254,70 @@
         ];
       };
     };
+  };
+
+  test-github-actions-job-artifacts-upload-workflow-env-path = {
+    expr =
+      lib.pipe
+        {
+          github-actions.defaultRunsOn = "ubuntu-latest";
+          inputs.stack.description = "Stack name";
+          inputs.component.description = "Component name";
+          jobs.plan = {
+            commands = [ "tofu plan" ];
+            artifacts.upload = {
+              name = "plan-artifact";
+              paths = [ "terraform/$STACK/$COMPONENT/tfplan" ];
+            };
+          };
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.jobs.plan.steps)
+        ];
+    expected = [
+      { uses = "actions/checkout@v6"; }
+      { run = "tofu plan"; }
+      {
+        uses = "actions/upload-artifact@v7";
+        "with" = {
+          name = "plan-artifact";
+          path = "terraform/\${{ env.STACK }}/\${{ env.COMPONENT }}/tfplan";
+        };
+      }
+    ];
+  };
+
+  test-github-actions-job-artifacts-upload-global-env-path = {
+    expr =
+      lib.pipe
+        {
+          github-actions = {
+            defaultRunsOn = "ubuntu-latest";
+            settings.env.STACK = "networking";
+          };
+          jobs.plan = {
+            commands = [ "tofu plan" ];
+            artifacts.upload = {
+              name = "plan-artifact";
+              paths = [ "terraform/$STACK/tfplan" ];
+            };
+          };
+        }
+        [
+          test-lib.evalConfig
+          (cfg: cfg.github-actions.settings.jobs.plan.steps)
+        ];
+    expected = [
+      { uses = "actions/checkout@v6"; }
+      { run = "tofu plan"; }
+      {
+        uses = "actions/upload-artifact@v7";
+        "with" = {
+          name = "plan-artifact";
+          path = "terraform/\${{ env.STACK }}/tfplan";
+        };
+      }
+    ];
   };
 }
