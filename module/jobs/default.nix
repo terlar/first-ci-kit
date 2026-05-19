@@ -33,6 +33,21 @@ let
         inherit (job) branches triggers;
         inherit (config) jobs;
       };
+
+      pipelineCallNeeds = builtins.filter (
+        need: config.jobs ? ${need.job} && config.jobs.${need.job}.pipelineCall != null
+      ) job.needs;
+
+      computedNeedsInputs = lib.pipe pc.gitlab-ci.needsInputs [
+        (lib.mapAttrs (
+          _inputName: childJobSuffix:
+          map (
+            need: config.jobs.${need.job}.pipelineCall.gitlab-ci.toChildJobName childJobSuffix
+          ) pipelineCallNeeds
+        ))
+        (lib.filterAttrs (_: v: v != [ ]))
+      ];
+
       computedRules = lib.mergeAttrsList [
         (lib.optionalAttrs (pc.gitlab-ci.rulesInput != null) {
           ${pc.gitlab-ci.rulesInput} = jobRules ++ (ci-lib.mkBranchRules augmentedBranches).allRules;
@@ -43,6 +58,7 @@ let
         (lib.optionalAttrs (pc.gitlab-ci.pushRulesInput != null) {
           ${pc.gitlab-ci.pushRulesInput} = jobRules ++ (ci-lib.mkBranchRules augmentedBranches).pushRules;
         })
+        computedNeedsInputs
       ];
       allInputs = lib.mergeAttrsList [
         pc.inputs
