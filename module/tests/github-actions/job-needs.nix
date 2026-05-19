@@ -123,7 +123,8 @@
         job-a.steps = [ { uses = "actions/checkout@v6"; } ];
         job-b = {
           needs = [ "job-a" ];
-          "if" = ''''${{ always() && needs.job-a.result != 'skipped' }}'';
+          "if" =
+            ''''${{ always() && (needs.job-a.result == 'success' || needs.job-a.result == 'failure') }}'';
           steps = [ { uses = "actions/checkout@v6"; } ];
         };
       };
