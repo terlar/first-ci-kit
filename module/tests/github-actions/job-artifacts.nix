@@ -145,4 +145,114 @@
       };
     };
   };
+
+  test-github-actions-job-artifacts-upload-env-path = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.plan = {
+        env = {
+          STACK = "networking";
+          COMPONENT = "vpc";
+        };
+        commands = [ "tofu plan" ];
+        artifacts.upload = {
+          name = "plan-artifact";
+          paths = [
+            "terraform/$STACK/$COMPONENT/tfplan"
+            "terraform/\${STACK}/\${COMPONENT}/tfplan"
+          ];
+          retentionDays = 7;
+        };
+      };
+    };
+    expected = {
+      jobs.plan = {
+        runs-on = "ubuntu-latest";
+        env = {
+          STACK = "networking";
+          COMPONENT = "vpc";
+        };
+        steps = [
+          { uses = "actions/checkout@v6"; }
+          { run = "tofu plan"; }
+          {
+            uses = "actions/upload-artifact@v7";
+            "with" = {
+              name = "plan-artifact";
+              path = "terraform/\${{ env.STACK }}/\${{ env.COMPONENT }}/tfplan\nterraform/\${{ env.STACK }}/\${{ env.COMPONENT }}/tfplan";
+              retention-days = 7;
+            };
+          }
+        ];
+      };
+    };
+  };
+
+  test-github-actions-job-artifacts-upload-env-path-prefix-shadowing = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.plan = {
+        env = {
+          STACK = "networking";
+          STACK_REGION = "eu-west-1";
+        };
+        commands = [ "tofu plan" ];
+        artifacts.upload = {
+          name = "plan-artifact";
+          paths = [ "terraform/$STACK_REGION/$STACK/tfplan" ];
+        };
+      };
+    };
+    expected = {
+      jobs.plan = {
+        runs-on = "ubuntu-latest";
+        env = {
+          STACK = "networking";
+          STACK_REGION = "eu-west-1";
+        };
+        steps = [
+          { uses = "actions/checkout@v6"; }
+          { run = "tofu plan"; }
+          {
+            uses = "actions/upload-artifact@v7";
+            "with" = {
+              name = "plan-artifact";
+              path = "terraform/\${{ env.STACK_REGION }}/\${{ env.STACK }}/tfplan";
+            };
+          }
+        ];
+      };
+    };
+  };
+
+  test-github-actions-job-artifacts-download-env-path = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.deploy = {
+        env.STACK = "networking";
+        commands = [ "tofu apply" ];
+        artifacts.download = {
+          name = "plan-artifact";
+          path = "terraform/$STACK";
+        };
+      };
+    };
+    expected = {
+      jobs.deploy = {
+        runs-on = "ubuntu-latest";
+        env.STACK = "networking";
+        steps = [
+          { uses = "actions/checkout@v6"; }
+          {
+            uses = "actions/download-artifact@v8";
+            "with" = {
+              name = "plan-artifact";
+              path = "terraform/\${{ env.STACK }}";
+            };
+          }
+          { run = "tofu apply"; }
+        ];
+      };
+    };
+  };
 }

@@ -19,6 +19,23 @@ let
   isEnabledJob = name: (jobs.${name}.enable or true) && (jobs.${name}.github-actions.enable or true);
   resolveJobName = name: if jobs ? ${name} then transformJobName name else name;
 
+  translatePath =
+    s:
+    let
+      # Sort longest-first so that e.g. STACK_REGION is replaced before STACK,
+      # preventing a shorter name from matching inside a longer one.
+      varNames = builtins.sort (
+        a: b: builtins.stringLength a > builtins.stringLength b
+      ) (builtins.attrNames config.env);
+    in
+    builtins.foldl' (
+      acc: varName:
+      let
+        replacement = "\${{ env.${varName} }}";
+      in
+      builtins.replaceStrings [ "\$${varName}" "\${${varName}}" ] [ replacement replacement ] acc
+    ) s varNames;
+
   needs = lib.pipe config.needs [
     (builtins.filter (need: isEnabledJob need.job))
     (map (need: need // { job = resolveJobName need.job; }))
@@ -103,7 +120,7 @@ in
           "with" = lib.mergeAttrsList [
             { inherit (config.artifacts.download) name; }
             (lib.optionalAttrs (config.artifacts.download.path != null) {
-              inherit (config.artifacts.download) path;
+              path = translatePath config.artifacts.download.path;
             })
           ];
         }
@@ -117,7 +134,7 @@ in
           "with" = lib.mergeAttrsList [
             {
               inherit (config.artifacts.upload) name;
-              path = builtins.concatStringsSep "\n" config.artifacts.upload.paths;
+              path = builtins.concatStringsSep "\n" (map translatePath config.artifacts.upload.paths);
             }
             (lib.optionalAttrs (config.artifacts.upload.retentionDays != null) {
               retention-days = config.artifacts.upload.retentionDays;
