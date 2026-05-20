@@ -48,7 +48,12 @@ in
         };
         terraformEnvJobs = {
           fn = terraformEnvJobs;
-          applications = [ { name = "tf-env-job"; env = "dev"; } ];
+          applications = [
+            {
+              name = "tf-env-job";
+              env = "dev";
+            }
+          ];
         };
       };
     };

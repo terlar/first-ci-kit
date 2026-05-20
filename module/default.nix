@@ -13,6 +13,7 @@
     ./job-sets
     ./pipeline-call-profiles
     ./pipelines
+    ./stacks
   ];
 
   config = {

@@ -123,6 +123,21 @@ in
       '';
     };
 
+    formatJobName = lib.mkOption {
+      type = types.functionTo types.str;
+      default = lib.concatStringsSep "_";
+      defaultText = lib.literalExpression ''lib.concatStringsSep "_"'';
+      description = ''
+        Function from a list of name parts to a job name string. Used by the
+        stacks module when constructing job and jobSet names, and passed to
+        factory functions as `formatJobName` so factories can use the same
+        convention.
+
+        Defaults to joining parts with underscores, e.g.
+        `["app" "api" "dev"]` → `"app_api_dev"`.
+      '';
+    };
+
     autoEnvInputs = lib.mkOption {
       type = types.bool;
       default = true;
