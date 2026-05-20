@@ -662,16 +662,18 @@ one of “string”, “boolean”, “number”, “environment”, “choice�
 
 
 
-## jobInterfaces
+## jobFactories
 
 
 
-Job Interfaces to define jobs\.
+Job factories that produce pipeline-level config\. Each factory has a
+` fn ` that takes arguments and an ` applications ` list of argument
+attrsets to apply\.
 
 
 
 *Type:*
-lazy attribute set of function that evaluates to a(n) lazy attribute set of module
+lazy attribute set of (submodule)
 
 
 
@@ -679,7 +681,46 @@ lazy attribute set of function that evaluates to a(n) lazy attribute set of modu
 ` { } `
 
 *Declared by:*
- - [job-interfaces/interface\.nix](job-interfaces/interface.nix)
+ - [job-factories/interface\.nix](job-factories/interface.nix)
+
+
+
+## jobFactories\.\<name>\.applications
+
+
+
+List of argument attrsets to apply to ` fn `\. Each entry calls
+` fn <args> ` and merges the result into the pipeline config\.
+
+
+
+*Type:*
+list of (attribute set)
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [job-factories/interface\.nix](job-factories/interface.nix)
+
+
+
+## jobFactories\.\<name>\.fn
+
+
+
+Factory function that takes arguments and returns an attrset of
+config options (e\.g\. ` { jobs = {...}; jobSets = {...}; } `)\.
+
+
+
+*Type:*
+function that evaluates to a(n) (attribute set)
+
+*Declared by:*
+ - [job-factories/interface\.nix](job-factories/interface.nix)
 
 
 
