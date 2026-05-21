@@ -85,7 +85,7 @@ first-ci-kit has **no nixpkgs dependency** — it only requires `flake-parts`:
 
 ## Module documentation
 
-Full option reference is in [`module/README.md`](./module/README.md). It is generated from the Nix module sources and covers every option with types, defaults, and examples.
+Full option reference is in [`module/README.md`](./module/README.md). Reusable patterns and recipes are in [`docs/patterns.md`](./docs/patterns.md). It is generated from the Nix module sources and covers every option with types, defaults, and examples.
 
 ## Building pipelines manually
 
