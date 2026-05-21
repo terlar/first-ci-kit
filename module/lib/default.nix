@@ -36,37 +36,44 @@ in
 {
   documentsToYAML = lib.concatMapStringsSep "---\n" (x: (builtins.toJSON x) + "\n");
 
-  types.needsType = types.submoduleWith {
-    description = "Needs configuration";
-    modules = [
-      {
-        options = {
-          job = lib.mkOption {
-            type = types.nullOr types.str;
-            default = null;
-            description = "Name of the needed job.";
-          };
+  types = {
+    pipelineCallType = types.submoduleWith {
+      description = "Pipeline call configuration";
+      modules = [ (import ../pipeline-call-profiles/module.nix) ];
+    };
 
-          jobSet = lib.mkOption {
-            type = types.nullOr types.str;
-            default = null;
-            description = "Name of the needed job set.";
-          };
+    needsType = types.submoduleWith {
+      description = "Needs configuration";
+      modules = [
+        {
+          options = {
+            job = lib.mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Name of the needed job.";
+            };
 
-          optional = lib.mkOption {
-            type = types.bool;
-            default = false;
-            description = "Whether need is optional.";
-          };
+            jobSet = lib.mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Name of the needed job set.";
+            };
 
-          artifacts = lib.mkOption {
-            type = types.bool;
-            default = true;
-            description = "Whether artifacts from dependency are used.";
+            optional = lib.mkOption {
+              type = types.bool;
+              default = false;
+              description = "Whether need is optional.";
+            };
+
+            artifacts = lib.mkOption {
+              type = types.bool;
+              default = true;
+              description = "Whether artifacts from dependency are used.";
+            };
           };
-        };
-      }
-    ];
+        }
+      ];
+    };
   };
 
   jobToNeed = job: {
