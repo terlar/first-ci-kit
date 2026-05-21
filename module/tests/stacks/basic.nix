@@ -19,7 +19,13 @@ let
     in
     {
       jobs.${jobName} = {
-        pipelineCallProfile = "tofu";
+        pipelineCall = {
+          pipeline = "infra-pipeline";
+          gitlab-ci = {
+            templatePath = "ci/templates/infra.yml";
+            rulesInput = "rules";
+          };
+        };
         tags = [
           (formatJobName [
             stackName
@@ -56,19 +62,12 @@ let
 
   baseConfig = {
     defaultJobFactory = "tofu";
-    pipelineCallProfiles.tofu = {
-      pipeline = "infra-pipeline";
-      gitlab-ci.templatePath = "ci/templates/infra.yml";
-    };
     pipelines.infra-pipeline = {
       gitlab-ci.asComponent = true;
       gitlab-ci.templatePath = "ci/templates/infra.yml";
       jobs.apply.commands = [ "tofu apply" ];
     };
-    jobFactories.tofu = {
-      fn = tofuFactory;
-      applications = [ ];
-    };
+    jobFactories.tofu.fn = tofuFactory;
   };
 in
 
@@ -319,47 +318,11 @@ in
   };
 
   # 4. GitLab CI output
-  test-stacks-gitlab-ci-basic = {
+  test-stacks-gitlab-ci = {
     expr =
       lib.pipe
         [
           baseConfig
-          {
-            stacks.app = {
-              deployments.dev = { };
-              components.api = { };
-            };
-          }
-        ]
-        [ test-lib.eval-gitlab-ci ];
-    expected = {
-      include = [ { local = "ci/templates/infra.yml"; } ];
-    };
-  };
-
-  test-stacks-gitlab-ci-with-paths = {
-    expr =
-      lib.pipe
-        [
-          {
-            defaultJobFactory = "tofu";
-            pipelineCallProfiles.tofu = {
-              pipeline = "infra-pipeline";
-              gitlab-ci = {
-                templatePath = "ci/templates/infra.yml";
-                rulesInput = "rules";
-              };
-            };
-            pipelines.infra-pipeline = {
-              gitlab-ci.asComponent = true;
-              gitlab-ci.templatePath = "ci/templates/infra.yml";
-              jobs.apply.commands = [ "tofu apply" ];
-            };
-            jobFactories.tofu = {
-              fn = tofuFactory;
-              applications = [ ];
-            };
-          }
           {
             stacks.app = {
               deployments.dev = { };
