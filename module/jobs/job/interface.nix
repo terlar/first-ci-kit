@@ -278,21 +278,11 @@ in
       description = "Job configuration targeting GitLab CI.";
     };
 
-    pipelineCallProfile = lib.mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      description = ''
-        Name of a profile declared in `config.pipelineCallProfiles`. When set,
-        populates `pipelineCall` from the named profile using `lib.mkDefault`, so
-        any explicitly set `pipelineCall` options take precedence over the profile.
-      '';
-    };
-
     pipelineCall = lib.mkOption {
       type = types.nullOr (
         types.submoduleWith {
           modules = [
-            (import ../../pipeline-call-profiles/module.nix)
+            ./pipeline-call.nix
             { config.gitlab-ci.toChildJobName = lib.mkDefault (childJobSuffix: "${name}_${childJobSuffix}"); }
           ];
         }

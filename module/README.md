@@ -1705,7 +1705,7 @@ attribute set of string
 ` { } `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1728,7 +1728,7 @@ boolean
 ` true `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1753,7 +1753,7 @@ null or string
 ` null `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1777,7 +1777,7 @@ attribute set of (string or list of (string or (GitLab CI needs entry)))
 ` { } `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1802,7 +1802,7 @@ attribute set of string
 ` { } `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1826,7 +1826,7 @@ null or string
 ` null `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1850,7 +1850,7 @@ null or string
 ` null `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1874,7 +1874,7 @@ null or string
 ` null `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1906,7 +1906,7 @@ function that evaluates to a(n) string
 ` lib.id `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1930,7 +1930,7 @@ attribute set of string
 ` { } `
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -1949,30 +1949,7 @@ the pipeline’s ` gitlab-ci.templatePath ` is emitted instead\.
 string
 
 *Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
-
-
-
-## jobs\.\<name>\.pipelineCallProfile
-
-
-
-Name of a profile declared in ` config.pipelineCallProfiles `\. When set,
-populates ` pipelineCall ` from the named profile using ` lib.mkDefault `, so
-any explicitly set ` pipelineCall ` options take precedence over the profile\.
-
-
-
-*Type:*
-null or string
-
-
-
-*Default:*
-` null `
-
-*Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
 
 
 
@@ -2152,294 +2129,6 @@ string
 
 *Declared by:*
  - [interface\.nix](interface.nix)
-
-
-
-## pipelineCallProfiles
-
-
-
-Named pipeline call profiles\. Each profile is a reusable ` pipelineCall `
-configuration that can be referenced by name via ` job.pipelineCallProfile `\.
-
-
-
-*Type:*
-lazy attribute set of (Pipeline call configuration)
-
-
-
-*Default:*
-` { } `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.github-actions\.extraInputs
-
-
-
-Additional GitHub Actions ` with: ` inputs that are NOT forwarded to
-the GitLab CI include\. Use this for GHA-only inputs such as
-` profile ` (Nix dev-shell selector) or a dynamic ` run_deploy `
-expression\.
-
-
-
-*Type:*
-attribute set of string
-
-
-
-*Default:*
-` { } `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.github-actions\.passSecrets
-
-
-
-Whether to pass ` secrets: inherit ` to the called reusable workflow\.
-Set to ` false ` to opt out, e\.g\. when calling a public or cross-org
-workflow that does not accept inherited secrets\.
-
-
-
-*Type:*
-boolean
-
-
-
-*Default:*
-` true `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.gitlab-ci\.allRulesInput
-
-
-
-When set to an input name, automatically computes all GitLab CI
-rules (MR + push) from the job’s ` branches ` config and passes them
-as that input to the child pipeline\. Unlike ` rulesInput `, this can
-be set alongside ` rulesInput ` to populate a second input with the
-same rule set\. The computed value is merged after ` extraInputs `\.
-
-
-
-*Type:*
-null or string
-
-
-
-*Default:*
-` null `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.gitlab-ci\.extraInputs
-
-
-
-Additional GitLab CI ` inputs: ` values that are NOT forwarded to
-GitHub Actions\. Use this for GitLab CI-only inputs such as
-` plan_needs ` (an array of job names or needs-entry objects with
-` job `, ` artifacts `, and ` optional ` keys)\.
-
-
-
-*Type:*
-attribute set of (string or list of (string or (GitLab CI needs entry)))
-
-
-
-*Default:*
-` { } `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.gitlab-ci\.needsInputs
-
-
-
-Maps GitLab CI input names to child job name suffixes\. For each
-entry, automatically computes the child job names for all dependency
-pipelineCall jobs and passes them as that input to the child
-pipeline\. The computed values are merged after ` extraInputs `\.
-Example: ` { "plan_needs" = "deploy"; } `
-
-
-
-*Type:*
-attribute set of string
-
-
-
-*Default:*
-` { } `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.gitlab-ci\.pushRulesInput
-
-
-
-When set to an input name (e\.g\. ` "deploy_rules" `), automatically
-computes push-only GitLab CI rules from the job’s ` branches ` config
-and passes them as that input to the child pipeline\. The computed
-value is merged after ` extraInputs `\.
-
-
-
-*Type:*
-null or string
-
-
-
-*Default:*
-` null `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.gitlab-ci\.rulesInput
-
-
-
-When set to an input name (e\.g\. ` "rules" `), automatically computes
-all GitLab CI rules (MR + push) from the job’s ` branches ` config and
-passes them as that input to the child pipeline\. The computed value
-is merged after ` extraInputs `\.
-
-
-
-*Type:*
-null or string
-
-
-
-*Default:*
-` null `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.gitlab-ci\.templatePath
-
-
-
-Local path to the GitLab CI component template for the called
-pipeline (e\.g\. “ci/gitlab-templates/profile-terraform/template\.yml”)\.
-When set, takes precedence over looking up the path via
-` config.pipelines.<pipeline>.gitlab-ci.templatePath `\.
-
-
-
-*Type:*
-null or string
-
-
-
-*Default:*
-` null `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.gitlab-ci\.toChildJobName
-
-
-
-Function from a child job name suffix (e\.g\. ` "deploy" `) to the full
-child job name as it appears in the parent GitLab CI pipeline (e\.g\.
-` "networking_vpc_dev_deploy" `)\. Used by dependent jobs’
-` needsInputs ` to compute the actual job names to pass as inputs\.
-
-The default (` lib.id `) is a neutral identity function\. Jobs
-override this via ` lib.mkDefault ` to prefix the parent job key with
-an underscore separator, e\.g\.
-` childJobSuffix: "${name}_${childJobSuffix}" `\. Override
-explicitly when a different separator is used, e\.g\.
-` childJobSuffix: "${name}:${childJobSuffix}" ` when
-` transformJobName ` uses colons\.
-
-
-
-*Type:*
-function that evaluates to a(n) string
-
-
-
-*Default:*
-` lib.id `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.inputs
-
-
-
-Input values forwarded to the called pipeline on both GitHub Actions
-(` with: `) and GitLab CI (` inputs: `)\. Changes-detection inputs
-(` changes `, ` changes_key `) are injected automatically on GitHub
-Actions when the job has ` branches.default.changes.paths ` configured\.
-
-
-
-*Type:*
-attribute set of string
-
-
-
-*Default:*
-` { } `
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
-
-
-
-## pipelineCallProfiles\.\<name>\.pipeline
-
-Name of a pipeline declared in ` config.pipelines ` to call\. On GitHub
-Actions the job is rendered as a ` uses: ` reusable-workflow caller; on
-GitLab CI the job is suppressed and an ` include: ` entry pointing to
-the pipeline’s ` gitlab-ci.templatePath ` is emitted instead\.
-
-
-
-*Type:*
-string
-
-*Declared by:*
- - [pipeline-call-profiles/interface\.nix](pipeline-call-profiles/interface.nix)
 
 
 

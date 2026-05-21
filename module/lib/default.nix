@@ -37,11 +37,6 @@ in
   documentsToYAML = lib.concatMapStringsSep "---\n" (x: (builtins.toJSON x) + "\n");
 
   types = {
-    pipelineCallType = types.submoduleWith {
-      description = "Pipeline call configuration";
-      modules = [ (import ../pipeline-call-profiles/module.nix) ];
-    };
-
     needsType = types.submoduleWith {
       description = "Needs configuration";
       modules = [
