@@ -2,11 +2,26 @@
 
 let
   inherit (lib) types;
+  rootConfig = config;
 in
 {
   options = {
     first-ci-kit.pipelines = lib.mkOption {
-      type = types.lazyAttrsOf (types.submoduleWith { modules = [ ./module ]; });
+      type = types.lazyAttrsOf (
+        types.submodule (
+          { name, config, ... }:
+          {
+            imports = [ ./module ];
+            # Make all top-level pipelines accessible to the job renderer so that
+            # pipelineCall can resolve templatePath for sibling (non-child) pipelines.
+            _module.args.allPipelines = rootConfig.first-ci-kit.pipelines;
+            # Default templatePath follows the convention
+            # "<templatesPath>/<name>/template.yml" so that pipelines used as
+            # GitLab CI components require no explicit path configuration.
+            gitlab-ci.templatePath = lib.mkDefault "${config.gitlab-ci.templatesPath}/${name}/template.yml";
+          }
+        )
+      );
       default = { };
       description = "Pipelines for CI.";
     };

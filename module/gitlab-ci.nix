@@ -19,6 +19,28 @@ let
 in
 {
   options.gitlab-ci = {
+    templatesPath = lib.mkOption {
+      type = types.str;
+      default = "gitlab-templates";
+      description = ''
+        Base directory under which GitLab CI component templates are stored.
+        Used as the prefix when deriving the default `templatePath` for each
+        pipeline: `"''${templatesPath}/''${name}/template.yml"`.
+      '';
+    };
+
+    templatePath = lib.mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Local path to the GitLab CI component template for this pipeline (e.g.
+        "gitlab-templates/profile-tofu/template.yml"). When set, jobs that call
+        this pipeline via `pipelineCall` will emit an `include:` entry pointing
+        to this path. Defaults to `"''${gitlab-ci.templatesPath}/''${name}/template.yml"`
+        when the pipeline name is known (i.e. set via `flake-module.nix`).
+      '';
+    };
+
     inputs = lib.mkOption {
       type = config.types.yamlType;
       default = { };

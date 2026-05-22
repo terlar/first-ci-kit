@@ -542,6 +542,54 @@ YAML value
 
 
 
+## gitlab-ci\.templatePath
+
+
+
+Local path to the GitLab CI component template for this pipeline (e\.g\.
+“gitlab-templates/profile-tofu/template\.yml”)\. When set, jobs that call
+this pipeline via ` pipelineCall ` will emit an ` include: ` entry pointing
+to this path\. Defaults to ` "${gitlab-ci.templatesPath}/${name}/template.yml" `
+when the pipeline name is known (i\.e\. set via ` flake-module.nix `)\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
+
+
+
+## gitlab-ci\.templatesPath
+
+
+
+Base directory under which GitLab CI component templates are stored\.
+Used as the prefix when deriving the default ` templatePath ` for each
+pipeline: ` "${templatesPath}/${name}/template.yml" `\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "gitlab-templates" `
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
+
+
+
 ## gitlab-ci\.transformJobName
 
 

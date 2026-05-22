@@ -1,4 +1,9 @@
-{ lib, flake-parts-lib, ... }:
+{
+  config,
+  lib,
+  flake-parts-lib,
+  ...
+}:
 
 let
   inherit (lib) types;
@@ -44,7 +49,7 @@ let
               pipelines = lib.mkOption {
                 type = types.attrsOf types.str;
                 default = {
-                  default = ".github/workflows/ci.yaml";
+                  default = ".github/workflows/ci.yml";
                 };
                 description = "Pipeline name to output path mapping.";
                 example = lib.literalExpression ''
@@ -109,9 +114,42 @@ let
     };
 in
 {
-  options.perSystem = flake-parts-lib.mkPerSystemOption {
-    options.pre-commit.settings = lib.mkOption {
-      type = types.submoduleWith { modules = [ extendHooks ]; };
+  options = {
+    first-ci-kit.autoConfigureHooks = lib.mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        When enabled, automatically populate `settings.pipelines` on the
+        `first-ci-kit-gen-github-actions` and `first-ci-kit-gen-gitlab-ci`
+        pre-commit hooks from `first-ci-kit.pipelines`, following the
+        name-based path convention.  Set to `false` to manage hook pipeline
+        mappings manually.
+      '';
+    };
+
+    perSystem = flake-parts-lib.mkPerSystemOption {
+      options.pre-commit.settings = lib.mkOption {
+        type = types.submoduleWith { modules = [ extendHooks ]; };
+      };
+    };
+  };
+
+  config = lib.mkIf config.first-ci-kit.autoConfigureHooks {
+    # Auto-populate settings.pipelines for the pre-commit hooks from pipeline
+    # definitions.  The default pipeline uses well-known root output paths;
+    # all other pipelines follow the name-based convention so they require no
+    # manual hook configuration.
+    perSystem.pre-commit.settings.hooks = {
+      first-ci-kit-gen-github-actions.settings.pipelines = lib.mkDefault (
+        lib.mapAttrs (
+          name: _: ".github/workflows/${if name == "default" then "ci" else name}.yml"
+        ) config.first-ci-kit.pipelines
+      );
+      first-ci-kit-gen-gitlab-ci.settings.pipelines = lib.mkDefault (
+        lib.mapAttrs (
+          name: pipeline: if name == "default" then ".gitlab-ci.yml" else pipeline.gitlab-ci.templatePath
+        ) config.first-ci-kit.pipelines
+      );
     };
   };
 }
