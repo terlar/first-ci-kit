@@ -256,7 +256,22 @@ in
         ];
       };
       default = { };
-      description = "Job configuration targeting GitHub Actions.";
+      description = ''
+        GitHub Actions-specific job configuration. Accepts any YAML-typed
+        field supported by GitHub Actions job syntax (e.g. `runs-on`,
+        `environment`, `concurrency`). Merged with the shared job settings;
+        backend-specific values take precedence over the shared equivalents.
+
+        Set `enable = false` to exclude this job from GitHub Actions output
+        while keeping it active for other backends.
+      '';
+      example = lib.literalExpression ''
+        {
+          runs-on = "ubuntu-latest";
+          environment = "production";
+          concurrency = { group = "deploy-prod"; cancel-in-progress = false; };
+        }
+      '';
     };
 
     gitlab-ci = lib.mkOption {
@@ -275,7 +290,22 @@ in
         ];
       };
       default = { };
-      description = "Job configuration targeting GitLab CI.";
+      description = ''
+        GitLab CI-specific job configuration. Accepts any YAML-typed field
+        supported by GitLab CI job syntax (e.g. `variables`, `cache`,
+        `interruptible`, `resource_group`). Merged with the shared job
+        settings; backend-specific values take precedence.
+
+        Set `enable = false` to exclude this job from GitLab CI output while
+        keeping it active for other backends.
+      '';
+      example = lib.literalExpression ''
+        {
+          resource_group = "deploy-prod";
+          interruptible = false;
+          variables.TF_VAR_env = "prod";
+        }
+      '';
     };
 
     pipelineCall = lib.mkOption {
@@ -288,7 +318,21 @@ in
         }
       );
       default = null;
-      description = "Call a child pipeline (reusable workflow / template include) instead of running commands directly.";
+      description = ''
+        Call a child pipeline instead of running commands directly.
+        Generates a reusable workflow call (GitHub Actions) or a
+        `trigger:include:` job (GitLab CI).
+
+        When set, `commands` and `script` on the job are ignored.
+        The child pipeline must be declared separately (e.g. a pipeline
+        whose outputs are included via `gitlab-templates/<name>/template.yml`).
+      '';
+      example = lib.literalExpression ''
+        {
+          pipeline = "infra";
+          inputs = { service = "api"; environment = "prod"; };
+        }
+      '';
     };
 
     process-compose = lib.mkOption {
@@ -307,7 +351,19 @@ in
         ];
       };
       default = { };
-      description = "Job configuration targeting process-compose.";
+      description = ''
+        process-compose-specific job configuration. Accepts a deferred module
+        that is merged into the process-compose process definition for this job.
+
+        Set `enable = false` to exclude this job from process-compose output
+        while keeping it active for other backends.
+      '';
+      example = lib.literalExpression ''
+        {
+          availability.restart = "on_failure";
+          environment = [ "DEBUG=1" ];
+        }
+      '';
     };
   };
 }

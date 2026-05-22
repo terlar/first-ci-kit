@@ -66,7 +66,17 @@ in
     imageRegistry = lib.mkOption {
       type = types.lazyAttrsOf types.str;
       default = { };
-      description = "Image registry with image names";
+      description = ''
+        Named map of container image references. Jobs can reference entries
+        here (e.g. `config.imageRegistry.tofu`) instead of hard-coding image
+        strings, making registry or version changes a single-point edit.
+      '';
+      example = lib.literalExpression ''
+        {
+          tofu   = "registry.example.com/tofu:1.9";
+          python = "registry.example.com/python:3.12";
+        }
+      '';
     };
 
     types = lib.mkOption {
@@ -104,8 +114,22 @@ in
       );
       default = { };
       description = ''
-        Declared inputs for this pipeline.
-        Becomes on.workflow_call.inputs on GitHub Actions and spec.inputs on GitLab CI.
+        Declared inputs for this pipeline. Becomes `on.workflow_call.inputs`
+        on GitHub Actions and `spec.inputs` on GitLab CI.
+
+        When `autoEnvInputs = true` (the default), each input is also
+        injected as an uppercased environment variable available to all jobs.
+      '';
+      example = lib.literalExpression ''
+        {
+          service   = { type = "string"; required = true; description = "Service name to deploy."; };
+          dry-run   = { type = "boolean"; default = "false"; description = "Skip destructive steps."; };
+          environment = {
+            type = "choice";
+            options = [ "dev" "stg" "prod" ];
+            default = "dev";
+          };
+        }
       '';
     };
 
@@ -118,8 +142,14 @@ in
       );
       default = { };
       description = ''
-        Declared outputs for this pipeline.
-        Becomes on.workflow_call.outputs on GitHub Actions.
+        Declared outputs for this pipeline. Becomes `on.workflow_call.outputs`
+        on GitHub Actions. GitLab CI does not currently support pipeline-level
+        outputs.
+      '';
+      example = lib.literalExpression ''
+        {
+          plan-summary.value = "''${{ jobs.plan.outputs.summary }}";
+        }
       '';
     };
 
