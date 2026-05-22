@@ -3,8 +3,8 @@
 let
   tofuFactory =
     {
-      stackName,
-      componentName,
+      stack,
+      component,
       deployment,
       needs,
       formatJobName,
@@ -12,8 +12,8 @@ let
     }:
     let
       jobName = formatJobName [
-        stackName
-        componentName
+        stack
+        component
         deployment
       ];
     in
@@ -28,7 +28,7 @@ let
         };
         tags = [
           (formatJobName [
-            stackName
+            stack
             deployment
           ])
           jobName
@@ -36,20 +36,20 @@ let
         branches.default = {
           triggers.onPush = true;
           triggers.onMergeRequest = true;
-          changes.paths = [ "stacks/${stackName}/${componentName}/${deployment}/**" ];
+          changes.paths = [ "stacks/${stack}/${component}/${deployment}/**" ];
         };
       };
       jobSets = {
         ${formatJobName [ deployment ]}.tags = [ deployment ];
         ${
           formatJobName [
-            stackName
+            stack
             deployment
           ]
         }.tags =
           [
             (formatJobName [
-              stackName
+              stack
               deployment
             ])
           ];
