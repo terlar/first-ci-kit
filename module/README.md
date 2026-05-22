@@ -2563,6 +2563,42 @@ lazy attribute set of (submodule)
 
 
 
+## stacks\.\<name>\.components\.\<name>\.deployments
+
+
+
+Deployment environments for this component\. When set, overrides the
+stack-level ` deployments ` for this component only\. When null
+(the default), the component inherits the stack-level ` deployments `\.
+
+
+
+*Type:*
+null or (lazy attribute set of (attribute set))
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+
+```
+{
+  dev = { };
+  stg = { };
+  prod = { };
+}
+
+```
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
 ## stacks\.\<name>\.components\.\<name>\.needs
 
 
@@ -2661,8 +2697,8 @@ null or string
 
 
 
-Deployment environments for this stack\. Only the attribute names
-matter; values are not currently used\.
+Deployment environments\. Only attribute names matter; values are
+reserved for future use\.
 
 
 
