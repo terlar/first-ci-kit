@@ -10,7 +10,7 @@ let
   gl = hooks.first-ci-kit-gen-gitlab-ci;
 
   tests = {
-    "github-actions: default pipelines" = gh.settings.pipelines.default == ".github/workflows/ci.yaml";
+    "github-actions: default pipelines" = gh.settings.pipelines.default == ".github/workflows/ci.yml";
     "gitlab-ci: default pipelines" = gl.settings.pipelines.default == ".gitlab-ci.yml";
     "github-actions: hook name" = gh.name == "generate-github-actions";
     "gitlab-ci: hook name" = gl.name == "generate-gitlab-ci";
