@@ -43,6 +43,11 @@ null or string
 *Default:*
 ` null `
 
+
+
+*Example:*
+` "tofu-component" `
+
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
 
@@ -615,7 +620,9 @@ function that evaluates to a(n) string
 
 
 
-Image registry with image names
+Named map of container image references\. Jobs can reference entries
+here (e\.g\. ` config.imageRegistry.tofu `) instead of hard-coding image
+strings, making registry or version changes a single-point edit\.
 
 
 
@@ -627,6 +634,18 @@ lazy attribute set of string
 *Default:*
 ` { } `
 
+
+
+*Example:*
+
+```
+{
+  tofu   = "registry.example.com/tofu:1.9";
+  python = "registry.example.com/python:3.12";
+}
+
+```
+
 *Declared by:*
  - [interface\.nix](interface.nix)
 
@@ -636,8 +655,11 @@ lazy attribute set of string
 
 
 
-Declared inputs for this pipeline\.
-Becomes on\.workflow_call\.inputs on GitHub Actions and spec\.inputs on GitLab CI\.
+Declared inputs for this pipeline\. Becomes ` on.workflow_call.inputs `
+on GitHub Actions and ` spec.inputs ` on GitLab CI\.
+
+When ` autoEnvInputs = true ` (the default), each input is also
+injected as an uppercased environment variable available to all jobs\.
 
 
 
@@ -648,6 +670,23 @@ attribute set of (submodule)
 
 *Default:*
 ` { } `
+
+
+
+*Example:*
+
+```
+{
+  service   = { type = "string"; required = true; description = "Service name to deploy."; };
+  dry-run   = { type = "boolean"; default = "false"; description = "Skip destructive steps."; };
+  environment = {
+    type = "choice";
+    options = [ "dev" "stg" "prod" ];
+    default = "dev";
+  };
+}
+
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -763,9 +802,12 @@ one of “string”, “boolean”, “number”, “environment”, “choice�
 
 
 
-Job factories that produce pipeline-level config\. Each factory has a
-` fn ` that takes arguments and an ` applications ` list of argument
+Named job factories\. Each factory has a ` fn ` that produces pipeline
+config from an argument attrset, and an ` applications ` list of argument
 attrsets to apply\.
+
+Factories are referenced by name from ` config.stacks.*.jobFactory ` or
+` config.defaultJobFactory `\.
 
 
 
@@ -776,6 +818,25 @@ lazy attribute set of (submodule)
 
 *Default:*
 ` { } `
+
+
+
+*Example:*
+
+```
+{
+  tofu-component.fn = { stack, component, deployment, formatJobName, needs, ... }:
+    let jobName = formatJobName [ stack.name component.name deployment ]; in
+    {
+      jobs.${jobName} = {
+        image = "registry.example.com/tofu:1.9";
+        script = [ "tofu apply" ];
+      };
+      jobSets.${jobName}.jobs = [ jobName ];
+    };
+}
+
+```
 
 *Declared by:*
  - [job-factories/interface\.nix](job-factories/interface.nix)
@@ -789,6 +850,9 @@ lazy attribute set of (submodule)
 List of argument attrsets to apply to ` fn `\. Each entry calls
 ` fn <args> ` and merges the result into the pipeline config\.
 
+Typically populated automatically by the stacks engine; set
+manually only when using a factory without the stacks module\.
+
 
 
 *Type:*
@@ -799,6 +863,18 @@ list of (attribute set)
 *Default:*
 ` [ ] `
 
+
+
+*Example:*
+
+```
+[
+  { stack = "networking"; component = "vpc"; deployment = "prod"; needs = []; }
+  { stack = "networking"; component = "dns"; deployment = "prod"; needs = []; }
+]
+
+```
+
 *Declared by:*
  - [job-factories/interface\.nix](job-factories/interface.nix)
 
@@ -808,13 +884,38 @@ list of (attribute set)
 
 
 
-Factory function that takes arguments and returns an attrset of
-config options (e\.g\. ` { jobs = {...}; jobSets = {...}; } `)\.
+Factory function that receives a context attrset and returns
+pipeline-level config (typically ` { jobs = { … }; jobSets = { … }; } `)\.
+
+When used via ` config.stacks `, the context contains:
+` { stack, component, deployment, needs, formatJobName, factoryName } `\.
+When used via ` applications `, the context is whatever attrset was
+passed in that list entry\.
 
 
 
 *Type:*
 function that evaluates to a(n) (attribute set)
+
+
+
+*Example:*
+
+```
+{ stack, component, deployment, needs, formatJobName, ... }:
+let
+  jobName = formatJobName [ stack.name component.name deployment ];
+in
+{
+  jobs.${jobName} = {
+    image = "registry.example.com/tofu:latest";
+    needs = map (n: n.jobSet) needs;
+    script = [ "tofu -chdir=stacks/${stack.name}/${component.name} apply" ];
+  };
+  jobSets.${jobName}.jobs = [ jobName ];
+}
+
+```
 
 *Declared by:*
  - [job-factories/interface\.nix](job-factories/interface.nix)
@@ -846,7 +947,9 @@ lazy attribute set of (Job Set configuration)
 
 
 
-Configuration added to all the jobs within the job set\.
+Configuration merged into every job listed in ` jobs `\. Use this to
+apply shared settings (image, tags, environment variables, etc\.)
+without repeating them on each job definition\.
 
 
 
@@ -858,6 +961,18 @@ lazy attribute set of raw value
 *Default:*
 ` { } `
 
+
+
+*Example:*
+
+```
+{
+  image = "registry.example.com/tofu:1.9";
+  tags = [ "linux" ];
+}
+
+```
+
 *Declared by:*
  - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
 
@@ -867,7 +982,9 @@ lazy attribute set of raw value
 
 
 
-List of job names associated with the job set
+Names of jobs that belong to this job set\. Duplicates are removed
+automatically\. Jobs listed here receive the ` jobDefaults ` of this
+set merged into their config\.
 
 
 
@@ -879,6 +996,15 @@ list of string
 *Default:*
 ` [ ] `
 
+
+
+*Example:*
+
+```
+[ "cluster_control-plane_prod" "cluster_node-pools_prod" ]
+
+```
+
 *Declared by:*
  - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
 
@@ -888,7 +1014,9 @@ list of string
 
 
 
-Job Sets needed by the Job Set\.
+Job sets that must complete successfully before any job in this job
+set is allowed to run\. Translated to ` needs: ` (GitHub Actions) or
+` needs: ` rules (GitLab CI) on each job in the set\.
 
 
 
@@ -900,6 +1028,18 @@ list of (Job set needs configuration)
 *Default:*
 ` [ ] `
 
+
+
+*Example:*
+
+```
+[
+  { jobSet = "networking_vpc_prod"; }
+  { jobSet = "security_iam_prod"; }
+]
+
+```
+
 *Declared by:*
  - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
 
@@ -909,12 +1049,17 @@ list of (Job set needs configuration)
 
 
 
-Name of the needed job set\.
+Name of the job set that must complete before this job set runs\.
 
 
 
 *Type:*
 string
+
+
+
+*Example:*
+` "networking_vpc_prod" `
 
 *Declared by:*
  - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
@@ -925,7 +1070,9 @@ string
 
 
 
-List of tags associated with the job set
+Arbitrary string labels associated with this job set\. Duplicates are
+removed automatically\. Tags are used by backends to select or filter
+job sets (e\.g\. GitLab runner tag matching)\.
 
 
 
@@ -937,6 +1084,11 @@ list of string
 *Default:*
 ` [ ] `
 
+
+
+*Example:*
+` [ "prod" "infra" ] `
+
 *Declared by:*
  - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
 
@@ -946,7 +1098,9 @@ list of string
 
 
 
-Jobs to run in pipeline\.
+Jobs to run in this pipeline\. Each attribute name becomes the job
+identifier used in backend output (` jobs: ` in GitHub Actions,
+job keys in GitLab CI)\.
 
 
 
@@ -957,6 +1111,26 @@ lazy attribute set of (Job configuration)
 
 *Default:*
 ` { } `
+
+
+
+*Example:*
+
+```
+{
+  build = {
+    image = "nixos/nix:latest";
+    script = [ "nix build" ];
+    tags = [ "linux" ];
+  };
+  test = {
+    image = "nixos/nix:latest";
+    needs = [ "build" ];
+    script = [ "nix flake check" ];
+  };
+}
+
+```
 
 *Declared by:*
  - [jobs/interface\.nix](jobs/interface.nix)
@@ -1489,7 +1663,13 @@ null or signed integer
 
 
 
-Job configuration targeting GitHub Actions\.
+GitHub Actions-specific job configuration\. Accepts any YAML-typed
+field supported by GitHub Actions job syntax (e\.g\. ` runs-on `,
+` environment `, ` concurrency `)\. Merged with the shared job settings;
+backend-specific values take precedence over the shared equivalents\.
+
+Set ` enable = false ` to exclude this job from GitHub Actions output
+while keeping it active for other backends\.
 
 
 
@@ -1500,6 +1680,19 @@ YAML value
 
 *Default:*
 ` { } `
+
+
+
+*Example:*
+
+```
+{
+  runs-on = "ubuntu-latest";
+  environment = "production";
+  concurrency = { group = "deploy-prod"; cancel-in-progress = false; };
+}
+
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1531,7 +1724,13 @@ boolean
 
 
 
-Job configuration targeting GitLab CI\.
+GitLab CI-specific job configuration\. Accepts any YAML-typed field
+supported by GitLab CI job syntax (e\.g\. ` variables `, ` cache `,
+` interruptible `, ` resource_group `)\. Merged with the shared job
+settings; backend-specific values take precedence\.
+
+Set ` enable = false ` to exclude this job from GitLab CI output while
+keeping it active for other backends\.
 
 
 
@@ -1542,6 +1741,19 @@ YAML value
 
 *Default:*
 ` { } `
+
+
+
+*Example:*
+
+```
+{
+  resource_group = "deploy-prod";
+  interruptible = false;
+  variables.TF_VAR_env = "prod";
+}
+
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1716,7 +1928,13 @@ boolean
 
 
 
-Call a child pipeline (reusable workflow / template include) instead of running commands directly\.
+Call a child pipeline instead of running commands directly\.
+Generates a reusable workflow call (GitHub Actions) or a
+` trigger:include: ` job (GitLab CI)\.
+
+When set, ` commands ` and ` script ` on the job are ignored\.
+The child pipeline must be declared separately (e\.g\. a pipeline
+whose outputs are included via ` gitlab-templates/<name>/template.yml `)\.
 
 
 
@@ -1727,6 +1945,18 @@ null or (submodule)
 
 *Default:*
 ` null `
+
+
+
+*Example:*
+
+```
+{
+  pipeline = "infra";
+  inputs = { service = "api"; environment = "prod"; };
+}
+
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2005,7 +2235,11 @@ string
 
 
 
-Job configuration targeting process-compose\.
+process-compose-specific job configuration\. Accepts a deferred module
+that is merged into the process-compose process definition for this job\.
+
+Set ` enable = false ` to exclude this job from process-compose output
+while keeping it active for other backends\.
 
 
 
@@ -2016,6 +2250,18 @@ module
 
 *Default:*
 ` { } `
+
+
+
+*Example:*
+
+```
+{
+  availability.restart = "on_failure";
+  environment = [ "DEBUG=1" ];
+}
+
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2124,8 +2370,9 @@ list of string
 
 
 
-Declared outputs for this pipeline\.
-Becomes on\.workflow_call\.outputs on GitHub Actions\.
+Declared outputs for this pipeline\. Becomes ` on.workflow_call.outputs `
+on GitHub Actions\. GitLab CI does not currently support pipeline-level
+outputs\.
 
 
 
@@ -2136,6 +2383,17 @@ attribute set of (submodule)
 
 *Default:*
 ` { } `
+
+
+
+*Example:*
+
+```
+{
+  plan-summary.value = "${{ jobs.plan.outputs.summary }}";
+}
+
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -2226,7 +2484,10 @@ module
 
 
 
-Infrastructure stacks topology\. Each stack contains deployments and components\.
+Infrastructure stacks topology\. Each stack declares its deployment
+environments and components\. The stack engine generates one factory
+application per component × deployment combination and resolves
+cross-component ` needs ` within each deployment\.
 
 
 
@@ -2237,6 +2498,30 @@ lazy attribute set of (submodule)
 
 *Default:*
 ` { } `
+
+
+
+*Example:*
+
+```
+{
+  networking = {
+    deployments = { dev = { }; prod = { }; };
+    components = {
+      vpc = { };
+      dns.needs = [ { component = "vpc"; } ];
+    };
+  };
+  cluster = {
+    deployments = { dev = { }; prod = { }; };
+    components = {
+      control-plane.needs = [ { stack = "networking"; } ];
+      node-pools.needs    = [ { component = "control-plane"; } ];
+    };
+  };
+}
+
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -2247,7 +2532,8 @@ lazy attribute set of (submodule)
 
 
 
-Components within this stack\.
+Components within this stack\. Each component generates one job per
+deployment via the stack’s factory\.
 
 
 
@@ -2259,6 +2545,19 @@ lazy attribute set of (submodule)
 *Default:*
 ` { } `
 
+
+
+*Example:*
+
+```
+{
+  vpc = { };
+  dns.needs = [ { component = "vpc"; } ];
+  cluster.needs = [ { component = "vpc"; } { component = "dns"; } ];
+}
+
+```
+
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
 
@@ -2268,10 +2567,14 @@ lazy attribute set of (submodule)
 
 
 
-Dependencies on other components or stacks\. Resolved within the same deployment\.
+Dependencies on other components or stacks\. Needs are always resolved
+within the same deployment as the declaring component — cross-deployment
+needs are not supported\.
 
-Note: needs are always resolved within the same deployment as the declaring component\.
-Cross-deployment needs are not supported\.
+Use ` { component = "name"; } ` for a sibling component in the same stack,
+` { stack = "name"; } ` for all components of another stack, or
+` { stack = "name"; component = "name"; } ` for a specific component in
+another stack\.
 
 
 
@@ -2283,6 +2586,18 @@ list of (submodule)
 *Default:*
 ` [ ] `
 
+
+
+*Example:*
+
+```
+[
+  { component = "vpc"; }
+  { stack = "security"; component = "iam"; }
+]
+
+```
+
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
 
@@ -2292,7 +2607,9 @@ list of (submodule)
 
 
 
-Component name of the dependency\. When null, matches all components (stack-level jobSet)\.
+Component name of the dependency\. When null, depends on the
+stack-level jobSet (all components of the target stack at
+the same deployment)\.
 
 
 
@@ -2303,6 +2620,11 @@ null or string
 
 *Default:*
 ` null `
+
+
+
+*Example:*
+` "vpc" `
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -2325,6 +2647,11 @@ null or string
 *Default:*
 ` null `
 
+
+
+*Example:*
+` "networking" `
+
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
 
@@ -2334,7 +2661,8 @@ null or string
 
 
 
-Deployment environments for this stack (e\.g\. dev, stg, prod)\. Values are not currently used; only the names matter\.
+Deployment environments for this stack\. Only the attribute names
+matter; values are not currently used\.
 
 
 
@@ -2345,6 +2673,19 @@ lazy attribute set of (attribute set)
 
 *Default:*
 ` { } `
+
+
+
+*Example:*
+
+```
+{
+  dev = { };
+  stg = { };
+  prod = { };
+}
+
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -2358,7 +2699,10 @@ lazy attribute set of (attribute set)
 Name of a factory in ` config.jobFactories ` used to generate jobs and
 jobSets for each component × deployment combination in this stack\.
 When null, falls back to ` config.defaultJobFactory `\.
-The factory receives ` { stackName, componentName, deployment, stack, component, needs } ` and must return ` { jobs, jobSets } `\.
+
+The factory ` fn ` receives
+` { stack, component, deployment, needs, formatJobName, factoryName } `
+and must return ` { jobs, jobSets } `\.
 
 
 
@@ -2369,6 +2713,11 @@ null or string
 
 *Default:*
 ` null `
+
+
+
+*Example:*
+` "tofu-component" `
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)

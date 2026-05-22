@@ -13,21 +13,37 @@ let
                 type = types.nullOr types.str;
                 default = null;
                 description = "Stack name of the dependency. When null, uses the current stack.";
+                example = "networking";
               };
               component = lib.mkOption {
                 type = types.nullOr types.str;
                 default = null;
-                description = "Component name of the dependency. When null, matches all components (stack-level jobSet).";
+                description = ''
+                  Component name of the dependency. When null, depends on the
+                  stack-level jobSet (all components of the target stack at
+                  the same deployment).
+                '';
+                example = "vpc";
               };
             };
           }
         );
         default = [ ];
         description = ''
-          Dependencies on other components or stacks. Resolved within the same deployment.
+          Dependencies on other components or stacks. Needs are always resolved
+          within the same deployment as the declaring component — cross-deployment
+          needs are not supported.
 
-          Note: needs are always resolved within the same deployment as the declaring component.
-          Cross-deployment needs are not supported.
+          Use `{ component = "name"; }` for a sibling component in the same stack,
+          `{ stack = "name"; }` for all components of another stack, or
+          `{ stack = "name"; component = "name"; }` for a specific component in
+          another stack.
+        '';
+        example = lib.literalExpression ''
+          [
+            { component = "vpc"; }
+            { stack = "security"; component = "iam"; }
+          ]
         '';
       };
     };
@@ -42,9 +58,12 @@ let
           Name of a factory in `config.jobFactories` used to generate jobs and
           jobSets for each component × deployment combination in this stack.
           When null, falls back to `config.defaultJobFactory`.
-          The factory receives `{ stackName, componentName, deployment, stack,
-          component, needs }` and must return `{ jobs, jobSets }`.
+
+          The factory `fn` receives
+          `{ stack, component, deployment, needs, formatJobName, factoryName }`
+          and must return `{ jobs, jobSets }`.
         '';
+        example = lib.literalExpression ''"tofu-component"'';
       };
 
       deployments = lib.mkOption {
@@ -54,7 +73,17 @@ let
           }
         );
         default = { };
-        description = "Deployment environments for this stack (e.g. dev, stg, prod). Values are not currently used; only the names matter.";
+        description = ''
+          Deployment environments for this stack. Only the attribute names
+          matter; values are not currently used.
+        '';
+        example = lib.literalExpression ''
+          {
+            dev = { };
+            stg = { };
+            prod = { };
+          }
+        '';
       };
 
       components = lib.mkOption {
@@ -64,7 +93,17 @@ let
           }
         );
         default = { };
-        description = "Components within this stack.";
+        description = ''
+          Components within this stack. Each component generates one job per
+          deployment via the stack's factory.
+        '';
+        example = lib.literalExpression ''
+          {
+            vpc = { };
+            dns.needs = [ { component = "vpc"; } ];
+            cluster.needs = [ { component = "vpc"; } { component = "dns"; } ];
+          }
+        '';
       };
     };
   };
@@ -78,6 +117,7 @@ in
         Default factory name used for stacks that do not set `jobFactory`.
         When both are null, an error is thrown at evaluation time.
       '';
+      example = lib.literalExpression ''"tofu-component"'';
     };
 
     stacks = lib.mkOption {
@@ -87,7 +127,30 @@ in
         }
       );
       default = { };
-      description = "Infrastructure stacks topology. Each stack contains deployments and components.";
+      description = ''
+        Infrastructure stacks topology. Each stack declares its deployment
+        environments and components. The stack engine generates one factory
+        application per component × deployment combination and resolves
+        cross-component `needs` within each deployment.
+      '';
+      example = lib.literalExpression ''
+        {
+          networking = {
+            deployments = { dev = { }; prod = { }; };
+            components = {
+              vpc = { };
+              dns.needs = [ { component = "vpc"; } ];
+            };
+          };
+          cluster = {
+            deployments = { dev = { }; prod = { }; };
+            components = {
+              control-plane.needs = [ { stack = "networking"; } ];
+              node-pools.needs    = [ { component = "control-plane"; } ];
+            };
+          };
+        }
+      '';
     };
   };
 }
