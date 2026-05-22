@@ -10,45 +10,44 @@ let
     config.formatJobName ([ stack ] ++ lib.optional (component != null) component ++ [ deployment ]);
 
   resolveJobFactory =
-    stackName: stack:
-    if stack.jobFactory != null then
-      stack.jobFactory
+    stack: stackConfig:
+    if stackConfig.jobFactory != null then
+      stackConfig.jobFactory
     else if config.defaultJobFactory != null then
       config.defaultJobFactory
     else
-      throw "stacks: no jobFactory set for stack '${stackName}' and no defaultJobFactory configured";
+      throw "stacks: no jobFactory set for stack '${stack}' and no defaultJobFactory configured";
 
   allTriples = lib.concatMap (
-    stackName:
+    stack:
     let
-      stack = config.stacks.${stackName};
-      factoryName = resolveJobFactory stackName stack;
+      stackConfig = config.stacks.${stack};
+      factoryName = resolveJobFactory stack stackConfig;
     in
     lib.concatMap (
-      componentName:
+      component:
       map (deployment: {
         inherit
           stack
-          stackName
-          componentName
+          component
           deployment
           factoryName
           ;
         inherit (config) formatJobName;
-        component = stack.components.${componentName};
         needs = map (need: {
-          jobSet = needToJobSetName stackName deployment need;
-        }) stack.components.${componentName}.needs;
-      }) (builtins.attrNames stack.deployments)
-    ) (builtins.attrNames stack.components)
+          jobSet = needToJobSetName stack deployment need;
+        }) stackConfig.components.${component}.needs;
+      }) (builtins.attrNames stackConfig.deployments)
+    ) (builtins.attrNames stackConfig.components)
   ) (builtins.attrNames config.stacks);
 in
 {
   imports = [ ./interface.nix ];
 
-  config.jobFactories = lib.mkMerge (
-    map (args: {
+  config.jobFactories = lib.pipe allTriples [
+    (map (args: {
       ${args.factoryName}.applications = [ args ];
-    }) allTriples
-  );
+    }))
+    lib.mkMerge
+  ];
 }
