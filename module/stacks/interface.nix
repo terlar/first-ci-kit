@@ -3,8 +3,45 @@
 let
   inherit (lib) types;
 
+  deploymentsType = types.lazyAttrsOf (
+    types.submodule {
+      config._module.freeformType = types.attrs;
+    }
+  );
+
+  mkDeploymentsOption =
+    overrides:
+    lib.mkOption (
+      {
+        type = deploymentsType;
+        default = { };
+        description = ''
+          Deployment environments. Only attribute names matter; values are
+          reserved for future use.
+        '';
+        example = lib.literalExpression ''
+          {
+            dev = { };
+            stg = { };
+            prod = { };
+          }
+        '';
+      }
+      // overrides
+    );
+
   componentModule = {
     options = {
+      deployments = mkDeploymentsOption {
+        type = types.nullOr deploymentsType;
+        default = null;
+        description = ''
+          Deployment environments for this component. When set, overrides the
+          stack-level `deployments` for this component only. When null
+          (the default), the component inherits the stack-level `deployments`.
+        '';
+      };
+
       needs = lib.mkOption {
         type = types.listOf (
           types.submodule {
@@ -66,25 +103,7 @@ let
         example = lib.literalExpression ''"tofu-component"'';
       };
 
-      deployments = lib.mkOption {
-        type = types.lazyAttrsOf (
-          types.submodule {
-            config._module.freeformType = types.attrs;
-          }
-        );
-        default = { };
-        description = ''
-          Deployment environments for this stack. Only the attribute names
-          matter; values are not currently used.
-        '';
-        example = lib.literalExpression ''
-          {
-            dev = { };
-            stg = { };
-            prod = { };
-          }
-        '';
-      };
+      deployments = mkDeploymentsOption { };
 
       components = lib.mkOption {
         type = types.lazyAttrsOf (

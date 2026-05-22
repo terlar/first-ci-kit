@@ -26,6 +26,14 @@ let
     in
     lib.concatMap (
       component:
+      let
+        componentConfig = stackConfig.components.${component};
+        deployments =
+          if componentConfig.deployments != null then
+            componentConfig.deployments
+          else
+            stackConfig.deployments;
+      in
       map (deployment: {
         inherit
           stack
@@ -36,8 +44,8 @@ let
         inherit (config) formatJobName;
         needs = map (need: {
           jobSet = needToJobSetName stack deployment need;
-        }) stackConfig.components.${component}.needs;
-      }) (builtins.attrNames stackConfig.deployments)
+        }) componentConfig.needs;
+      }) (builtins.attrNames deployments)
     ) (builtins.attrNames stackConfig.components)
   ) (builtins.attrNames config.stacks);
 in
