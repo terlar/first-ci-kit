@@ -16,7 +16,6 @@ Use `jobSet.jobDefaults.pipelineCall`. Any job that carries the matching tag inh
     tags = [ "terraform" ];
     jobDefaults.pipelineCall = {
       pipeline = "terraform";
-      gitlab-ci.templatePath = "ci/templates/terraform.yml";
       gitlab-ci.rulesInput = "rules";
     };
   };
@@ -128,7 +127,7 @@ in
 
 All results are merged into the top-level `jobs` and `jobSets`.
 
-For larger datasets, drive `applications` from a data structure using `lib.mapAttrsToList` or similar, rather than listing entries manually. See [pattern 5](#5-stacks--components--deployments) for how this composes with a separate data file.
+`applications` defaults to `[]` and does not need to be set explicitly. When `stacks` is used, the stack engine populates `applications` automatically — see [pattern 5](#5-stacks--components--deployments).
 
 ---
 
@@ -155,6 +154,42 @@ The `stacks` module handles this directly. Declare components and deployments; t
 # networking_dns_dev automatically needs networking_vpc_dev (same deployment).
 ```
 
+The factory function receives `stack`, `component`, `deployment`, `needs` (pre-resolved), and `formatJobName`. Use `formatJobName` rather than manual string concatenation — it applies the pipeline's configured separator consistently:
+
+```nix
+jobFactories.tofu.fn =
+  { stack, component, deployment, needs, formatJobName, ... }:
+  let
+    jobName         = formatJobName [ stack component deployment ];
+    stackDeployment = formatJobName [ stack deployment ];
+  in
+  {
+    jobs.${jobName} = {
+      tags = [ stackDeployment jobName ];
+      branches.default = {
+        changes.paths = [ "terraform/${stack}/${component}/**" ];
+        triggers.onPush = true;
+        triggers.onMergeRequest = true;
+      };
+      pipelineCall = {
+        pipeline = "deploy";
+        inputs   = { inherit stack component deployment; };
+        gitlab-ci = {
+          rulesInput     = "rules";
+          pushRulesInput = "deploy_rules";
+        };
+      };
+    };
+    jobSets = {
+      ${deployment}.tags       = [ deployment ];
+      ${stackDeployment}.tags  = [ stackDeployment ];
+      ${jobName} = { tags = [ jobName ]; inherit needs; };
+    };
+  };
+```
+
+`pipelineCall.gitlab-ci.templatePath` is auto-derived from the pipeline name (`gitlab-templates/<name>/template.yml`) and does not need to be set explicitly unless you use a non-standard path.
+
 Cross-stack dependencies are expressed with `{ stack = "networking"; }` (all components of that stack, same deployment) or `{ stack = "networking"; component = "vpc"; }` (specific component):
 
 ```nix
@@ -172,75 +207,75 @@ stacks.cluster = {
 For larger projects, put the topology data in a separate Nix file that is purely data — no pipeline options — so it can be consumed by other tools (diagram generators, documentation scripts) as well as the CI module:
 
 ```nix
-# dev/stacks.nix — pure data, no pipeline imports
-{
-  networking = {
-    deployments = { dev = {}; prod = {}; };
-    components  = { vpc = {}; dns.needs = [{ component = "vpc"; }]; };
-  };
-  cluster = {
-    deployments = { dev = {}; prod = {}; };
-    components.control-plane.needs = [{ stack = "networking"; }];
-  };
-}
-
 # dev/flake-module.nix
 {
-  first-ci-kit.stacks = import ./stacks.nix;
+  first-ci-kit.pipelines.default.stacks = import ./stacks.nix;
 }
 ```
 
 ---
 
-## 6. Mixing static and generated config
+## 6. Splitting pipeline config across files
 
-**Problem:** A pipeline has both fixed top-level settings (workflow triggers, default image) and a large block of dynamically generated jobs. Keeping them in a single expression becomes unreadable.
+**Problem:** A pipeline has fixed top-level settings (workflow triggers, default image), a factory, and a child pipeline definition. Keeping everything in one file becomes unreadable.
 
-Use `lib.mkMerge` to combine an attrset of static settings with one or more generated blocks. The module system merges them correctly.
+Split the pipeline config across multiple flake-module files. The NixOS module system merges all imports, so each file can set any subset of `first-ci-kit.pipelines.<name>` options without coordination.
+
+```
+dev/
+  flake-module.nix      ← imports the others
+  ci/
+    settings.nix        ← gitlab-ci/github-actions settings, jobSets ordering
+    factory.nix         ← stacks, defaultJobFactory, jobFactories
+    profile-tofu.nix    ← pipelines.profile-tofu definition
+```
 
 ```nix
+# dev/flake-module.nix
 {
-  pipelines.default = lib.mkMerge [
-    {
-      # Static settings
-      gitlab-ci.settings = {
-        default.image = "alpine";
-        stages = [ "main" ];
-        workflow.rules = [
-          { "if" = "$CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED"; }
-          { "if" = "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"; }
-        ];
-      };
-
-      github-actions = {
-        defaultRunsOn = "ubuntu-latest";
-        summaryJob.enable = true;
-        settings.name = "CI";
-      };
-
-      # Enforce dev → stg promotion gate for every staging job
-      jobSets.stg.needs = [{ jobSet = "dev"; }];
-    }
-
-    # Generated jobs from a data file
-    (lib.pipe (import ./stacks.nix) [
-      (lib.mapAttrsToList (stack: v:
-        lib.mapAttrsToList (component: _:
-          lib.mapAttrsToList (deployment: _: {
-            jobs."${stack}_${component}_${deployment}" = {
-              commands = [ "deploy ${stack} ${component} ${deployment}" ];
-            };
-          }) v.deployments
-        ) v.components
-      ))
-      lib.flatten
-      (builtins.foldl' lib.recursiveUpdate {})
-    ])
+  imports = [
+    ./ci/settings.nix
+    ./ci/factory.nix
+    ./ci/profile-tofu.nix
   ];
+}
+
+# dev/ci/settings.nix
+{
+  first-ci-kit.pipelines.default = {
+    gitlab-ci.settings = {
+      stages = [ "main" ];
+      workflow.rules = [ … ];
+    };
+    github-actions = {
+      defaultRunsOn = "ubuntu-latest";
+      summaryJob.enable = true;
+    };
+    jobSets.stg.needs = [{ jobSet = "dev"; }];   # promotion gate
+  };
+}
+
+# dev/ci/factory.nix
+{
+  first-ci-kit.pipelines.default = {
+    stacks = import ../stacks.nix;
+    defaultJobFactory = "tofu-component";
+    jobFactories.tofu-component.fn = { stack, component, deployment, needs, formatJobName, ... }: { … };
+  };
+}
+
+# dev/ci/profile-tofu.nix
+{
+  first-ci-kit.pipelines.profile-tofu = {
+    inputs = { … };
+    jobs = { … };
+  };
 }
 ```
 
-`lib.mkMerge` takes a list of attrsets and performs a deep NixOS-module merge, so list-typed options (like `commands`) are concatenated and scalar options respect priority (`lib.mkDefault`, `lib.mkForce`).
+Each file is a valid flake-parts module that sets only the options it owns. No `lib.mkMerge` or manual merging needed.
+
+`lib.mkMerge` is still useful within a single file when you want to keep hand-written settings visually separate from a generated block, or when you need to merge conditional (`lib.mkIf`) config fragments.
 
 ---
 
