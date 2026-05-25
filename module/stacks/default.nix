@@ -6,8 +6,11 @@ let
     let
       inherit (need) component;
       stack = if need.stack != null then need.stack else currentStack;
+      resolvedDeployment = if need.deployment != null then need.deployment else deployment;
     in
-    config.formatJobName ([ stack ] ++ lib.optional (component != null) component ++ [ deployment ]);
+    config.formatJobName (
+      [ stack ] ++ lib.optional (component != null) component ++ [ resolvedDeployment ]
+    );
 
   resolveJobFactory =
     stack: stackConfig: componentConfig:

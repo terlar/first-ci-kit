@@ -305,6 +305,73 @@ in
     expected = [ { jobSet = "networking_dev"; } ];
   };
 
+  test-stacks-needs-explicit-deployment = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stacks.app = {
+              components = {
+                network.deployments.dev_tooling = { };
+                api = {
+                  deployments.dev = { };
+                  needs = [
+                    {
+                      component = "network";
+                      deployment = "dev_tooling";
+                    }
+                  ];
+                };
+              };
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "jobSets"
+            "app_api_dev"
+            "needs"
+          ])
+        ];
+    expected = [ { jobSet = "app_network_dev_tooling"; } ];
+  };
+
+  test-stacks-needs-cross-stack-explicit-deployment = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stacks = {
+              networking = {
+                components.vpc.deployments.prod_shared = { };
+              };
+              cluster = {
+                deployments.prod = { };
+                components."control-plane".needs = [
+                  {
+                    stack = "networking";
+                    component = "vpc";
+                    deployment = "prod_shared";
+                  }
+                ];
+              };
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "jobSets"
+            "cluster_control-plane_prod"
+            "needs"
+          ])
+        ];
+    expected = [ { jobSet = "networking_vpc_prod_shared"; } ];
+  };
+
   # 3. Empty stacks
   test-stacks-empty-generates-nothing = {
     expr =

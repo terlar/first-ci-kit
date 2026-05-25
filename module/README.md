@@ -2925,14 +2925,15 @@ null or string
 
 
 
-Dependencies on other components or stacks\. Needs are always resolved
-within the same deployment as the declaring component — cross-deployment
-needs are not supported\.
+Dependencies on other components or stacks\. By default needs are
+resolved within the same deployment as the declaring component\.
+Set ` deployment ` explicitly for cross-deployment dependencies\.
 
 Use ` { component = "name"; } ` for a sibling component in the same stack,
 ` { stack = "name"; } ` for all components of another stack, or
 ` { stack = "name"; component = "name"; } ` for a specific component in
-another stack\.
+another stack\. Add ` deployment = "name" ` to any of the above to pin
+to a specific deployment\.
 
 
 
@@ -2952,6 +2953,7 @@ list of (submodule)
 [
   { component = "vpc"; }
   { stack = "security"; component = "iam"; }
+  { component = "network"; deployment = "dev_tooling"; }
 ]
 
 ```
@@ -2983,6 +2985,35 @@ null or string
 
 *Example:*
 ` "vpc" `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
+## stacks\.\<name>\.components\.\<name>\.needs\.\*\.deployment
+
+
+
+Explicit deployment name of the dependency\. When null, uses
+the same deployment as the declaring component\. Use this to
+express cross-deployment dependencies where the target
+component’s deployment name differs from the current one\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` "dev_tooling" `
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
