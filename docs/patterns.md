@@ -215,7 +215,136 @@ For larger projects, put the topology data in a separate Nix file that is purely
 
 ---
 
-## 6. Splitting pipeline config across files
+## 6. Filesystem-based stack discovery
+
+**Problem:** Your stack topology lives implicitly in the repository filesystem — components and deployments are directories or files, not Nix declarations. Keeping a hand-written `stacks` attrset in sync with the filesystem is error-prone.
+
+Use `stackDiscovery` to derive the `stacks` config automatically from the filesystem. Any explicit `stacks` declarations you add take precedence over discovered values.
+
+### Directory-per-deployment layout (default)
+
+Each deployment is a subdirectory. All deployment-specific files live together inside it. This is the default layout.
+
+```
+terraform/
+└── networking/          ← stack
+    └── vpc/             ← component
+        └── deployments/
+            ├── dev/
+            │   ├── terraform.tfvars
+            │   └── gcs.tfbackend
+            └── prod/
+                ├── terraform.tfvars
+                └── gcs.tfbackend
+```
+
+```nix
+{
+  first-ci-kit.pipelines.default.stackDiscovery = {
+    enable = true;
+    path   = ./terraform;
+    # deployments.subdirectory = "deployments";  # default
+    # deployments.detection    = "directories";  # default
+  };
+}
+# Discovers: stacks.networking.components.vpc.deployments = { dev = {}; prod = {}; }
+```
+
+### File-per-deployment layout
+
+Deployment files sit directly in the component directory alongside the Terraform source. Set `deployments.subdirectory = null` and `deployments.detection = "files"`.
+
+```
+terraform/
+└── org/                 ← stack
+    ├── iam/             ← component
+    │   ├── acc.tfvars
+    │   ├── dev.tfvars
+    │   └── main.tf
+    └── repository/      ← component
+        ├── dev.tfvars
+        └── main.tf
+```
+
+```nix
+{
+  first-ci-kit.pipelines.default.stackDiscovery = {
+    enable = true;
+    path   = ./terraform;
+    deployments.subdirectory = null;
+    deployments.detection    = "files";
+    # deployments.extension  = ".tfvars";  # default
+  };
+}
+# Discovers: stacks.org.components.iam.deployments     = { acc = {}; dev = {}; }
+#            stacks.org.components.repository.deployments = { dev = {}; }
+```
+
+If you prefer a dedicated `deployments/` folder but still want file-based keys, omit `subdirectory = null` and keep `detection = "files"`:
+
+```
+terraform/
+└── networking/
+    └── vpc/
+        └── deployments/
+            ├── dev.tfvars
+            └── prod.tfvars
+```
+
+```nix
+stackDiscovery = {
+  enable = true;
+  path   = ./terraform;
+  deployments.detection = "files";
+};
+```
+
+### Per-component config
+
+Place a `component.nix` file inside any component directory to set component options (`needs`, `extraPaths`, `jobFactory`, etc.). Values from `component.nix` override filesystem-derived defaults but lose to explicit hand-written `stacks` config:
+
+```nix
+# terraform/networking/dns/component.nix
+{ needs = [{ component = "vpc"; }]; }
+```
+
+### Single-stack layout
+
+For simpler pipelines with no need for multiple stacks, set `stackName` to treat `path` as the stack directory itself. Components are first-level subdirectories of `path` directly.
+
+```
+terraform/
+├── iam/
+│   └── deployments/
+│       ├── dev/
+│       └── prod/
+└── repository/
+    └── deployments/
+        ├── dev/
+        └── prod/
+```
+
+```nix
+stackDiscovery = {
+  enable    = true;
+  path      = ./terraform;
+  stackName = "infra";
+};
+# Discovers: stacks.infra.components.iam.deployments        = { dev = {}; prod = {}; }
+#            stacks.infra.components.repository.deployments = { dev = {}; prod = {}; }
+```
+
+### Excluding directories
+
+First-level directories named `modules` are excluded by default. Override with `excludeDirs`:
+
+```nix
+stackDiscovery.excludeDirs = [ "modules" "shared" ];
+```
+
+---
+
+## 7. Splitting pipeline config across files
 
 **Problem:** A pipeline has fixed top-level settings (workflow triggers, default image), a factory, and a child pipeline definition. Keeping everything in one file becomes unreadable.
 
@@ -279,7 +408,7 @@ Each file is a valid flake-parts module that sets only the options it owns. No `
 
 ---
 
-## 7. Branch filtering and change detection
+## 8. Branch filtering and change detection
 
 **Problem:** Jobs should only run when relevant files change, and only on the appropriate triggers (push, MR, or both).
 
@@ -311,7 +440,7 @@ Declare `branches.<name>` with `triggers` and `changes.paths`. Use `default` as 
 
 ---
 
-## 8. Artifacts across jobs
+## 9. Artifacts across jobs
 
 **Problem:** One job produces a file (a plan, a build output) that a later job needs to consume.
 
@@ -352,7 +481,7 @@ artifacts.upload.name = "\${{ inputs.stack }}-\${{ inputs.deployment }}-plan";
 
 ---
 
-## 9. Per-backend enable/disable
+## 10. Per-backend enable/disable
 
 **Problem:** A job is only meaningful on one CI backend, or you need to temporarily disable a job on one platform without removing it.
 
@@ -381,7 +510,7 @@ Setting `enable = false` at the top level disables the job on all backends and t
 
 ---
 
-## 10. Reusable pipelines with inputs
+## 11. Reusable pipelines with inputs
 
 **Problem:** A pipeline is called from multiple places (or multiple stacks) with different parameter values. You want a typed, documented interface for those parameters.
 
@@ -453,7 +582,7 @@ When a GitLab CI pipeline is used as a component template (called from many plac
 
 ---
 
-## 11. Summary job as a required status check
+## 12. Summary job as a required status check
 
 **Problem:** GitHub branch protection requires listing every job as a required status check. Adding or removing a job means updating the branch protection rules.
 
@@ -473,7 +602,7 @@ The generated `summary` job:
 
 ---
 
-## 12. Shared setup steps with `lib.mkOrder`
+## 13. Shared setup steps with `lib.mkOrder`
 
 **Problem:** Every job in a jobSet needs the same setup steps (install a tool, activate a dev shell) before its own commands, but you do not want to repeat them on each job.
 

@@ -58,6 +58,7 @@ in
 {
   imports = [
     ./interface.nix
+    ./discover.nix
   ];
 
   config.jobFactories = lib.pipe allTriples [
