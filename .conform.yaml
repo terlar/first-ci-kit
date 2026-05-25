@@ -29,6 +29,7 @@ policies:
           - job-set
           - process-compose
           - renovate
+          - stacks
           - template
           - pipelines
         descriptionLength: 72

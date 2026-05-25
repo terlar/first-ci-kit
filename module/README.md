@@ -2480,9 +2480,247 @@ module
 
 
 
+## stackDiscovery\.enable
+
+
+
+Whether to enable filesystem-based stack discovery\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
+## stackDiscovery\.component\.configFile
+
+
+
+Filename within each component directory imported as a plain Nix
+attrset of component options\. May set any component option: ` needs `,
+` extraPaths `, ` jobFactory `, ` deployments `, etc\. Values from this file
+are applied at normal priority — they win over filesystem-derived
+defaults but lose to explicit hand-written config\.
+
+When the file does not exist the component is discovered with
+filesystem-derived defaults only\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` "component.nix" `
+
+
+
+*Example:*
+` "component.nix" `
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
+## stackDiscovery\.deployments\.detection
+
+
+
+How deployments are identified inside the scanned directory
+(` deployments.subdirectory `, or the component directory when
+` deployments.subdirectory ` is ` null `)\.
+
+ - ` "directories" `: each subdirectory is a deployment; the directory
+   name becomes the key\.
+ - ` "files" `: each file whose name ends with ` deployments.extension `
+   is a deployment; the extension is stripped to form the key\.
+
+
+
+*Type:*
+one of “files”, “directories”
+
+
+
+*Default:*
+` "directories" `
+
+
+
+*Example:*
+` "files" `
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
+## stackDiscovery\.deployments\.extension
+
+
+
+File extension used to identify deployment files when
+` deployments.detection ` is ` "files" `\. The basename with this
+extension stripped becomes the deployment key\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+` ".tfvars" `
+
+
+
+*Example:*
+` ".tfvars" `
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
+## stackDiscovery\.deployments\.subdirectory
+
+
+
+Subdirectory inside each component that holds deployment entries\.
+A component is recognised when this subdirectory exists\.
+
+Set to ` null ` to scan the component directory itself\. In that case
+a directory qualifies as a component when it contains at least one
+entry matching ` deployments.detection ` (a file with
+` deployments.extension `, or a subdirectory)\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` "deployments" `
+
+
+
+*Example:*
+` null `
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
+## stackDiscovery\.excludeDirs
+
+
+
+Subdirectory names to skip during stack-level scanning\. Only applies
+when ` stackName ` is null\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+
+```
+[
+  "modules"
+]
+```
+
+
+
+*Example:*
+` [ "modules" "shared" ] `
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
+## stackDiscovery\.path
+
+
+
+Root directory to scan\. When ` stackName ` is null (the default),
+first-level subdirectories become stack names and second-level
+subdirectories that qualify as components become component names\.
+When ` stackName ` is set, ` path ` is treated as the stack directory
+itself and first-level subdirectories become component names directly\.
+
+
+
+*Type:*
+absolute path
+
+
+
+*Example:*
+` ./terraform `
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
+## stackDiscovery\.stackName
+
+
+
+When set, ` path ` is treated as a single stack with this name\.
+First-level subdirectories of ` path ` become component names directly,
+with no intermediate stack-level directory\.
+
+When null (the default), first-level subdirectories of ` path ` are
+treated as stack names\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` "infra" `
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
 ## stacks
-
-
 
 Infrastructure stacks topology\. Each stack declares its deployment
 environments and components\. The stack engine generates one factory
@@ -2599,6 +2837,62 @@ null or (lazy attribute set of (attribute set))
 
 
 
+## stacks\.\<name>\.components\.\<name>\.deployments\.\<name>\.environment
+
+
+
+Logical environment this deployment targets (e\.g\. “dev”, “prod”)\.
+Passed to the factory as part of ` settings `\. Defaults to the
+deployment name\. Set to null to indicate no environment association\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` "‹name›" `
+
+
+
+*Example:*
+` "prod" `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
+## stacks\.\<name>\.components\.\<name>\.extraPaths
+
+
+
+Additional glob paths to include in change detection for this
+component, beyond what the job factory derives from
+stack/component/deployment\. Passed to the factory as ` extraPaths `\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+
+
+*Example:*
+` [ "shared/modules/**" "config/common.yaml" ] `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
 ## stacks\.\<name>\.components\.\<name>\.needs
 
 
@@ -2697,8 +2991,10 @@ null or string
 
 
 
-Deployment environments\. Only attribute names matter; values are
-reserved for future use\.
+Deployment environments\. Attribute names are the deployment keys used
+in job naming\. Values may set ` environment ` (logical target environment)
+and any additional fields, which are passed to the job factory as
+` deploymentConfig ` after module evaluation\.
 
 
 
@@ -2728,6 +3024,34 @@ lazy attribute set of (attribute set)
 
 
 
+## stacks\.\<name>\.deployments\.\<name>\.environment
+
+
+
+Logical environment this deployment targets (e\.g\. “dev”, “prod”)\.
+Passed to the factory as part of ` settings `\. Defaults to the
+deployment name\. Set to null to indicate no environment association\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` "‹name›" `
+
+
+
+*Example:*
+` "prod" `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
 ## stacks\.\<name>\.jobFactory
 
 
@@ -2737,8 +3061,9 @@ jobSets for each component × deployment combination in this stack\.
 When null, falls back to ` config.defaultJobFactory `\.
 
 The factory ` fn ` receives
-` { stack, component, deployment, needs, formatJobName, factoryName } `
-and must return ` { jobs, jobSets } `\.
+` { stack, component, deployment, settings, needs, formatJobName, factoryName } `
+and must return ` { jobs, jobSets } `\. ` settings ` contains all deployment
+fields (including ` environment `) plus ` extraPaths ` from the component\.
 
 
 

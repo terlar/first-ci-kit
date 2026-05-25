@@ -61,7 +61,13 @@ let
 
   tests = lib.pipe ./. [
     lib.filesystem.listFilesRecursive
-    (builtins.filter (path: path != ./default.nix))
+    (builtins.filter (
+      path:
+      path != ./default.nix
+      && lib.hasSuffix ".nix" (toString path)
+      # Exclude fixture files (plain Nix attrsets used by tests, not test modules themselves)
+      && !(lib.hasInfix "/fixtures/" (toString path))
+    ))
     (map (path: import path { inherit lib ci-lib test-lib; }))
     lib.mergeAttrsList
   ];
