@@ -2893,6 +2893,34 @@ list of string
 
 
 
+## stacks\.\<name>\.components\.\<name>\.jobFactory
+
+
+
+Name of a factory in ` config.jobFactories ` used for this component\.
+When null, falls back to the stack’s ` jobFactory `, then to
+` config.defaultJobFactory `\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` "tofu-component" `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
 ## stacks\.\<name>\.components\.\<name>\.needs
 
 

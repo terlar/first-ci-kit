@@ -114,6 +114,17 @@ let
         '';
         example = lib.literalExpression ''[ "shared/modules/**" "config/common.yaml" ]'';
       };
+
+      jobFactory = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Name of a factory in `config.jobFactories` used for this component.
+          When null, falls back to the stack's `jobFactory`, then to
+          `config.defaultJobFactory`.
+        '';
+        example = lib.literalExpression ''"tofu-component"'';
+      };
     };
   };
 

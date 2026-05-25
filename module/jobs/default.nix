@@ -17,20 +17,19 @@ let
 
   resolveTemplatePath =
     pc:
-    if pc.gitlab-ci.templatePath != null then
-      # 1. Per-call explicit override wins.
-      pc.gitlab-ci.templatePath
-    else if
-      config.pipelines ? ${pc.pipeline} && config.pipelines.${pc.pipeline}.gitlab-ci.templatePath != null
-    then
-      # 2. Child pipeline definition (nested under this pipeline).
-      config.pipelines.${pc.pipeline}.gitlab-ci.templatePath
-    else
-      # 3. Top-level sibling pipeline definition (passed via allPipelines).
-      assert lib.assertMsg (
-        allPipelines ? ${pc.pipeline} && allPipelines.${pc.pipeline}.gitlab-ci.templatePath != null
-      ) "pipelineCall: pipeline '${pc.pipeline}' has no gitlab-ci.templatePath set";
-      allPipelines.${pc.pipeline}.gitlab-ci.templatePath;
+    lib.findFirst (x: x != null)
+      (
+        assert lib.assertMsg (
+          allPipelines ? ${pc.pipeline} && allPipelines.${pc.pipeline}.gitlab-ci.templatePath != null
+        ) "pipelineCall: pipeline '${pc.pipeline}' has no gitlab-ci.templatePath set";
+        allPipelines.${pc.pipeline}.gitlab-ci.templatePath
+      )
+      [
+        # 1. Per-call explicit override wins.
+        pc.gitlab-ci.templatePath
+        # 2. Child pipeline definition (nested under this pipeline).
+        (config.pipelines.${pc.pipeline}.gitlab-ci.templatePath or null)
+      ];
 
   mkIncludeEntry =
     job:

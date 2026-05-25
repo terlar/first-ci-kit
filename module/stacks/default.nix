@@ -10,24 +10,25 @@ let
     config.formatJobName ([ stack ] ++ lib.optional (component != null) component ++ [ deployment ]);
 
   resolveJobFactory =
-    stack: stackConfig:
-    if stackConfig.jobFactory != null then
-      stackConfig.jobFactory
-    else if config.defaultJobFactory != null then
-      config.defaultJobFactory
-    else
-      throw "stacks: no jobFactory set for stack '${stack}' and no defaultJobFactory configured";
+    stack: stackConfig: componentConfig:
+    lib.findFirst (x: x != null)
+      (throw "stacks: no jobFactory set for stack '${stack}' and no defaultJobFactory configured")
+      [
+        componentConfig.jobFactory
+        stackConfig.jobFactory
+        config.defaultJobFactory
+      ];
 
   allTriples = lib.concatMap (
     stack:
     let
       stackConfig = config.stacks.${stack};
-      factoryName = resolveJobFactory stack stackConfig;
     in
     lib.concatMap (
       component:
       let
         componentConfig = stackConfig.components.${component};
+        factoryName = resolveJobFactory stack stackConfig componentConfig;
         deployments =
           if componentConfig.deployments != null then
             componentConfig.deployments

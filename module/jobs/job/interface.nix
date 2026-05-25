@@ -110,6 +110,16 @@ in
       default = true;
     };
 
+    factoryName = lib.mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      internal = true;
+      description = ''
+        Name of the job factory that generated this job. Set automatically
+        by the stacks engine; useful for inspection and testing.
+      '';
+    };
+
     runAlways = lib.mkOption {
       type = types.bool;
       default = false;
