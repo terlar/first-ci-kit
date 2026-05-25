@@ -2599,6 +2599,62 @@ null or (lazy attribute set of (attribute set))
 
 
 
+## stacks\.\<name>\.components\.\<name>\.deployments\.\<name>\.environment
+
+
+
+Logical environment this deployment targets (e\.g\. “dev”, “prod”)\.
+Passed to the factory as part of ` settings `\. Defaults to the
+deployment name\. Set to null to indicate no environment association\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` "‹name›" `
+
+
+
+*Example:*
+` "prod" `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
+## stacks\.\<name>\.components\.\<name>\.extraPaths
+
+
+
+Additional glob paths to include in change detection for this
+component, beyond what the job factory derives from
+stack/component/deployment\. Passed to the factory as ` extraPaths `\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+
+
+*Example:*
+` [ "shared/modules/**" "config/common.yaml" ] `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
 ## stacks\.\<name>\.components\.\<name>\.needs
 
 
@@ -2695,10 +2751,10 @@ null or string
 
 ## stacks\.\<name>\.deployments
 
-
-
-Deployment environments\. Only attribute names matter; values are
-reserved for future use\.
+Deployment environments\. Attribute names are the deployment keys used
+in job naming\. Values may set ` environment ` (logical target environment)
+and any additional fields, which are passed to the job factory as
+` deploymentConfig ` after module evaluation\.
 
 
 
@@ -2728,6 +2784,34 @@ lazy attribute set of (attribute set)
 
 
 
+## stacks\.\<name>\.deployments\.\<name>\.environment
+
+
+
+Logical environment this deployment targets (e\.g\. “dev”, “prod”)\.
+Passed to the factory as part of ` settings `\. Defaults to the
+deployment name\. Set to null to indicate no environment association\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` "‹name›" `
+
+
+
+*Example:*
+` "prod" `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
 ## stacks\.\<name>\.jobFactory
 
 
@@ -2737,8 +2821,9 @@ jobSets for each component × deployment combination in this stack\.
 When null, falls back to ` config.defaultJobFactory `\.
 
 The factory ` fn ` receives
-` { stack, component, deployment, needs, formatJobName, factoryName } `
-and must return ` { jobs, jobSets } `\.
+` { stack, component, deployment, settings, needs, formatJobName, factoryName } `
+and must return ` { jobs, jobSets } `\. ` settings ` contains all deployment
+fields (including ` environment `) plus ` extraPaths ` from the component\.
 
 
 

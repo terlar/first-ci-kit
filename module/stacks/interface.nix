@@ -3,9 +3,27 @@
 let
   inherit (lib) types;
 
-  deploymentsType = types.lazyAttrsOf (
-    types.submodule {
+  deploymentModule =
+    { name, ... }:
+    {
+      options = {
+        environment = lib.mkOption {
+          type = types.nullOr types.str;
+          default = name;
+          description = ''
+            Logical environment this deployment targets (e.g. "dev", "prod").
+            Passed to the factory as part of `settings`. Defaults to the
+            deployment name. Set to null to indicate no environment association.
+          '';
+          example = lib.literalExpression ''"prod"'';
+        };
+      };
       config._module.freeformType = types.attrs;
+    };
+
+  deploymentsType = types.lazyAttrsOf (
+    types.submoduleWith {
+      modules = [ deploymentModule ];
     }
   );
 
@@ -16,8 +34,10 @@ let
         type = deploymentsType;
         default = { };
         description = ''
-          Deployment environments. Only attribute names matter; values are
-          reserved for future use.
+          Deployment environments. Attribute names are the deployment keys used
+          in job naming. Values may set `environment` (logical target environment)
+          and any additional fields, which are passed to the job factory as
+          `deploymentConfig` after module evaluation.
         '';
         example = lib.literalExpression ''
           {
@@ -83,6 +103,17 @@ let
           ]
         '';
       };
+
+      extraPaths = lib.mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = ''
+          Additional glob paths to include in change detection for this
+          component, beyond what the job factory derives from
+          stack/component/deployment. Passed to the factory as `extraPaths`.
+        '';
+        example = lib.literalExpression ''[ "shared/modules/**" "config/common.yaml" ]'';
+      };
     };
   };
 
@@ -97,8 +128,9 @@ let
           When null, falls back to `config.defaultJobFactory`.
 
           The factory `fn` receives
-          `{ stack, component, deployment, needs, formatJobName, factoryName }`
-          and must return `{ jobs, jobSets }`.
+          `{ stack, component, deployment, settings, needs, formatJobName, factoryName }`
+          and must return `{ jobs, jobSets }`. `settings` contains all deployment
+          fields (including `environment`) plus `extraPaths` from the component.
         '';
         example = lib.literalExpression ''"tofu-component"'';
       };

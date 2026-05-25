@@ -42,6 +42,12 @@ let
           factoryName
           ;
         inherit (config) formatJobName;
+
+        settings = {
+          inherit (componentConfig) extraPaths;
+        }
+        // deployments.${deployment};
+
         needs = map (need: {
           jobSet = needToJobSetName stack deployment need;
         }) componentConfig.needs;
@@ -50,7 +56,9 @@ let
   ) (builtins.attrNames config.stacks);
 in
 {
-  imports = [ ./interface.nix ];
+  imports = [
+    ./interface.nix
+  ];
 
   config.jobFactories = lib.pipe allTriples [
     (map (args: {
