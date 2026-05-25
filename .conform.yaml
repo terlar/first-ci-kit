@@ -2,7 +2,7 @@ policies:
   - type: commit
     spec:
       header:
-        length: 89
+        length: 72
         imperative: true
         case: lower
         invalidLastCharacters: .

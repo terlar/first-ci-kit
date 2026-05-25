@@ -50,6 +50,23 @@ let
       // overrides
     );
 
+  deploymentMatchModule = {
+    options = {
+      environment = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Match target deployments by `environment` value.
+
+          - `null` (default): match targets whose `environment` equals the
+            current deployment's `environment`.
+          - A string: match targets whose `environment` equals this value.
+        '';
+        example = lib.literalExpression ''"prod"'';
+      };
+    };
+  };
+
   componentModule = {
     options = {
       deployments = mkDeploymentsOption {
@@ -86,12 +103,33 @@ let
                 type = types.nullOr types.str;
                 default = null;
                 description = ''
-                  Explicit deployment name of the dependency. When null, uses
-                  the same deployment as the declaring component. Use this to
-                  express cross-deployment dependencies where the target
-                  component's deployment name differs from the current one.
+                  Explicit deployment name of the dependency. When null and
+                  `matchDeployment` is also null, the target deployment is the
+                  same name as the current deployment. Ignored when
+                  `matchDeployment` is set.
                 '';
                 example = "dev_tooling";
+              };
+              matchDeployment = lib.mkOption {
+                type = types.nullOr (
+                  types.submoduleWith {
+                    modules = [ deploymentMatchModule ];
+                  }
+                );
+                default = null;
+                description = ''
+                  When non-null, resolve to all deployments of the target
+                  stack/component whose deployment settings match every
+                  attribute in this set. A `null` attribute value means
+                  "match targets whose value for that attribute equals the
+                  current deployment's value". Produces zero jobSets when no
+                  deployment matches. When null (the default), the target
+                  deployment is resolved by the `deployment` field (or the
+                  current deployment name when `deployment` is also null).
+                '';
+                example = lib.literalExpression ''
+                  { environment = null; }   # same environment as current deployment
+                '';
               };
             };
           }
@@ -100,19 +138,19 @@ let
         description = ''
           Dependencies on other components or stacks. By default needs are
           resolved within the same deployment as the declaring component.
-          Set `deployment` explicitly for cross-deployment dependencies.
 
           Use `{ component = "name"; }` for a sibling component in the same stack,
           `{ stack = "name"; }` for all components of another stack, or
           `{ stack = "name"; component = "name"; }` for a specific component in
-          another stack. Add `deployment = "name"` to any of the above to pin
-          to a specific deployment.
+          another stack. Set `deployment = "name"` to pin to a specific deployment,
+          or `matchDeployment = { environment = null; }` to match all deployments
+          whose `environment` value equals the current deployment's `environment`.
         '';
         example = lib.literalExpression ''
           [
             { component = "vpc"; }
             { stack = "security"; component = "iam"; }
-            { component = "network"; deployment = "dev_tooling"; }
+            { component = "network"; matchDeployment.environment = null; }
           ]
         '';
       };

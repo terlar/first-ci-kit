@@ -57,7 +57,13 @@ let
       componentConfig = discoverComponentConfig componentPath;
     in
     lib.mkMerge [
-      { deployments = lib.mkDefault (lib.genAttrs deploymentNames (_: { })); }
+      {
+        deployments = lib.mkDefault (
+          lib.genAttrs deploymentNames (
+            name: lib.mkDefault { environment = lib.mkDefault (cfg.deployments.environmentFromName name); }
+          )
+        );
+      }
       componentConfig
     ];
 
@@ -164,6 +170,29 @@ in
           extension stripped becomes the deployment key.
         '';
         example = lib.literalExpression ''".tfvars"'';
+      };
+
+      environmentFromName = lib.mkOption {
+        type = types.functionTo types.str;
+        default = name: name;
+        description = ''
+          Function mapping a discovered deployment directory/file name to the
+          logical `environment` value stored on that deployment. Applied to
+          every deployment discovered by the filesystem scan.
+
+          The default is the identity function (deployment key = environment).
+          Override this when your deployment naming convention encodes the
+          environment as a prefix or substring, e.g.:
+
+          ```nix
+          environmentFromName = dep: lib.head (lib.splitString "_" dep);
+          ```
+
+          This sets `environment = "dev"` for a deployment named `dev_tooling`,
+          keeping the env-extraction convention in the consuming repository
+          rather than in the upstream library.
+        '';
+        example = lib.literalExpression ''dep: lib.head (lib.splitString "_" dep)'';
       };
     };
 

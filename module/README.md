@@ -2572,6 +2572,46 @@ one of “files”, “directories”
 
 
 
+## stackDiscovery\.deployments\.environmentFromName
+
+
+
+Function mapping a discovered deployment directory/file name to the
+logical ` environment ` value stored on that deployment\. Applied to
+every deployment discovered by the filesystem scan\.
+
+The default is the identity function (deployment key = environment)\.
+Override this when your deployment naming convention encodes the
+environment as a prefix or substring, e\.g\.:
+
+```nix
+environmentFromName = dep: lib.head (lib.splitString "_" dep);
+```
+
+This sets ` environment = "dev" ` for a deployment named ` dev_tooling `,
+keeping the env-extraction convention in the consuming repository
+rather than in the upstream library\.
+
+
+
+*Type:*
+function that evaluates to a(n) string
+
+
+
+*Default:*
+` <function> `
+
+
+
+*Example:*
+` dep: lib.head (lib.splitString "_" dep) `
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
 ## stackDiscovery\.deployments\.extension
 
 
@@ -2691,8 +2731,6 @@ absolute path
 
 ## stackDiscovery\.stackName
 
-
-
 When set, ` path ` is treated as a single stack with this name\.
 First-level subdirectories of ` path ` become component names directly,
 with no intermediate stack-level directory\.
@@ -2721,6 +2759,8 @@ null or string
 
 
 ## stacks
+
+
 
 Infrastructure stacks topology\. Each stack declares its deployment
 environments and components\. The stack engine generates one factory
@@ -2927,13 +2967,13 @@ null or string
 
 Dependencies on other components or stacks\. By default needs are
 resolved within the same deployment as the declaring component\.
-Set ` deployment ` explicitly for cross-deployment dependencies\.
 
 Use ` { component = "name"; } ` for a sibling component in the same stack,
 ` { stack = "name"; } ` for all components of another stack, or
 ` { stack = "name"; component = "name"; } ` for a specific component in
-another stack\. Add ` deployment = "name" ` to any of the above to pin
-to a specific deployment\.
+another stack\. Set ` deployment = "name" ` to pin to a specific deployment,
+or ` matchDeployment = { environment = null; } ` to match all deployments
+whose ` environment ` value equals the current deployment’s ` environment `\.
 
 
 
@@ -2953,7 +2993,7 @@ list of (submodule)
 [
   { component = "vpc"; }
   { stack = "security"; component = "iam"; }
-  { component = "network"; deployment = "dev_tooling"; }
+  { component = "network"; matchDeployment.environment = null; }
 ]
 
 ```
@@ -2995,10 +3035,10 @@ null or string
 
 
 
-Explicit deployment name of the dependency\. When null, uses
-the same deployment as the declaring component\. Use this to
-express cross-deployment dependencies where the target
-component’s deployment name differs from the current one\.
+Explicit deployment name of the dependency\. When null and
+` matchDeployment ` is also null, the target deployment is the
+same name as the current deployment\. Ignored when
+` matchDeployment ` is set\.
 
 
 
@@ -3014,6 +3054,73 @@ null or string
 
 *Example:*
 ` "dev_tooling" `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
+## stacks\.\<name>\.components\.\<name>\.needs\.\*\.matchDeployment
+
+
+
+When non-null, resolve to all deployments of the target
+stack/component whose deployment settings match every
+attribute in this set\. A ` null ` attribute value means
+“match targets whose value for that attribute equals the
+current deployment’s value”\. Produces zero jobSets when no
+deployment matches\. When null (the default), the target
+deployment is resolved by the ` deployment ` field (or the
+current deployment name when ` deployment ` is also null)\.
+
+
+
+*Type:*
+null or (submodule)
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+
+```
+{ environment = null; }   # same environment as current deployment
+
+```
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
+## stacks\.\<name>\.components\.\<name>\.needs\.\*\.matchDeployment\.environment
+
+
+
+Match target deployments by ` environment ` value\.
+
+ - ` null ` (default): match targets whose ` environment ` equals the
+   current deployment’s ` environment `\.
+ - A string: match targets whose ` environment ` equals this value\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` "prod" `
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
