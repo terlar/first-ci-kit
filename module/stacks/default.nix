@@ -38,7 +38,11 @@ let
           (map mkName)
         ];
 
-      resolveByName = [ (mkName (if need.deployment != null then need.deployment else deployment)) ];
+      resolveByName =
+        let
+          dep = if need.deployment != null then need.deployment else deployment;
+        in
+        lib.optional (targetDeployments ? ${dep} || !need.optional) (mkName dep);
     in
     if need.matchDeployment != null then matchByEnvironment else resolveByName;
 

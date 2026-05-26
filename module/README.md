@@ -3127,6 +3127,35 @@ null or string
 
 
 
+## stacks\.\<name>\.components\.\<name>\.needs\.\*\.optional
+
+
+
+When true and ` matchDeployment ` is null, silently skip this
+dependency if the resolved target deployment does not exist in
+the target component\. Useful when a component has a dep that
+only exists for a subset of deployments\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
 ## stacks\.\<name>\.components\.\<name>\.needs\.\*\.stack
 
 

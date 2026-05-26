@@ -110,6 +110,17 @@ let
                 '';
                 example = "dev_tooling";
               };
+              optional = lib.mkOption {
+                type = types.bool;
+                default = false;
+                description = ''
+                  When true and `matchDeployment` is null, silently skip this
+                  dependency if the resolved target deployment does not exist in
+                  the target component. Useful when a component has a dep that
+                  only exists for a subset of deployments.
+                '';
+                example = lib.literalExpression "true";
+              };
               matchDeployment = lib.mkOption {
                 type = types.nullOr (
                   types.submoduleWith {
