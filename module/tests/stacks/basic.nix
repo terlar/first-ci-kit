@@ -498,6 +498,48 @@ in
         ];
     expected = [ ];
   };
+
+  # optional: missing same-name deployment is silently skipped
+  test-stacks-needs-optional-skips-missing-deployment = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stacks.app = {
+              components = {
+                network.deployments.dev_fleet-2 = { };
+                api = {
+                  deployments = {
+                    dev_fleet-1 = { };
+                    dev_fleet-2 = { };
+                  };
+                  needs = [
+                    {
+                      component = "network";
+                      optional = true;
+                    }
+                  ];
+                };
+              };
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (c: {
+            fleet-1 = lib.getAttrFromPath [ "jobSets" "app_api_dev_fleet-1" "needs" ] c;
+            fleet-2 = lib.getAttrFromPath [ "jobSets" "app_api_dev_fleet-2" "needs" ] c;
+          })
+        ];
+    expected = {
+      fleet-1 = [ ]; # network_dev_fleet-1 does not exist → skipped
+      fleet-2 = [ { jobSet = "app_network_dev_fleet-2"; } ]; # exists → included
+    };
+  };
+
+  # optional = false (default): missing same-name deployment is an error — tested
+  # implicitly by all other needs tests which would fail if optional changed the default.
   test-stacks-empty-generates-nothing = {
     expr =
       lib.pipe
