@@ -372,7 +372,132 @@ in
     expected = [ { jobSet = "networking_vpc_prod_shared"; } ];
   };
 
-  # 3. Empty stacks
+  # matchDeployment: resolves to target deployments with the same environment
+  test-stacks-needs-match-deployment-by-environment = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stacks.app = {
+              components = {
+                network.deployments = {
+                  dev_tooling = {
+                    environment = "dev";
+                  };
+                  prd_tooling = {
+                    environment = "prd";
+                  };
+                };
+                api = {
+                  deployments = {
+                    dev = { };
+                    prd = { };
+                  };
+                  needs = [
+                    {
+                      component = "network";
+                      matchDeployment.environment = null;
+                    }
+                  ];
+                };
+              };
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "jobSets"
+            "app_api_dev"
+            "needs"
+          ])
+        ];
+    expected = [ { jobSet = "app_network_dev_tooling"; } ];
+  };
+
+  # matchDeployment: multiple target deployments with the same environment all match
+  test-stacks-needs-match-deployment-by-environment-multi = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stacks.app = {
+              components = {
+                network.deployments = {
+                  dev_fleet-1 = {
+                    environment = "dev";
+                  };
+                  dev_fleet-2 = {
+                    environment = "dev";
+                  };
+                  prd_fleet-1 = {
+                    environment = "prd";
+                  };
+                };
+                api = {
+                  deployments.dev = { };
+                  needs = [
+                    {
+                      component = "network";
+                      matchDeployment.environment = null;
+                    }
+                  ];
+                };
+              };
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "jobSets"
+            "app_api_dev"
+            "needs"
+          ])
+        ];
+    expected = [
+      { jobSet = "app_network_dev_fleet-1"; }
+      { jobSet = "app_network_dev_fleet-2"; }
+    ];
+  };
+
+  # matchDeployment: no matching deployment produces empty list
+  test-stacks-needs-match-deployment-by-environment-no-match = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stacks.app = {
+              components = {
+                network.deployments.prd_tooling = {
+                  environment = "prd";
+                };
+                api = {
+                  deployments.dev = { };
+                  needs = [
+                    {
+                      component = "network";
+                      matchDeployment.environment = null;
+                    }
+                  ];
+                };
+              };
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "jobSets"
+            "app_api_dev"
+            "needs"
+          ])
+        ];
+    expected = [ ];
+  };
   test-stacks-empty-generates-nothing = {
     expr =
       lib.pipe
