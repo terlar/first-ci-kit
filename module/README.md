@@ -2539,6 +2539,64 @@ string
 
 
 
+## stackDiscovery\.component\.module
+
+
+
+A module merged into every component submodule\. Use it to declare
+extra options and set filesystem-derived default values\.
+
+The module receives the following read-only options set by the
+discovery process (` null ` for hand-written components):
+
+ - ` config.path ` — absolute filesystem path to the component directory
+ - ` config.stack ` — name of the containing stack
+ - ` _module.args.name ` — name of the component (standard attrset key)
+
+Multiple assignments to ` component.module ` are merged by the NixOS
+module system in the usual way\.
+
+Example — auto-detect a buildable package:
+
+```nix
+{ config, lib, ... }:
+lib.mkIf (config.path != null) {
+  options.hasPackage = lib.mkOption { type = lib.types.bool; default = false; };
+  config.hasPackage = lib.mkDefault (builtins.pathExists "${config.path}/package/default.nix");
+}
+```
+
+
+
+*Type:*
+module
+
+
+
+*Default:*
+` { } `
+
+
+
+*Example:*
+
+```
+{ config, lib, ... }:
+lib.mkIf (config.path != null) {
+  options.hasPackage = lib.mkOption {
+    type = lib.types.bool;
+    default = false;
+  };
+  config.hasPackage = lib.mkDefault (builtins.pathExists "${config.path}/package/default.nix");
+}
+
+```
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
 ## stackDiscovery\.deployments\.detection
 
 
@@ -2706,8 +2764,6 @@ list of string
 
 ## stackDiscovery\.path
 
-
-
 Root directory to scan\. When ` stackName ` is null (the default),
 first-level subdirectories become stack names and second-level
 subdirectories that qualify as components become component names\.
@@ -2730,6 +2786,8 @@ absolute path
 
 
 ## stackDiscovery\.stackName
+
+
 
 When set, ` path ` is treated as a single stack with this name\.
 First-level subdirectories of ` path ` become component names directly,
@@ -2802,6 +2860,7 @@ lazy attribute set of (submodule)
 ```
 
 *Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
  - [stacks/interface\.nix](stacks/interface.nix)
 
 
@@ -2816,7 +2875,7 @@ deployment via the stack’s factory\.
 
 
 *Type:*
-lazy attribute set of (submodule)
+lazy attribute set of (attribute set)
 
 
 
@@ -2837,6 +2896,7 @@ lazy attribute set of (submodule)
 ```
 
 *Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
  - [stacks/interface\.nix](stacks/interface.nix)
 
 

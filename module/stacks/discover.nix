@@ -51,12 +51,13 @@ let
     if builtins.pathExists configPath then import configPath else { };
 
   mkComponent =
-    componentPath:
+    stack: path:
     let
-      deploymentNames = discoverDeployments componentPath;
-      componentConfig = discoverComponentConfig componentPath;
+      deploymentNames = discoverDeployments path;
+      componentConfig = discoverComponentConfig path;
     in
     lib.mkMerge [
+      { inherit path stack; }
       {
         deployments = lib.mkDefault (
           lib.genAttrs deploymentNames (
@@ -67,22 +68,22 @@ let
       componentConfig
     ];
 
-  mkStack = stackPath: {
+  mkStack = stack: stackPath: {
     components = lib.pipe stackPath [
       subdirs
       (lib.filter (name: isComponent "${stackPath}/${name}"))
-      (lib.flip lib.genAttrs (component: mkComponent "${stackPath}/${component}"))
+      (lib.flip lib.genAttrs (name: mkComponent stack "${stackPath}/${name}"))
     ];
   };
 
   discoveredStacks =
     if cfg.stackName != null then
-      { ${cfg.stackName} = lib.mkDefault (mkStack cfg.path); }
+      { ${cfg.stackName} = lib.mkDefault (mkStack cfg.stackName cfg.path); }
     else
       lib.pipe cfg.path [
         subdirs
         (lib.filter (s: !builtins.elem s cfg.excludeDirs))
-        (lib.flip lib.genAttrs (stack: mkStack "${cfg.path}/${stack}"))
+        (lib.flip lib.genAttrs (stack: mkStack stack "${cfg.path}/${stack}"))
         (lib.mapAttrs (_: v: lib.mkDefault v))
       ];
 in
@@ -212,7 +213,84 @@ in
         '';
         example = lib.literalExpression ''"component.nix"'';
       };
+
+      module = lib.mkOption {
+        type = types.deferredModule;
+        default = { };
+        description = ''
+          A module merged into every component submodule. Use it to declare
+          extra options and set filesystem-derived default values.
+
+          The module receives the following read-only options set by the
+          discovery process (`null` for hand-written components):
+
+          - `config.path` — absolute filesystem path to the component directory
+          - `config.stack` — name of the containing stack
+          - `_module.args.name` — name of the component (standard attrset key)
+
+          Multiple assignments to `component.module` are merged by the NixOS
+          module system in the usual way.
+
+          Example — auto-detect a buildable package:
+
+          ```nix
+          { config, lib, ... }:
+          lib.mkIf (config.path != null) {
+            options.hasPackage = lib.mkOption { type = lib.types.bool; default = false; };
+            config.hasPackage = lib.mkDefault (builtins.pathExists "''${config.path}/package/default.nix");
+          }
+          ```
+        '';
+        example = lib.literalExpression ''
+          { config, lib, ... }:
+          lib.mkIf (config.path != null) {
+            options.hasPackage = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+            };
+            config.hasPackage = lib.mkDefault (builtins.pathExists "''${config.path}/package/default.nix");
+          }
+        '';
+      };
     };
+  };
+
+  # Inject discovery metadata options and the consumer-supplied defaults module
+  # into every component submodule via the binOp on options.stacks.
+  options.stacks = lib.mkOption {
+    type = types.lazyAttrsOf (
+      types.submoduleWith {
+        modules = [
+          {
+            options.components = lib.mkOption {
+              type = types.lazyAttrsOf (
+                types.submoduleWith {
+                  modules = [
+                    {
+                      options = {
+                        path = lib.mkOption {
+                          type = types.nullOr types.path;
+                          default = null;
+                          internal = true;
+                          description = "Absolute filesystem path to the component directory. Null for hand-written components.";
+                        };
+                        stack = lib.mkOption {
+                          type = types.nullOr types.str;
+                          default = null;
+                          internal = true;
+                          description = "Name of the containing stack. Null for hand-written components.";
+                        };
+                      };
+                    }
+                    cfg.component.module
+                  ];
+                }
+              );
+            };
+          }
+        ];
+      }
+    );
   };
 
   config = lib.mkIf (cfg.enable && builtins.pathExists cfg.path) {

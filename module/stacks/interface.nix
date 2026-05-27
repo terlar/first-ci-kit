@@ -68,6 +68,8 @@ let
   };
 
   componentModule = {
+    config._module.freeformType = types.attrs;
+
     options = {
       deployments = mkDeploymentsOption {
         type = types.nullOr deploymentsType;
