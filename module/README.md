@@ -2816,7 +2816,7 @@ deployment via the stack’s factory\.
 
 
 *Type:*
-lazy attribute set of (submodule)
+lazy attribute set of (attribute set)
 
 
 
