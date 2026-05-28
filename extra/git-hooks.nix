@@ -140,16 +140,20 @@ in
     # all other pipelines follow the name-based convention so they require no
     # manual hook configuration.
     perSystem.pre-commit.settings.hooks = {
-      first-ci-kit-gen-github-actions.settings.pipelines = lib.mkDefault (
-        lib.mapAttrs (
-          name: _: ".github/workflows/${if name == "default" then "ci" else name}.yml"
-        ) config.first-ci-kit.pipelines
-      );
-      first-ci-kit-gen-gitlab-ci.settings.pipelines = lib.mkDefault (
-        lib.mapAttrs (
-          name: pipeline: if name == "default" then ".gitlab-ci.yml" else pipeline.gitlab-ci.templatePath
-        ) config.first-ci-kit.pipelines
-      );
+      first-ci-kit-gen-github-actions.settings.pipelines = lib.pipe config.first-ci-kit.pipelines [
+        (lib.filterAttrs (_: pipeline: pipeline.github-actions.generate))
+        (lib.mapAttrs (
+          name: _: lib.mkDefault ".github/workflows/${if name == "default" then "ci" else name}.yml"
+        ))
+      ];
+
+      first-ci-kit-gen-gitlab-ci.settings.pipelines = lib.pipe config.first-ci-kit.pipelines [
+        (lib.filterAttrs (_: pipeline: pipeline.gitlab-ci.generate))
+        (lib.mapAttrs (
+          name: pipeline:
+          lib.mkDefault (if name == "default" then ".gitlab-ci.yml" else pipeline.gitlab-ci.templatePath)
+        ))
+      ];
     };
   };
 }

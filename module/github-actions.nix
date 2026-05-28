@@ -49,6 +49,16 @@ let
 in
 {
   options.github-actions = {
+    generate = lib.mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Whether to generate a GitHub Actions workflow file for this pipeline.
+        Set to `false` to opt out of file generation (e.g. for pipelines that
+        only target another backend such as GitLab CI).
+      '';
+    };
+
     settings = lib.mkOption {
       type = config.types.yamlType;
       default = { };

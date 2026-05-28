@@ -16,6 +16,13 @@ let
     "gitlab-ci: hook name" = gl.name == "generate-gitlab-ci";
     "github-actions: pass_filenames is false" = !gh.pass_filenames;
     "gitlab-ci: pass_filenames is false" = !gl.pass_filenames;
+
+    # autoConfigureHooks filtering: pipeline with gitlab-ci.generate = false
+    # should be excluded from gitlab-ci hook but included in github-actions hook
+    "autoConfigureHooks: gitlab-ci excludes pipeline with generate = false" =
+      !(gl.settings.pipelines ? "github-actions-only");
+    "autoConfigureHooks: github-actions includes pipeline with gitlab-ci.generate = false" =
+      gh.settings.pipelines ? "github-actions-only";
   };
 in
 pkgs.runCommand "test-git-hooks" { } (

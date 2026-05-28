@@ -297,6 +297,29 @@ string
 
 
 
+## github-actions\.generate
+
+
+
+Whether to generate a GitHub Actions workflow file for this pipeline\.
+Set to ` false ` to opt out of file generation (e\.g\. for pipelines that
+only target another backend such as GitLab CI)\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.settings
 
 
@@ -472,6 +495,29 @@ null or string
 
 *Default:*
 ` null `
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
+
+
+
+## gitlab-ci\.generate
+
+
+
+Whether to generate a GitLab CI pipeline file for this pipeline\.
+Set to ` false ` to opt out of file generation (e\.g\. for pipelines that
+only target another backend such as GitHub Actions)\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -2482,8 +2528,6 @@ module
 
 ## stackDiscovery\.enable
 
-
-
 Whether to enable filesystem-based stack discovery\.
 
 
@@ -2763,6 +2807,8 @@ list of string
 
 
 ## stackDiscovery\.path
+
+
 
 Root directory to scan\. When ` stackName ` is null (the default),
 first-level subdirectories become stack names and second-level

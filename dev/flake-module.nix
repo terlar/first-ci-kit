@@ -22,6 +22,10 @@
 
   # Dogfood
   first-ci-kit.pipelines = {
+    github-actions-only = {
+      gitlab-ci.generate = false;
+    };
+
     default = {
       github-actions = {
         defaultRunsOn = "ubuntu-latest";

@@ -29,6 +29,16 @@ in
       '';
     };
 
+    generate = lib.mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Whether to generate a GitLab CI pipeline file for this pipeline.
+        Set to `false` to opt out of file generation (e.g. for pipelines that
+        only target another backend such as GitHub Actions).
+      '';
+    };
+
     templatePath = lib.mkOption {
       type = types.nullOr types.str;
       default = null;
