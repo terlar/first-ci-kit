@@ -263,4 +263,191 @@ in
       "org_repository_dev"
     ];
   };
+
+  # module: default is no-op
+  test-stackdiscovery-module-default-noop = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = fakeTree;
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "stacks"
+            "networking"
+            "components"
+            "vpc"
+          ])
+          (c: c ? "customAttr")
+        ];
+    expected = false;
+  };
+
+  # module: sets a freeform attribute via config.path
+  test-stackdiscovery-module-sets-freeform-attr = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = fakeTree;
+              component.module =
+                { config, ... }:
+                {
+                  hasPackage = builtins.pathExists "${config.path}/package/default.nix";
+                };
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "stacks"
+            "networking"
+            "components"
+            "vpc"
+            "hasPackage"
+          ])
+        ];
+    expected = true;
+  };
+
+  # module: explicit hand-written config wins over defaults
+  test-stackdiscovery-module-overridden-by-handwritten = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = fakeTree;
+              component.module = {
+                customValue = "from-defaults";
+              };
+            };
+            stacks.networking.components.vpc.customValue = "from-handwritten";
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "stacks"
+            "networking"
+            "components"
+            "vpc"
+            "customValue"
+          ])
+        ];
+    expected = "from-handwritten";
+  };
+
+  # module: can declare typed options and set their values
+  test-stackdiscovery-module-declares-option = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = fakeTree;
+              component.module =
+                { config, lib, ... }:
+                {
+                  options.customFlag = lib.mkOption {
+                    type = lib.types.bool;
+                    default = false;
+                  };
+                  config.customFlag = lib.mkDefault true;
+                };
+            };
+            # Hand-written assignment at normal priority overrides lib.mkDefault
+            stacks.networking.components.vpc.customFlag = false;
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "stacks"
+            "networking"
+            "components"
+            "vpc"
+            "customFlag"
+          ])
+        ];
+    expected = false;
+  };
+
+  # module: multiple modules compose via deferredModule merging
+  test-stackdiscovery-module-multiple-modules-compose = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = fakeTree;
+              component.module = {
+                attrA = "from-first";
+              };
+            };
+          }
+          {
+            stackDiscovery.component.module = {
+              attrB = "from-second";
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "stacks"
+            "networking"
+            "components"
+            "vpc"
+          ])
+          (c: { inherit (c) attrA attrB; })
+        ];
+    expected = {
+      attrA = "from-first";
+      attrB = "from-second";
+    };
+  };
+
+  # module: stack is set for discovered components
+  test-stackdiscovery-module-stack-set = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = fakeTree;
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "stacks"
+            "networking"
+            "components"
+            "vpc"
+            "stack"
+          ])
+        ];
+    expected = "networking";
+  };
 }
