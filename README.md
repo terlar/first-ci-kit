@@ -79,7 +79,9 @@ first-ci-kit has **no nixpkgs dependency** — it only requires `flake-parts`:
 
 - **Job** — a single unit of work with commands, steps, image, tags, and optional features (checkout, nix, nix cache, artifacts).
 - **JobSet** — a named group of jobs that share common defaults (image, tags, needs).
-- **Stack** — a high-level abstraction that combines components and deployments and generates jobs automatically via a job factory.
+- **Stack** — a high-level abstraction that generates jobs automatically via a job factory for every component × deployment combination.
+  - **Component** — a logical unit within a stack (e.g. a service, a Terraform root module). Carries options such as `needs`, `jobFactory`, and any extras declared via `stackDiscovery.component.module`.
+  - **Deployment** — an instance of a component (e.g. `dev`, `prod`). Each component × deployment triple becomes one factory invocation.
 - **Pipeline** — a collection of jobs with backend-specific settings (stages, triggers, runners).
 - **JobFactory** — a parameterised function that generates jobs from a common template.
 
