@@ -308,6 +308,58 @@ Place a `component.nix` file inside any component directory to set component opt
 { needs = [{ component = "vpc"; }]; }
 ```
 
+### Extending components with `component.module`
+
+**Problem:** You want to declare extra typed options on every component and derive their values from the filesystem — without boilerplate in every consumer.
+
+Set `stackDiscovery.component.module` to a NixOS module (a `deferredModule`) that is merged into every component submodule. The module receives two read-only options injected by the discovery process:
+
+- `config.path` — absolute filesystem path to the component directory (`null` for hand-written components)
+- `config.stack` — name of the containing stack (`null` for hand-written components)
+
+Use `lib.mkIf (config.path != null)` to restrict filesystem access to discovered components only.
+
+```nix
+{
+  stackDiscovery = {
+    enable = true;
+    path   = ./services;
+    stackName = "services";
+
+    component.module = { config, lib, ... }: {
+      options.hasPackage = lib.mkOption {
+        type    = lib.types.bool;
+        default = false;
+        description = "Whether this component has a package/default.nix.";
+      };
+
+      config.hasPackage = lib.mkIf (config.path != null) (
+        lib.mkDefault (builtins.pathExists "${config.path}/package/default.nix")
+      );
+    };
+  };
+}
+# config.stacks.services.components.api.hasPackage
+# → true  if services/api/package/default.nix exists
+# → false otherwise (or if set explicitly in component.nix / stacks config)
+```
+
+Multiple assignments to `component.module` are merged by the NixOS module system — each contributing module is applied to every component:
+
+```nix
+# ci/base.nix
+{ stackDiscovery.component.module = { config, lib, ... }: { ... }; }
+
+# ci/extra.nix — adds another option without touching base.nix
+{ stackDiscovery.component.module = { config, lib, ... }: { ... }; }
+```
+
+A plain attrset is also valid when no module arguments are needed:
+
+```nix
+stackDiscovery.component.module = { customFlag = false; };
+```
+
 ### Single-stack layout
 
 For simpler pipelines with no need for multiple stacks, set `stackName` to treat `path` as the stack directory itself. Components are first-level subdirectories of `path` directly.
