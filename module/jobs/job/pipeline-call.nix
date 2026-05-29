@@ -125,8 +125,9 @@ in
         description = ''
           Maps GitLab CI input names to child job name suffixes. For each
           entry, automatically computes the child job names for all dependency
-          pipelineCall jobs and passes them as that input to the child
-          pipeline. The computed values are merged after `extraInputs`.
+          pipelineCall jobs and passes them as needs-entry objects
+          (`{ job, optional = true, artifacts = false }`) as that input to the
+          child pipeline. The computed values are merged after `extraInputs`.
           Example: `{ "plan_needs" = "deploy"; }`
         '';
       };
