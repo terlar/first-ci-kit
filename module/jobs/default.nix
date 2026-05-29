@@ -48,9 +48,11 @@ let
       computedNeedsInputs = lib.pipe pc.gitlab-ci.needsInputs [
         (lib.mapAttrs (
           _inputName: childJobSuffix:
-          map (
-            need: config.jobs.${need.job}.pipelineCall.gitlab-ci.toChildJobName childJobSuffix
-          ) pipelineCallNeeds
+          map (need: {
+            job = config.jobs.${need.job}.pipelineCall.gitlab-ci.toChildJobName childJobSuffix;
+            optional = true;
+            artifacts = false;
+          }) pipelineCallNeeds
         ))
         (lib.filterAttrs (_: v: v != [ ]))
       ];

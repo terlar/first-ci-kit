@@ -780,7 +780,13 @@
             stack = "cluster";
             component = "cp";
             deployment = "dev";
-            plan_needs = [ "networking_vpc_dev_deploy" ];
+            plan_needs = [
+              {
+                artifacts = false;
+                job = "networking_vpc_dev_deploy";
+                optional = true;
+              }
+            ];
           };
         }
         {
@@ -864,8 +870,16 @@
             component = "cp";
             deployment = "dev";
             plan_needs = [
-              "networking_vpc_dev_deploy"
-              "networking_dns_dev_deploy"
+              {
+                artifacts = false;
+                job = "networking_vpc_dev_deploy";
+                optional = true;
+              }
+              {
+                artifacts = false;
+                job = "networking_dns_dev_deploy";
+                optional = true;
+              }
             ];
           };
         }
