@@ -2282,8 +2282,9 @@ string
 
 
 
-process-compose-specific job configuration\. Accepts a deferred module
-that is merged into the process-compose process definition for this job\.
+process-compose-specific job configuration\. Accepts arbitrary
+process-compose fields that are merged into the process definition for
+this job (e\.g\. ` availability `, ` readiness_probe `)\.
 
 Set ` enable = false ` to exclude this job from process-compose output
 while keeping it active for other backends\.
@@ -2291,7 +2292,7 @@ while keeping it active for other backends\.
 
 
 *Type:*
-module
+anything
 
 
 
@@ -2330,6 +2331,42 @@ boolean
 
 *Default:*
 ` true `
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.process-compose\.before_script
+
+
+
+Commands to run before the main ` commands ` in process-compose\.
+Equivalent to ` gitlab-ci.before_script `; use this in
+` jobDefaults ` to set up the environment (e\.g\. load a Nix
+dev shell) before every job in a job set\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+
+
+*Example:*
+
+```
+[
+  "nix print-dev-env .#profile-tofu > profile-tofu.sh"
+  ". ./profile-tofu.sh"
+]
+
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2528,6 +2565,8 @@ module
 
 
 ## stackDiscovery\.enable
+
+
 
 Whether to enable filesystem-based stack discovery\.
 
@@ -2744,8 +2783,6 @@ string
 
 
 ## stackDiscovery\.deployments\.subdirectory
-
-
 
 Subdirectory inside each component that holds deployment entries\.
 A component is recognised when this subdirectory exists\.

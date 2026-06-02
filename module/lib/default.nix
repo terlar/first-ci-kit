@@ -80,4 +80,5 @@ in
     map (builtins.replaceStrings from to);
 
   gitlab-ci = import ./gitlab-ci.nix { inherit lib; };
+  process-compose = import ./process-compose.nix { inherit lib; };
 }
