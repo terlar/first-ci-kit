@@ -29,11 +29,11 @@ in
 
     rules =
       let
-        augmentedBranches = ci-lib.augmentBranchesWithTriggers {
+        augmentedBranches = ci-lib.gitlab-ci.augmentBranchesWithTriggers {
           inherit (config) branches triggers;
           inherit jobs;
         };
-        inherit (ci-lib.mkBranchRules augmentedBranches) allRules;
+        inherit (ci-lib.gitlab-ci.mkBranchRules augmentedBranches) allRules;
       in
       # pipelineCall jobs are suppressed from GitLab CI rendering; branch rules
       # are forwarded via rulesInput/pushRulesInput instead, so we do not append
