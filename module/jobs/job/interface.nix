@@ -3,7 +3,6 @@
   ci-lib,
   name,
   rootConfig,
-  config,
   ...
 }:
 
@@ -355,15 +354,33 @@ in
                 default = true;
                 description = "Whether the job is enabled for process-compose.";
               };
+
+              before_script = lib.mkOption {
+                type = types.listOf types.str;
+                default = [ ];
+                description = ''
+                  Commands to run before the main `commands` in process-compose.
+                  Equivalent to `gitlab-ci.before_script`; use this in
+                  `jobDefaults` to set up the environment (e.g. load a Nix
+                  dev shell) before every job in a job set.
+                '';
+                example = lib.literalExpression ''
+                  [
+                    "nix print-dev-env .#profile-tofu > profile-tofu.sh"
+                    ". ./profile-tofu.sh"
+                  ]
+                '';
+              };
             };
-            config._module.freeformType = types.deferredModule;
+            config._module.freeformType = types.anything;
           }
         ];
       };
       default = { };
       description = ''
-        process-compose-specific job configuration. Accepts a deferred module
-        that is merged into the process-compose process definition for this job.
+        process-compose-specific job configuration. Accepts arbitrary
+        process-compose fields that are merged into the process definition for
+        this job (e.g. `availability`, `readiness_probe`).
 
         Set `enable = false` to exclude this job from process-compose output
         while keeping it active for other backends.

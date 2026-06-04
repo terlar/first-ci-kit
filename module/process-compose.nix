@@ -11,7 +11,9 @@
     settings = lib.mkOption {
       type = lib.types.deferredModule;
       default = { };
-      description = "Configuration of process-compose to be passed to process-compose-flake settings.";
+      description = ''
+        Configuration of process-compose to be passed to process-compose-flake settings.
+      '';
     };
   };
 }

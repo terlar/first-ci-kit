@@ -57,6 +57,21 @@ let
 
     eval-gitlab-ci = modules: (evalConfig modules).gitlab-ci.settings;
     eval-gitlab-ci-documents = modules: (evalConfig modules).gitlab-ci.fileDocuments;
+
+    # Evaluate the deferredModule settings value through lib.evalModules so
+    # that the result is a plain config attrset (e.g. { processes = { … } })
+    # rather than the raw deferred module wrapper with _file annotations.
+    eval-process-compose =
+      modules:
+      let
+        inherit ((evalConfig modules).process-compose) settings;
+      in
+      (lib.evalModules {
+        modules = [
+          { _module.freeformType = lib.types.anything; }
+          settings
+        ];
+      }).config;
   };
 
   tests = lib.pipe ./. [
