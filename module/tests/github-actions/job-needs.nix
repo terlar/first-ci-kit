@@ -9,11 +9,11 @@
     expected = {
       jobs = {
         job-a = {
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
         job-b = {
           needs = [ "job-a" ];
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -26,7 +26,7 @@
     expected = {
       jobs.job-a = {
         needs = [ "external-job" ];
-        steps = [ { uses = "actions/checkout@v6"; } ];
+        steps = [ { uses = "actions/checkout@v7"; } ];
       };
     };
   };
@@ -49,9 +49,9 @@
             "job_b"
             "external_job"
           ];
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
-        job_b.steps = [ { uses = "actions/checkout@v6"; } ];
+        job_b.steps = [ { uses = "actions/checkout@v7"; } ];
       };
     };
   };
@@ -62,7 +62,7 @@
     };
 
     expected = {
-      jobs.job-a.steps = [ { uses = "actions/checkout@v6"; } ];
+      jobs.job-a.steps = [ { uses = "actions/checkout@v7"; } ];
     };
   };
 
@@ -76,9 +76,9 @@
 
     expected = {
       jobs = {
-        job-a.steps = [ { uses = "actions/checkout@v6"; } ];
+        job-a.steps = [ { uses = "actions/checkout@v7"; } ];
         job-b = {
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
           needs = [ "job-a" ];
         };
       };
@@ -98,13 +98,13 @@
     expected = {
       jobs = {
         job-a = {
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
         job-b = {
           needs = [ "job-a" ];
           "if" =
             ''''${{ always() && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -120,12 +120,12 @@
     };
     expected = {
       jobs = {
-        job-a.steps = [ { uses = "actions/checkout@v6"; } ];
+        job-a.steps = [ { uses = "actions/checkout@v7"; } ];
         job-b = {
           needs = [ "job-a" ];
           "if" =
             ''''${{ always() && (needs.job-a.result == 'success' || needs.job-a.result == 'failure') }}'';
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -136,7 +136,7 @@
       jobs.job-a.runAlways = true;
     };
     expected = {
-      jobs.job-a.steps = [ { uses = "actions/checkout@v6"; } ];
+      jobs.job-a.steps = [ { uses = "actions/checkout@v7"; } ];
     };
   };
 
@@ -152,7 +152,7 @@
       jobs.job = {
         "if" = ''''${{ github.event_name == 'pull_request' }}'';
         runs-on = "ubuntu-latest";
-        steps = [ { uses = "actions/checkout@v6"; } ];
+        steps = [ { uses = "actions/checkout@v7"; } ];
       };
     };
   };
@@ -168,7 +168,7 @@
       on.push.branches = [ "main" ];
       jobs.job = {
         runs-on = "ubuntu-latest";
-        steps = [ { uses = "actions/checkout@v6"; } ];
+        steps = [ { uses = "actions/checkout@v7"; } ];
       };
     };
   };
@@ -188,7 +188,7 @@
       jobs.job-b = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "echo job-b"; }
         ];
       };
@@ -214,7 +214,7 @@
       jobs.job-b = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "echo job-b"; }
         ];
       };
@@ -240,7 +240,7 @@
       jobs.job-b = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "echo job-b"; }
         ];
       };

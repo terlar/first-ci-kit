@@ -19,7 +19,7 @@
           CONFIG_FILE = "config.json";
         };
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "make test"; }
         ];
       };
@@ -39,7 +39,7 @@
       jobs.job1 = {
         env.LOG_LEVEL = "info";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "make test"; }
         ];
       };

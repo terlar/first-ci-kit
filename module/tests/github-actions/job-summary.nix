@@ -38,7 +38,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             {
@@ -60,14 +60,14 @@ in
             ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "deploy svc"; }
           ];
         };
         test = {
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "run-tests"; }
           ];
         };
@@ -112,7 +112,7 @@ in
         build = {
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "make build"; }
           ];
         };
