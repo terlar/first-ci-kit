@@ -154,7 +154,7 @@ string
 
 
 *Default:*
-` "actions/checkout@v6" `
+` "actions/checkout@v7" `
 
 
 

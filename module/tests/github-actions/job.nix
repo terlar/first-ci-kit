@@ -13,7 +13,7 @@
       jobs.job1 = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "echo 'Run your script here'"; }
         ];
       };
@@ -33,11 +33,11 @@
     expected = {
       jobs = {
         job_a = {
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
         job_b = {
           needs = [ "job_a" ];
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -57,11 +57,11 @@
     expected = {
       jobs = {
         job-a = {
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
         job-c = {
           needs = [ "job-a" ];
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -89,14 +89,14 @@
         job-a = {
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "echo job-a"; }
           ];
         };
         job-c = {
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "echo job-c"; }
           ];
         };
@@ -123,7 +123,7 @@
         job-a = {
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "echo job-a"; }
           ];
         };
@@ -145,7 +145,7 @@
         runs-on = "ubuntu-latest";
         steps = [
           {
-            uses = "actions/checkout@v6";
+            uses = "actions/checkout@v7";
             "with"."fetch-depth" = 0;
           }
           { run = "git log"; }
@@ -181,7 +181,7 @@
     };
     expected = {
       jobs.job1.steps = [
-        { uses = "actions/checkout@v6"; }
+        { uses = "actions/checkout@v7"; }
         { run = "echo hi"; }
       ];
     };

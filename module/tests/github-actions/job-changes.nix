@@ -48,7 +48,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "job-a:config/**|terraform/**"; })
@@ -61,7 +61,7 @@ in
             ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
           ];
         };
       };
@@ -159,7 +159,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "job-b:src/**"; })
@@ -167,7 +167,7 @@ in
         };
         job-a = {
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
         job-b = {
           needs = [
@@ -177,7 +177,7 @@ in
           "if" =
             ''''${{ always() && fromJSON(needs.changes.outputs.changes)['job-b'] == true && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -207,7 +207,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "job-b:src/**"; })
@@ -215,7 +215,7 @@ in
         };
         job-a = {
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
         job-b = {
           needs = [
@@ -224,7 +224,7 @@ in
           ];
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-b'] == true }}'';
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -252,7 +252,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "org_svc-a:src/**"; })
@@ -263,7 +263,7 @@ in
           "if" =
             ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['org_svc-a'] == true }}'';
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -298,7 +298,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             # smoke-test must NOT appear here.
@@ -311,14 +311,14 @@ in
             ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "deploy svc"; }
           ];
         };
         smoke-test = {
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "run-smoke-tests"; }
           ];
         };
@@ -356,7 +356,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             # post-deploy-test must include both its own path and deploy's path.
@@ -369,7 +369,7 @@ in
             ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "deploy svc"; }
           ];
         };
@@ -378,7 +378,7 @@ in
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['post-deploy-test'] == true }}'';
           runs-on = "ubuntu-latest";
           steps = [
-            { uses = "actions/checkout@v6"; }
+            { uses = "actions/checkout@v7"; }
             { run = "run-tests"; }
           ];
         };
@@ -407,7 +407,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "job-a:src/**"; })
@@ -417,7 +417,7 @@ in
           needs = [ "changes" ];
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -451,7 +451,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "job-a:src/**"; })
@@ -461,7 +461,7 @@ in
           needs = [ "changes" ];
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -485,7 +485,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "job-a:src/**"; })
@@ -495,7 +495,7 @@ in
           needs = [ "changes" ];
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -520,7 +520,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 50;
             }
             (diffStep { DIFF_PATHS = "job-a:src/**"; })
@@ -530,7 +530,7 @@ in
           needs = [ "changes" ];
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -557,7 +557,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "job-a:src/**"; })
@@ -568,7 +568,7 @@ in
           "if" =
             ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
@@ -600,7 +600,7 @@ in
           runs-on = "ubuntu-latest";
           steps = [
             {
-              uses = "actions/checkout@v6";
+              uses = "actions/checkout@v7";
               "with"."fetch-depth" = 0;
             }
             (diffStep { DIFF_PATHS = "job-a:src/**"; })
@@ -610,7 +610,7 @@ in
           needs = [ "changes" ];
           "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
           runs-on = "ubuntu-latest";
-          steps = [ { uses = "actions/checkout@v6"; } ];
+          steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };

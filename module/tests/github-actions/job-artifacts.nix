@@ -17,7 +17,7 @@
       jobs.plan = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "tf-plan svc dev"; }
           {
             uses = "actions/upload-artifact@v7";
@@ -46,7 +46,7 @@
       jobs.deploy = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           {
             uses = "actions/download-artifact@v8";
             "with".name = "svc-dev-plan";
@@ -72,7 +72,7 @@
       jobs.deploy = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           {
             uses = "actions/download-artifact@v8";
             "with" = {
@@ -104,7 +104,7 @@
       jobs.plan = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "tf-plan svc dev"; }
           {
             uses = "actions/upload-artifact@v3";
@@ -135,7 +135,7 @@
       jobs.deploy = {
         runs-on = "ubuntu-latest";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           {
             uses = "actions/download-artifact@v3";
             "with".name = "svc-dev-plan";
@@ -173,7 +173,7 @@
           COMPONENT = "vpc";
         };
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "tofu plan"; }
           {
             uses = "actions/upload-artifact@v7";
@@ -211,7 +211,7 @@
           STACK_REGION = "eu-west-1";
         };
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           { run = "tofu plan"; }
           {
             uses = "actions/upload-artifact@v7";
@@ -242,7 +242,7 @@
         runs-on = "ubuntu-latest";
         env.STACK = "networking";
         steps = [
-          { uses = "actions/checkout@v6"; }
+          { uses = "actions/checkout@v7"; }
           {
             uses = "actions/download-artifact@v8";
             "with" = {
@@ -276,7 +276,7 @@
           (cfg: cfg.github-actions.settings.jobs.plan.steps)
         ];
     expected = [
-      { uses = "actions/checkout@v6"; }
+      { uses = "actions/checkout@v7"; }
       { run = "tofu plan"; }
       {
         uses = "actions/upload-artifact@v7";
@@ -309,7 +309,7 @@
           (cfg: cfg.github-actions.settings.jobs.plan.steps)
         ];
     expected = [
-      { uses = "actions/checkout@v6"; }
+      { uses = "actions/checkout@v7"; }
       { run = "tofu plan"; }
       {
         uses = "actions/upload-artifact@v7";
