@@ -1,202 +1,17 @@
 {
   pkgs,
-  lib,
   config,
 }:
 
 let
   ghaPathChanges = config.packages.gha-path-changes;
-
-  # Each test case: attrset of env vars to export, plus the expected output.
-  # DIFF_PATHS and GITHUB_OUTPUT are provided by the harness.
-  testCases = [
-    # --- basic event handling ---
-    {
-      name = "push: svc-a changed";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$HEAD_SHA";
-      };
-      expected = ''{"svc-a":true,"svc-b":false}'';
-    }
-    {
-      name = "pull_request: svc-a changed";
-      env = {
-        GITHUB_EVENT_NAME = "pull_request";
-        GITHUB_BASE_REF = "main";
-        GITHUB_HEAD_REF = "feature";
-      };
-      expected = ''{"svc-a":true,"svc-b":false}'';
-    }
-    {
-      name = "push: no service changed";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$HEAD_SHA";
-        GITHUB_EVENT_AFTER = "$NEW_HEAD";
-      };
-      expected = ''{"svc-a":false,"svc-b":false}'';
-    }
-    {
-      name = "push: colon in group name, svc-a changed";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$HEAD_SHA";
-        DIFF_PATHS = "org:svc-a:services/svc-a/**\norg:svc-b:services/svc-b/**";
-      };
-      expected = ''{"org:svc-a":true,"org:svc-b":false}'';
-    }
-
-    # --- glob pattern matching ---
-
-    # **/\* should match a file directly in the directory (** = zero dirs)
-    {
-      name = "push: **/* matches single-level file under module";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$MODULE_SHALLOW_SHA";
-        DIFF_PATHS = "svc-a:services/svc-a/module/**/*\nsvc-b:services/svc-b/module/**/*";
-      };
-      expected = ''{"svc-a":true,"svc-b":false}'';
-    }
-
-    # **/\* should also match a deeply nested file (** = one subdir)
-    {
-      name = "push: **/* matches deeply nested file under module (1 subdir)";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$MODULE_DEEP_SHA";
-        DIFF_PATHS = "svc-a:services/svc-a/module/**/*\nsvc-b:services/svc-b/module/**/*";
-      };
-      expected = ''{"svc-a":true,"svc-b":false}'';
-    }
-
-    # **/\* should match a file nested 2+ levels deep under module
-    {
-      name = "push: **/* matches deeply nested file under module (2 subdirs)";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$MODULE_VERY_DEEP_SHA";
-        DIFF_PATHS = "svc-a:services/svc-a/module/**/*\nsvc-b:services/svc-b/module/**/*";
-      };
-      expected = ''{"svc-a":true,"svc-b":false}'';
-    }
-
-    # * should NOT match across a directory boundary — diff only the deep commit
-    {
-      name = "push: * does not match across directory boundary";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$MODULE_SHALLOW_SHA";
-        GITHUB_EVENT_AFTER = "$MODULE_DEEP_SHA";
-        DIFF_PATHS = "svc-a:services/svc-a/module/*\nsvc-b:services/svc-b/module/*";
-      };
-      expected = ''{"svc-a":false,"svc-b":false}'';
-    }
-
-    # alternation: | should trigger on either branch
-    {
-      name = "push: alternation matches via second pattern";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$MODULE_SHALLOW_SHA";
-        DIFF_PATHS = "svc-a:services/svc-a/config/*|services/svc-a/module/**/*";
-      };
-      expected = ''{"svc-a":true}'';
-    }
-
-    # exact path (no glob) should match only that specific file
-    {
-      name = "push: exact path matches specific file";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$TAG_SHA";
-        DIFF_PATHS = "svc-a:services/svc-a/module/tag";
-      };
-      expected = ''{"svc-a":true}'';
-    }
-
-    {
-      name = "push: exact path does not match other files";
-      env = {
-        GITHUB_EVENT_NAME = "push";
-        GITHUB_EVENT_BEFORE = "$BASE_SHA";
-        GITHUB_EVENT_AFTER = "$MODULE_SHALLOW_SHA";
-        DIFF_PATHS = "svc-a:services/svc-a/module/tag";
-      };
-      expected = ''{"svc-a":false}'';
-    }
-
-    # --- workflow_dispatch + FORCE_RUN_ALL ---
-    {
-      name = "workflow_dispatch: all jobs run when force_run_all=true";
-      env = {
-        GITHUB_EVENT_NAME = "workflow_dispatch";
-        FORCE_RUN_ALL = "true";
-      };
-      expected = ''{"svc-a":true,"svc-b":true}'';
-    }
-    {
-      name = "workflow_dispatch: all jobs skipped when force_run_all not set";
-      env = {
-        GITHUB_EVENT_NAME = "workflow_dispatch";
-      };
-      expected = ''{"svc-a":false,"svc-b":false}'';
-    }
-    {
-      name = "workflow_dispatch: all jobs skipped when force_run_all=false";
-      env = {
-        GITHUB_EVENT_NAME = "workflow_dispatch";
-        FORCE_RUN_ALL = "false";
-      };
-      expected = ''{"svc-a":false,"svc-b":false}'';
-    }
-  ];
-
-  runCase =
-    {
-      name,
-      env,
-      expected,
-    }:
-    let
-      # Values that start with $ are shell variable references — emit them
-      # unquoted so the shell expands them at runtime. Static values are
-      # single-quoted for safety.
-      exportVal = v: if lib.hasPrefix "$" v then v else lib.escapeShellArg v;
-      exports = lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "export ${k}=${exportVal v}") env);
-    in
-    ''
-      GITHUB_OUTPUT=$(mktemp)
-      GITHUB_STEP_SUMMARY=$(mktemp)
-      export GITHUB_OUTPUT GITHUB_STEP_SUMMARY
-      (
-        cd "$repo"
-        ${exports}
-        gha-path-changes
-      )
-      actual=$(grep '^changes=' "$GITHUB_OUTPUT" | sed 's/^changes=//')
-      if [ "$actual" != ${lib.escapeShellArg expected} ]; then
-        echo "FAILED: ${name}"
-        echo "  expected: ${expected}"
-        echo "  actual:   $actual"
-        exit 1
-      fi
-      echo "PASSED: ${name}"
-    '';
 in
 pkgs.runCommand "test-gha-path-changes"
   {
     nativeBuildInputs = [
       pkgs.git
       ghaPathChanges
+      pkgs.bats
     ];
   }
   ''
@@ -281,7 +96,8 @@ pkgs.runCommand "test-gha-path-changes"
     export DIFF_PATHS="svc-a:services/svc-a/**
     svc-b:services/svc-b/**"
 
-    ${lib.concatMapStrings runCase testCases}
+    export repo BASE_SHA HEAD_SHA NEW_HEAD MODULE_SHALLOW_SHA MODULE_DEEP_SHA MODULE_VERY_DEEP_SHA TAG_SHA
 
-    echo "All gha-path-changes tests passed" > "$out"
+    bats ${../../packages/gha-path-changes/tests.bats}
+    touch "$out"
   ''
