@@ -7,7 +7,7 @@
 }:
 
 let
-  inherit (rootConfig) jobs;
+  inherit (rootConfig) jobs imageRegistry;
   inherit (rootConfig.github-actions)
     checkoutAction
     defaultRunsOn
@@ -101,6 +101,10 @@ in
       ];
 
       runs-on = lib.mkIf (defaultRunsOn != null) (lib.mkDefault defaultRunsOn);
+
+      container = lib.mkIf (config.image != null && rootConfig.github-actions.enableImage) {
+        image = imageRegistry.${config.image} or config.image;
+      };
 
       steps = lib.mkMerge [
         (lib.mkIf config.checkout (

@@ -80,6 +80,32 @@ function that evaluates to a(n) string
 
 
 
+## github-actions\.enableImage
+
+
+
+Whether to enable job images for GitHub Actions\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.changes\.enable
 
 
@@ -477,6 +503,32 @@ string
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
+
+
+
+## gitlab-ci\.enableImage
+
+
+
+Whether to enable job images for GitLab CI\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
 
 
 
@@ -2716,8 +2768,6 @@ one of “files”, “directories”
 
 ## stackDiscovery\.deployments\.environmentFromName
 
-
-
 Function mapping a discovered deployment directory/file name to the
 logical ` environment ` value stored on that deployment\. Applied to
 every deployment discovered by the filesystem scan\.
@@ -2783,6 +2833,8 @@ string
 
 
 ## stackDiscovery\.deployments\.subdirectory
+
+
 
 Subdirectory inside each component that holds deployment entries\.
 A component is recognised when this subdirectory exists\.

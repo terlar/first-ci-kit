@@ -59,6 +59,10 @@ in
       '';
     };
 
+    enableImage = lib.mkEnableOption "job images for GitHub Actions" // {
+      default = true;
+    };
+
     settings = lib.mkOption {
       type = config.types.yamlType;
       default = { };
