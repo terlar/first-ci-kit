@@ -39,6 +39,10 @@ in
       '';
     };
 
+    enableImage = lib.mkEnableOption "job images for GitLab CI" // {
+      default = true;
+    };
+
     templatePath = lib.mkOption {
       type = types.nullOr types.str;
       default = null;

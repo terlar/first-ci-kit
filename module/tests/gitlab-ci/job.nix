@@ -152,6 +152,17 @@
     };
   };
 
+  test-gitlab-ci-job-image-opt-out = {
+    expr = test-lib.eval-gitlab-ci {
+      gitlab-ci.enableImage = false;
+      jobs.job.image = "sample-image";
+    };
+
+    expected = {
+      job = { };
+    };
+  };
+
   test-gitlab-ci-job-with-gitlab-ci-config = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job = {
