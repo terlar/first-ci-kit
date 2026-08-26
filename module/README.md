@@ -3541,3 +3541,300 @@ null or string
  - [stacks/interface\.nix](stacks/interface.nix)
 
 
+
+## Child pipelines
+
+Each entry in `pipelines.<name>` is evaluated as an independent pipeline
+instance and accepts the same options as a top-level pipeline (jobs,
+jobSets, backend settings, and so on). The options below are specific to
+being dispatched as a child of another pipeline.
+
+## pipelines\.\<name>\.github-actions\.dispatch\.callerIf
+
+If condition on the caller job in ci\.yaml\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.asComponent
+
+
+
+When true, no generate-X/trigger-X dispatch jobs are created in the
+parent pipeline for this child\. The component YAML is still rendered
+normally via gitlab-ci\.file\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.beforeScript
+
+
+
+Extra before_script lines for the generate job\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.extraArtifactPaths
+
+
+
+Extra artifact paths included in the generate job, in addition to the generated yml file\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.extraRules
+
+
+
+Extra rules prepended to the generate job’s rules list\.
+
+
+
+*Type:*
+list of attribute set of anything
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.image
+
+
+
+Image for the generate job\. Resolved via imageRegistry if a known
+key, otherwise used as a literal image reference\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.forward
+
+
+
+trigger\.forward configuration (e\.g\. { pipeline_variables = true; })\.
+
+
+
+*Type:*
+null or (attribute set of boolean)
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.stage
+
+
+
+Stage for the trigger job\.
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.strategy
+
+
+
+trigger\.strategy value (e\.g\. ‘depend’)\. Null = fire-and-forget\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs
+
+
+
+Parent jobs or job-sets that must complete before this pipeline is dispatched\.
+
+
+
+*Type:*
+list of (Needs configuration)
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs\.\*\.artifacts
+
+
+
+Whether artifacts from dependency are used\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs\.\*\.job
+
+
+
+Name of the needed job\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs\.\*\.jobSet
+
+
+
+Name of the needed job set\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs\.\*\.optional
+
+
+
+Whether need is optional\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+

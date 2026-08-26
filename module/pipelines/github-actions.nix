@@ -32,7 +32,9 @@ let
     };
 in
 {
+  # pipelines is absent when this module is instantiated as a nested pipeline
+  # (the option is disabled there, see pipelines/interface.nix)
   config.github-actions.settings.jobs = lib.mkMerge (
-    lib.mapAttrsToList mkGhaDispatch config.pipelines
+    lib.mapAttrsToList mkGhaDispatch (config.pipelines or { })
   );
 }
