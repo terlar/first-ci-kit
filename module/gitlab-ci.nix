@@ -39,8 +39,23 @@ in
       '';
     };
 
-    enableImage = lib.mkEnableOption "job images for GitLab CI" // {
-      default = true;
+    images = {
+      enable = lib.mkEnableOption "job images for GitLab CI" // {
+        default = true;
+      };
+
+      repository = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Base repository prefixed to relative {option}`imageRegistry` entries
+          when rendering GitLab CI output. Only images resolved through
+          {option}`imageRegistry` are affected; an entry is considered relative
+          when it contains no `/`, entries containing a `/` are used as-is.
+          Job image references that are not registry keys are never prefixed.
+        '';
+        example = "registry.example.com/team";
+      };
     };
 
     templatePath = lib.mkOption {

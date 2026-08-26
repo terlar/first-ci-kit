@@ -80,32 +80,6 @@ function that evaluates to a(n) string
 
 
 
-## github-actions\.enableImage
-
-
-
-Whether to enable job images for GitHub Actions\.
-
-
-
-*Type:*
-boolean
-
-
-
-*Default:*
-` true `
-
-
-
-*Example:*
-` true `
-
-*Declared by:*
- - [github-actions\.nix](github-actions.nix)
-
-
-
 ## github-actions\.changes\.enable
 
 
@@ -346,6 +320,62 @@ boolean
 
 
 
+## github-actions\.images\.enable
+
+
+
+Whether to enable job images for GitHub Actions\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
+## github-actions\.images\.repository
+
+
+
+Base repository prefixed to relative ` imageRegistry ` entries
+when rendering GitHub Actions output\. Only images resolved through
+` imageRegistry ` are affected; an entry is considered relative
+when it contains no ` / `, entries containing a ` / ` are used as-is\.
+Job image references that are not registry keys are never prefixed\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` "ghcr.io/org" `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.settings
 
 
@@ -506,32 +536,6 @@ string
 
 
 
-## gitlab-ci\.enableImage
-
-
-
-Whether to enable job images for GitLab CI\.
-
-
-
-*Type:*
-boolean
-
-
-
-*Default:*
-` true `
-
-
-
-*Example:*
-` true `
-
-*Declared by:*
- - [gitlab-ci\.nix](gitlab-ci.nix)
-
-
-
 ## gitlab-ci\.defaultStage
 
 
@@ -570,6 +574,62 @@ boolean
 
 *Default:*
 ` true `
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
+
+
+
+## gitlab-ci\.images\.enable
+
+
+
+Whether to enable job images for GitLab CI\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
+
+
+
+## gitlab-ci\.images\.repository
+
+
+
+Base repository prefixed to relative ` imageRegistry ` entries
+when rendering GitLab CI output\. Only images resolved through
+` imageRegistry ` are affected; an entry is considered relative
+when it contains no ` / `, entries containing a ` / ` are used as-is\.
+Job image references that are not registry keys are never prefixed\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` "registry.example.com/team" `
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -721,6 +781,12 @@ function that evaluates to a(n) string
 Named map of container image references\. Jobs can reference entries
 here (e\.g\. ` config.imageRegistry.tofu `) instead of hard-coding image
 strings, making registry or version changes a single-point edit\.
+
+When a job image is resolved through this registry, entries without a
+` / ` are treated as relative and prefixed with
+` gitlab-ci.images.repository ` / ` github-actions.images.repository `
+when set; entries containing a ` / ` are used as-is\. Job image references
+that are not registry keys are never prefixed\.
 
 
 
@@ -2677,8 +2743,6 @@ string
 
 ## stackDiscovery\.component\.module
 
-
-
 A module merged into every component submodule\. Use it to declare
 extra options and set filesystem-derived default values\.
 
@@ -2767,6 +2831,8 @@ one of “files”, “directories”
 
 
 ## stackDiscovery\.deployments\.environmentFromName
+
+
 
 Function mapping a discovered deployment directory/file name to the
 logical ` environment ` value stored on that deployment\. Applied to
@@ -3473,5 +3539,302 @@ null or string
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
+## Child pipelines
+
+Each entry in `pipelines.<name>` is evaluated as an independent pipeline
+instance and accepts the same options as a top-level pipeline (jobs,
+jobSets, backend settings, and so on). The options below are specific to
+being dispatched as a child of another pipeline.
+
+## pipelines\.\<name>\.github-actions\.dispatch\.callerIf
+
+If condition on the caller job in ci\.yaml\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.asComponent
+
+
+
+When true, no generate-X/trigger-X dispatch jobs are created in the
+parent pipeline for this child\. The component YAML is still rendered
+normally via gitlab-ci\.file\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.beforeScript
+
+
+
+Extra before_script lines for the generate job\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.extraArtifactPaths
+
+
+
+Extra artifact paths included in the generate job, in addition to the generated yml file\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.extraRules
+
+
+
+Extra rules prepended to the generate job’s rules list\.
+
+
+
+*Type:*
+list of attribute set of anything
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.image
+
+
+
+Image for the generate job\. Resolved via imageRegistry if a known
+key, otherwise used as a literal image reference\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.forward
+
+
+
+trigger\.forward configuration (e\.g\. { pipeline_variables = true; })\.
+
+
+
+*Type:*
+null or (attribute set of boolean)
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.stage
+
+
+
+Stage for the trigger job\.
+
+
+
+*Type:*
+string
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.strategy
+
+
+
+trigger\.strategy value (e\.g\. ‘depend’)\. Null = fire-and-forget\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs
+
+
+
+Parent jobs or job-sets that must complete before this pipeline is dispatched\.
+
+
+
+*Type:*
+list of (Needs configuration)
+
+
+
+*Default:*
+` [ ] `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs\.\*\.artifacts
+
+
+
+Whether artifacts from dependency are used\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs\.\*\.job
+
+
+
+Name of the needed job\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs\.\*\.jobSet
+
+
+
+Name of the needed job set\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
+
+
+
+## pipelines\.\<name>\.needs\.\*\.optional
+
+
+
+Whether need is optional\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+*Declared by:*
+ - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
 
 

@@ -70,6 +70,12 @@ in
         Named map of container image references. Jobs can reference entries
         here (e.g. `config.imageRegistry.tofu`) instead of hard-coding image
         strings, making registry or version changes a single-point edit.
+
+        When a job image is resolved through this registry, entries without a
+        `/` are treated as relative and prefixed with
+        {option}`gitlab-ci.images.repository` / {option}`github-actions.images.repository`
+        when set; entries containing a `/` are used as-is. Job image references
+        that are not registry keys are never prefixed.
       '';
       example = lib.literalExpression ''
         {

@@ -18,8 +18,11 @@ let
       buildTarget = "ci-pipeline-gitlab-ci-${parentPipelineName}-${childName}";
 
       image =
-        if child.gitlab-ci.image != null then
-          config.imageRegistry.${child.gitlab-ci.image} or child.gitlab-ci.image
+        let
+          generateImage = child.gitlab-ci.dispatch.generateJob.image;
+        in
+        if generateImage != null then
+          ci-lib.resolveImage config.gitlab-ci.images.repository config.imageRegistry generateImage
         else
           null;
 
@@ -101,7 +104,9 @@ let
     };
 in
 {
-  config.gitlab-ci.settings = lib.pipe config.pipelines [
+  # pipelines is absent when this module is instantiated as a nested pipeline
+  # (the option is disabled there, see pipelines/interface.nix)
+  config.gitlab-ci.settings = lib.pipe (config.pipelines or { }) [
     (lib.filterAttrs (_: child: !child.gitlab-ci.asComponent))
     (lib.mapAttrsToList mkGitlabDispatchJobs)
     lib.mkMerge
