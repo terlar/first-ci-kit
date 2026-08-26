@@ -18,6 +18,19 @@ let
       ];
 in
 {
+  # Resolve a job image reference against the shared imageRegistry. Only
+  # entries found in the registry get the repository prefix (relative entries,
+  # i.e. without "/"); any other image reference is used literally.
+  resolveImage =
+    repository: registry: image:
+    if registry ? ${image} then
+      let
+        entry = registry.${image};
+      in
+      if repository != null && !lib.hasInfix "/" entry then "${repository}/${entry}" else entry
+    else
+      image;
+
   documentsToYAML = lib.concatMapStringsSep "---\n" (x: (builtins.toJSON x) + "\n");
 
   types = {

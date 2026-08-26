@@ -397,16 +397,18 @@
     expected = "main";
   };
 
-  # gitlab-ci.image resolved via imageRegistry
+  # gitlab-ci.dispatch.generateJob.image resolved via imageRegistry, relative entry prefixed by
+  # gitlab-ci.images.repository
   test-gitlab-ci-child-pipeline-generate-job-image-from-registry = {
     expr =
       lib.pipe
         {
+          gitlab-ci.images.repository = "registry.example.com/team";
           imageRegistry = {
             nix = "nix-image:latest";
           };
           pipelines.child = {
-            gitlab-ci.image = "nix";
+            gitlab-ci.dispatch.generateJob.image = "nix";
             jobs.do-thing = {
               commands = [ "echo hello" ];
             };
@@ -416,16 +418,16 @@
           test-lib.evalConfig
           (cfg: cfg.gitlab-ci.settings.generate-child.image)
         ];
-    expected = "nix-image:latest";
+    expected = "registry.example.com/team/nix-image:latest";
   };
 
-  # gitlab-ci.image used literally when not in imageRegistry
+  # gitlab-ci.dispatch.generateJob.image used literally when not in imageRegistry
   test-gitlab-ci-child-pipeline-generate-job-image-literal = {
     expr =
       lib.pipe
         {
           pipelines.child = {
-            gitlab-ci.image = "ubuntu:24.04";
+            gitlab-ci.dispatch.generateJob.image = "ubuntu:24.04";
             jobs.do-thing = {
               commands = [ "echo hello" ];
             };

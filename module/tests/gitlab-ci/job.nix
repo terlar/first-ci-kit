@@ -154,12 +154,39 @@
 
   test-gitlab-ci-job-image-opt-out = {
     expr = test-lib.eval-gitlab-ci {
-      gitlab-ci.enableImage = false;
+      gitlab-ci.images.enable = false;
       jobs.job.image = "sample-image";
     };
 
     expected = {
       job = { };
+    };
+  };
+
+  test-gitlab-ci-job-with-image-from-repository = {
+    expr = test-lib.eval-gitlab-ci {
+      gitlab-ci.images.repository = "registry.example.com/team";
+      imageRegistry = {
+        tofu = "tofu:1.9";
+        external = "ghcr.io/org/external:latest";
+      };
+      jobs.job.image = "tofu";
+    };
+
+    expected = {
+      job.image = "registry.example.com/team/tofu:1.9";
+    };
+  };
+
+  # Direct job image references are never prefixed, even when a repository is set
+  test-gitlab-ci-job-with-direct-image-ignores-repository = {
+    expr = test-lib.eval-gitlab-ci {
+      gitlab-ci.images.repository = "registry.example.com/team";
+      jobs.job.image = "ubuntu:24.04";
+    };
+
+    expected = {
+      job.image = "ubuntu:24.04";
     };
   };
 

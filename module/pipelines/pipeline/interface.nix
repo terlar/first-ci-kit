@@ -26,17 +26,18 @@ in
           normally via gitlab-ci.file.
         '';
       };
-      image = lib.mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = ''
-          Image for the generate job. Resolved via imageRegistry if a known key,
-          otherwise used as a literal image reference.
-        '';
-      };
 
       dispatch = {
         generateJob = {
+          image = lib.mkOption {
+            type = types.nullOr types.str;
+            default = null;
+            description = ''
+              Image for the generate job. Resolved via imageRegistry if a known
+              key, otherwise used as a literal image reference.
+            '';
+          };
+
           beforeScript = lib.mkOption {
             type = types.listOf types.str;
             default = [ ];

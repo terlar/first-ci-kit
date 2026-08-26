@@ -18,8 +18,11 @@ let
       buildTarget = "ci-pipeline-gitlab-ci-${parentPipelineName}-${childName}";
 
       image =
-        if child.gitlab-ci.image != null then
-          config.imageRegistry.${child.gitlab-ci.image} or child.gitlab-ci.image
+        let
+          generateImage = child.gitlab-ci.dispatch.generateJob.image;
+        in
+        if generateImage != null then
+          ci-lib.resolveImage config.gitlab-ci.images.repository config.imageRegistry generateImage
         else
           null;
 

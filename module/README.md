@@ -80,32 +80,6 @@ function that evaluates to a(n) string
 
 
 
-## github-actions\.enableImage
-
-
-
-Whether to enable job images for GitHub Actions\.
-
-
-
-*Type:*
-boolean
-
-
-
-*Default:*
-` true `
-
-
-
-*Example:*
-` true `
-
-*Declared by:*
- - [github-actions\.nix](github-actions.nix)
-
-
-
 ## github-actions\.changes\.enable
 
 
@@ -346,6 +320,62 @@ boolean
 
 
 
+## github-actions\.images\.enable
+
+
+
+Whether to enable job images for GitHub Actions\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
+## github-actions\.images\.repository
+
+
+
+Base repository prefixed to relative ` imageRegistry ` entries
+when rendering GitHub Actions output\. Only images resolved through
+` imageRegistry ` are affected; an entry is considered relative
+when it contains no ` / `, entries containing a ` / ` are used as-is\.
+Job image references that are not registry keys are never prefixed\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` "ghcr.io/org" `
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.settings
 
 
@@ -506,32 +536,6 @@ string
 
 
 
-## gitlab-ci\.enableImage
-
-
-
-Whether to enable job images for GitLab CI\.
-
-
-
-*Type:*
-boolean
-
-
-
-*Default:*
-` true `
-
-
-
-*Example:*
-` true `
-
-*Declared by:*
- - [gitlab-ci\.nix](gitlab-ci.nix)
-
-
-
 ## gitlab-ci\.defaultStage
 
 
@@ -570,6 +574,62 @@ boolean
 
 *Default:*
 ` true `
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
+
+
+
+## gitlab-ci\.images\.enable
+
+
+
+Whether to enable job images for GitLab CI\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` true `
+
+
+
+*Example:*
+` true `
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
+
+
+
+## gitlab-ci\.images\.repository
+
+
+
+Base repository prefixed to relative ` imageRegistry ` entries
+when rendering GitLab CI output\. Only images resolved through
+` imageRegistry ` are affected; an entry is considered relative
+when it contains no ` / `, entries containing a ` / ` are used as-is\.
+Job image references that are not registry keys are never prefixed\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` null `
+
+
+
+*Example:*
+` "registry.example.com/team" `
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -721,6 +781,12 @@ function that evaluates to a(n) string
 Named map of container image references\. Jobs can reference entries
 here (e\.g\. ` config.imageRegistry.tofu `) instead of hard-coding image
 strings, making registry or version changes a single-point edit\.
+
+When a job image is resolved through this registry, entries without a
+` / ` are treated as relative and prefixed with
+` gitlab-ci.images.repository ` / ` github-actions.images.repository `
+when set; entries containing a ` / ` are used as-is\. Job image references
+that are not registry keys are never prefixed\.
 
 
 
@@ -2677,8 +2743,6 @@ string
 
 ## stackDiscovery\.component\.module
 
-
-
 A module merged into every component submodule\. Use it to declare
 extra options and set filesystem-derived default values\.
 
@@ -2767,6 +2831,8 @@ one of “files”, “directories”
 
 
 ## stackDiscovery\.deployments\.environmentFromName
+
+
 
 Function mapping a discovered deployment directory/file name to the
 logical ` environment ` value stored on that deployment\. Applied to

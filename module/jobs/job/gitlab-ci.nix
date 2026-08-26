@@ -25,9 +25,9 @@ in
     needs = lib.mkIf (needs != [ ]) needs;
     when = lib.mkIf config.runAlways (lib.mkDefault "always");
 
-    image = lib.mkIf (
-      config.image != null && rootConfig.gitlab-ci.enableImage
-    ) imageRegistry.${config.image} or config.image;
+    image = lib.mkIf (config.image != null && rootConfig.gitlab-ci.images.enable) (
+      ci-lib.resolveImage rootConfig.gitlab-ci.images.repository imageRegistry config.image
+    );
 
     rules =
       let

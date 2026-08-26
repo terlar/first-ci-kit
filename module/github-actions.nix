@@ -59,8 +59,23 @@ in
       '';
     };
 
-    enableImage = lib.mkEnableOption "job images for GitHub Actions" // {
-      default = true;
+    images = {
+      enable = lib.mkEnableOption "job images for GitHub Actions" // {
+        default = true;
+      };
+
+      repository = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Base repository prefixed to relative {option}`imageRegistry` entries
+          when rendering GitHub Actions output. Only images resolved through
+          {option}`imageRegistry` are affected; an entry is considered relative
+          when it contains no `/`, entries containing a `/` are used as-is.
+          Job image references that are not registry keys are never prefixed.
+        '';
+        example = "ghcr.io/org";
+      };
     };
 
     settings = lib.mkOption {

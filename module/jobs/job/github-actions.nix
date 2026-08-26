@@ -1,5 +1,6 @@
 {
   lib,
+  ci-lib,
   name,
   config,
   rootConfig,
@@ -102,8 +103,8 @@ in
 
       runs-on = lib.mkIf (defaultRunsOn != null) (lib.mkDefault defaultRunsOn);
 
-      container = lib.mkIf (config.image != null && rootConfig.github-actions.enableImage) {
-        image = imageRegistry.${config.image} or config.image;
+      container = lib.mkIf (config.image != null && rootConfig.github-actions.images.enable) {
+        image = ci-lib.resolveImage rootConfig.github-actions.images.repository imageRegistry config.image;
       };
 
       steps = lib.mkMerge [
