@@ -636,6 +636,34 @@ null or string
 
 
 
+## gitlab-ci\.inlinePipelineCalls
+
+
+
+When true, pipelineCall jobs are expanded directly into the parent
+pipeline’s job list instead of emitting ` include: ` entries\. All
+` $[[ inputs.X ]] ` placeholders in job names, string fields, and rule
+arrays are substituted with the resolved input values at Nix evaluation
+time\.
+
+Use this to stay within GitLab’s 150 nested-includes limit when a
+pipeline has many service/deployment pipelineCall entries\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+` false `
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
+
+
+
 ## gitlab-ci\.inputs
 
 
@@ -2710,8 +2738,6 @@ boolean
 
 ## stackDiscovery\.component\.configFile
 
-
-
 Filename within each component directory imported as a plain Nix
 attrset of component options\. May set any component option: ` needs `,
 ` extraPaths `, ` jobFactory `, ` deployments `, etc\. Values from this file
@@ -2742,6 +2768,8 @@ string
 
 
 ## stackDiscovery\.component\.module
+
+
 
 A module merged into every component submodule\. Use it to declare
 extra options and set filesystem-derived default values\.

@@ -16,9 +16,56 @@ let
       ref = resolveBranchName name;
     in
     if lib.hasPrefix "$" ref then ref else "'${ref}'";
+
+  # Substitute "$[[ inputs.X ]]" tokens in a value with resolved inputs.
+  # Strings: all tokens replaced with their string input values.
+  # Lists: bare tokens whose input is a list are spliced in-place.
+  # Attrsets: recursed into. Other types: unchanged.
+  substituteInputs =
+    inputs: value:
+    let
+      # Pre-build parallel lists for lib.replaceStrings (string inputs only).
+      stringInputKeys = lib.pipe inputs [
+        lib.attrNames
+        (lib.filter (k: builtins.isString inputs.${k}))
+      ];
+      froms = lib.map (k: "$[[ inputs.${k} ]]") stringInputKeys;
+      tos = lib.map (k: inputs.${k}) stringInputKeys;
+
+      # Extract token name if elem is a bare "$[[ inputs.NAME ]]" string, else null.
+      extractToken =
+        elem:
+        let
+          pattern = ''^\$[[][[] inputs\.([A-Za-z_][A-Za-z0-9_]*) []][]]$'';
+        in
+        lib.pipe elem [
+          (if builtins.isString elem then builtins.match pattern else (_: null))
+          (m: if m != null then lib.head m else null)
+        ];
+
+      # Substitute tokens in any Nix value.
+      substitute =
+        v:
+        if builtins.isString v then
+          lib.replaceStrings froms tos v
+        else if builtins.isList v then
+          lib.concatMap (
+            elem:
+            let
+              token = extractToken elem;
+              resolved = if token != null then inputs.${token} or null else null;
+            in
+            if builtins.isList resolved then lib.map substitute resolved else [ (substitute elem) ]
+          ) v
+        else if builtins.isAttrs v then
+          lib.mapAttrs (_: substitute) v
+        else
+          v;
+    in
+    substitute value;
 in
 {
-  inherit resolveBranchName mkBranchRef;
+  inherit resolveBranchName mkBranchRef substituteInputs;
 
   # augmentBranchesWithTriggers: merge changed-path rules from trigger jobs
   # into a job's own branches config.
