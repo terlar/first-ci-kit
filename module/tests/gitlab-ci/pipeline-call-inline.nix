@@ -218,4 +218,132 @@
       };
     };
   };
+
+  # Inline with gitlab-ci.inputs defaults: gitlab-ci-specific inputs like plan_needs
+  # should merge their defaults when unprovided for token substitution.
+  test-gitlab-ci-pipeline-call-inline-gitlab-ci-inputs-default = {
+    expr = test-lib.eval-gitlab-ci {
+      gitlab-ci.inlinePipelineCalls = true;
+      pipelines.my-pipeline = {
+        inputs = {
+          env = {
+            required = true;
+          };
+        };
+        gitlab-ci = {
+          asComponent = true;
+          templatePath = "ci/templates/my-pipeline.yml";
+          transformJobName = name: "$[[ inputs.env ]]:${name}";
+          inputs = {
+            plan_prefix = {
+              type = "string";
+              default = "stage1";
+              description = "Prefix for plan job";
+            };
+          };
+        };
+        jobs.deploy = {
+          commands = [ "deploy" ];
+          gitlab-ci.resource_group = "$[[ inputs.plan_prefix ]]";
+        };
+      };
+      jobs.call.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs.env = "prod";
+        # plan_prefix not provided -> use gitlab-ci.inputs default "stage1"
+      };
+    };
+    expected = {
+      "prod:deploy" = {
+        script = [ "deploy" ];
+        resource_group = "stage1";
+        variables = {
+          ENV = "prod";
+        };
+      };
+    };
+  };
+
+  # Inline with array gitlab-ci.inputs: bare tokens in string context that resolve
+  # to array values should splice the array into the parent value.
+  test-gitlab-ci-pipeline-call-inline-array-input-bare-token = {
+    expr = test-lib.eval-gitlab-ci {
+      gitlab-ci.inlinePipelineCalls = true;
+      pipelines.my-pipeline = {
+        gitlab-ci = {
+          asComponent = true;
+          templatePath = "ci/templates/my-pipeline.yml";
+          inputs = {
+            plan_needs = {
+              type = "array";
+              default = [ ];
+              description = "Additional needs for plan job";
+            };
+          };
+        };
+        jobs.plan = {
+          commands = [ "plan" ];
+          gitlab-ci.needs = "$[[ inputs.plan_needs ]]";
+        };
+      };
+      jobs.call.pipelineCall = {
+        pipeline = "my-pipeline";
+        # plan_needs not provided -> use default []
+      };
+    };
+    expected = {
+      plan = {
+        script = [ "plan" ];
+        needs = [ ];
+      };
+    };
+  };
+
+  # Inline with array gitlab-ci.inputs and needsInputs: computed needs (from other
+  # jobs) should be resolved and substituted into array context.
+  test-gitlab-ci-pipeline-call-inline-array-input-computed-needs = {
+    expr = test-lib.eval-gitlab-ci {
+      gitlab-ci.inlinePipelineCalls = true;
+      pipelines.my-pipeline = {
+        gitlab-ci = {
+          asComponent = true;
+          templatePath = "ci/templates/my-pipeline.yml";
+          inputs = {
+            plan_needs = {
+              type = "array";
+              default = [ ];
+              description = "Additional needs for plan job";
+            };
+          };
+        };
+        jobs.do-plan = {
+          commands = [ "plan" ];
+          gitlab-ci.needs = "$[[ inputs.plan_needs ]]";
+        };
+      };
+      jobs.caller.pipelineCall = {
+        pipeline = "my-pipeline";
+        # plan_needs not provided, should use default []
+        gitlab-ci.extraInputs.plan_needs = [
+          {
+            job = "build";
+            optional = true;
+            artifacts = false;
+          }
+        ];
+      };
+    };
+    expected = {
+      "do-plan" = {
+        script = [ "plan" ];
+        needs = [
+          {
+            job = "build";
+            optional = true;
+            artifacts = false;
+          }
+        ];
+      };
+    };
+  };
 }

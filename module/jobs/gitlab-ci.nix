@@ -7,7 +7,6 @@
 }:
 
 let
-  inherit (ci-lib.gitlab-ci) substituteInputs;
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.gitlab-ci.enable) config.jobs;
 
   # Jobs that delegate to a child pipeline via pipelineCall. These are
@@ -75,13 +74,29 @@ let
 
       allRules = jobRules ++ (branchRules.allRules or [ ]);
       pushRules = jobRules ++ (branchRules.pushRules or [ ]);
+
+      # Merge defaults from child pipeline's declared inputs (both regular and gitlab-ci-specific).
+      # For unprovided inputs, pull their defaults.
+      childPipeline = resolveChildPipeline pc;
+      providedInputs =
+        pc.inputs
+        // pc.gitlab-ci.extraInputs
+        // lib.optionalAttrs (gl.rulesInput != null) { ${gl.rulesInput} = allRules; }
+        // lib.optionalAttrs (gl.allRulesInput != null) { ${gl.allRulesInput} = allRules; }
+        // lib.optionalAttrs (gl.pushRulesInput != null) { ${gl.pushRulesInput} = pushRules; }
+        // computedNeedsInputs;
+
+      mergeDefaults =
+        defs:
+        lib.pipe defs [
+          (lib.filterAttrs (name: _: !(providedInputs ? ${name})))
+          (lib.mapAttrs (_: def: def.default or null))
+          (lib.filterAttrs (_: v: v != null))
+        ];
     in
-    pc.inputs
-    // pc.gitlab-ci.extraInputs
-    // lib.optionalAttrs (gl.rulesInput != null) { ${gl.rulesInput} = allRules; }
-    // lib.optionalAttrs (gl.allRulesInput != null) { ${gl.allRulesInput} = allRules; }
-    // lib.optionalAttrs (gl.pushRulesInput != null) { ${gl.pushRulesInput} = pushRules; }
-    // computedNeedsInputs;
+    providedInputs
+    // mergeDefaults (childPipeline.inputs or { })
+    // mergeDefaults (childPipeline.gitlab-ci.inputs or { });
 
   resolvedJobs = lib.mapAttrs (_: job: {
     inherit job;
@@ -104,14 +119,8 @@ let
     { job, inputs }:
     let
       childPipeline = resolveChildPipeline job.pipelineCall;
-      # Merge defaults of unprovided inputs into substitution map.
-      finalInputs =
-        inputs
-        // lib.pipe (childPipeline.inputs or { }) [
-          (lib.filterAttrs (name: _: !(inputs ? ${name})))
-          (lib.mapAttrs (_: def: def.default or null))
-          (lib.filterAttrs (_: v: v != null))
-        ];
+      # Pre-compute substitution context to avoid recomputing maps for every field
+      substitute = ci-lib.gitlab-ci.mkSubstituteContext inputs;
     in
     lib.pipe childPipeline.gitlab-ci.settings [
       (lib.flip builtins.removeAttrs [
@@ -126,8 +135,8 @@ let
       ])
       (lib.mapAttrs' (
         name: value: {
-          name = substituteInputs finalInputs name;
-          value = substituteInputs finalInputs value;
+          name = substitute name;
+          value = substitute value;
         }
       ))
     ];
