@@ -17,63 +17,6 @@ let
     in
     if lib.hasPrefix "$" ref then ref else "'${ref}'";
 
-  # Substitute "$[[ inputs.X ]]" tokens in a value with resolved inputs.
-  # Strings: all tokens replaced with their string input values.
-  # Lists: bare tokens whose input is a list are spliced in-place.
-  # Attrsets: recursed into. Other types: unchanged.
-  substituteInputs =
-    inputs: value:
-    let
-      # Pre-build parallel lists for lib.replaceStrings (string inputs only).
-      stringInputKeys = lib.pipe inputs [
-        lib.attrNames
-        (lib.filter (k: builtins.isString inputs.${k}))
-      ];
-      froms = lib.map (k: "$[[ inputs.${k} ]]") stringInputKeys;
-      tos = lib.map (k: inputs.${k}) stringInputKeys;
-
-      # Extract token name if elem is a bare "$[[ inputs.NAME ]]" string, else null.
-      extractToken =
-        elem:
-        let
-          pattern = ''^\$[[][[] inputs\.([A-Za-z_][A-Za-z0-9_]*) []][]]$'';
-        in
-        lib.pipe elem [
-          (if builtins.isString elem then builtins.match pattern else (_: null))
-          (m: if m != null then lib.head m else null)
-        ];
-
-      # Substitute tokens in any Nix value.
-      substitute =
-        v:
-        if builtins.isString v then
-          let
-            # Check if string is a bare token that resolves to any value (including arrays).
-            token = extractToken v;
-            resolved = if token != null then inputs.${token} or null else null;
-          in
-          if resolved != null then
-            # Bare token found; recursively substitute within the resolved value
-            substitute resolved
-          else
-            # No bare token or token unresolved; do string replacement
-            lib.replaceStrings froms tos v
-        else if builtins.isList v then
-          lib.concatMap (
-            elem:
-            let
-              token = extractToken elem;
-              resolved = if token != null then inputs.${token} or null else null;
-            in
-            if builtins.isList resolved then lib.map substitute resolved else [ (substitute elem) ]
-          ) v
-        else if builtins.isAttrs v then
-          lib.mapAttrs (_: substitute) v
-        else
-          v;
-    in
-    substitute value;
-
   # Pre-compute substitution context for bulk operations (many values with same inputs).
   # Returns a function that applies substitution without recomputing maps each time.
   # Useful for mkInlineJobs where 20-50+ fields need substitution.
@@ -127,7 +70,6 @@ in
   inherit
     resolveBranchName
     mkBranchRef
-    substituteInputs
     mkSubstituteContext
     ;
 
