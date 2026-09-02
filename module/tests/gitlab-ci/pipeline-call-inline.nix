@@ -139,4 +139,83 @@
       include = [ { local = "ci/templates/my-pipeline.yml"; } ];
     };
   };
+
+  # REGRESSION: token substitution using child pipeline input defaults.
+  # Bug: tokens like $[[ inputs.timeout_secs ]] were left as literal strings
+  # in inlined jobs when the caller didn't explicitly provide that input.
+  # Fix: mkInlineJobs now merges child pipeline's input defaults into the
+  # substitution map, so unprovided inputs substitute to their defaults.
+  test-gitlab-ci-pipeline-call-inline-input-defaults = {
+    expr = test-lib.eval-gitlab-ci {
+      gitlab-ci.inlinePipelineCalls = true;
+      pipelines.deploy = {
+        inputs = {
+          deployment = {
+            required = true;
+          };
+          timeout_secs = {
+            type = "string";
+            default = "300";
+          };
+        };
+        gitlab-ci = {
+          asComponent = true;
+          templatePath = "ci/templates/deploy.yml";
+          # autoEnvInputs = true (default) injects all inputs as uppercase vars
+        };
+        jobs.apply = {
+          commands = [ "apply" ];
+        };
+      };
+      jobs.call = {
+        pipelineCall = {
+          pipeline = "deploy";
+          inputs.deployment = "prod";
+          # timeout_secs NOT provided -> should substitute to default "300"
+        };
+      };
+    };
+    expected = {
+      apply = {
+        script = [ "apply" ];
+        variables = {
+          DEPLOYMENT = "prod";
+          TIMEOUT_SECS = "300";
+        };
+      };
+    };
+  };
+
+  # Inline with computed inputs: extraInputs merges with declared inputs
+  # for substitution. Test verifies computed input tokens substitute correctly.
+  test-gitlab-ci-pipeline-call-inline-computed-inputs = {
+    expr = test-lib.eval-gitlab-ci {
+      gitlab-ci.inlinePipelineCalls = true;
+      pipelines.my-pipeline = {
+        gitlab-ci = {
+          asComponent = true;
+          templatePath = "ci/templates/my-pipeline.yml";
+          transformJobName = name: "$[[ inputs.service ]]:$[[ inputs.deployment ]]:${name}";
+        };
+        jobs.plan = {
+          commands = [ "plan" ];
+          gitlab-ci.resource_group = "$[[ inputs.plan_id ]]";
+        };
+      };
+      jobs.call.pipelineCall = {
+        pipeline = "my-pipeline";
+        inputs = {
+          service = "my-svc";
+          deployment = "dev";
+        };
+        gitlab-ci.extraInputs.plan_id = "build-123";
+      };
+    };
+    expected = {
+      "my-svc:dev:plan" = {
+        script = [ "plan" ];
+        resource_group = "build-123";
+      };
+    };
+  };
 }

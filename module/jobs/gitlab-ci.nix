@@ -102,7 +102,18 @@ let
 
   mkInlineJobs =
     { job, inputs }:
-    lib.pipe (resolveChildPipeline job.pipelineCall).gitlab-ci.settings [
+    let
+      childPipeline = resolveChildPipeline job.pipelineCall;
+      # Merge defaults of unprovided inputs into substitution map.
+      finalInputs =
+        inputs
+        // lib.pipe (childPipeline.inputs or { }) [
+          (lib.filterAttrs (name: _: !(inputs ? ${name})))
+          (lib.mapAttrs (_: def: def.default or null))
+          (lib.filterAttrs (_: v: v != null))
+        ];
+    in
+    lib.pipe childPipeline.gitlab-ci.settings [
       (lib.flip builtins.removeAttrs [
         "cache"
         "default"
@@ -115,8 +126,8 @@ let
       ])
       (lib.mapAttrs' (
         name: value: {
-          name = substituteInputs inputs name;
-          value = substituteInputs inputs value;
+          name = substituteInputs finalInputs name;
+          value = substituteInputs finalInputs value;
         }
       ))
     ];
