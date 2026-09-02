@@ -111,6 +111,21 @@ in
       description = "A function to transform job names";
     };
 
+    inlinePipelineCalls = lib.mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        When true, pipelineCall jobs are expanded directly into the parent
+        pipeline's job list instead of emitting `include:` entries. All
+        `$[[ inputs.X ]]` placeholders in job names, string fields, and rule
+        arrays are substituted with the resolved input values at Nix evaluation
+        time.
+
+        Use this to stay within GitLab's 150 nested-includes limit when a
+        pipeline has many service/deployment pipelineCall entries.
+      '';
+    };
+
     fileDocuments = lib.mkOption {
       internal = true;
       type = types.listOf config.types.yamlType;

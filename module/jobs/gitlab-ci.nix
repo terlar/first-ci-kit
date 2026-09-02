@@ -7,6 +7,7 @@
 }:
 
 let
+  inherit (ci-lib.gitlab-ci) substituteInputs;
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.gitlab-ci.enable) config.jobs;
 
   # Jobs that delegate to a child pipeline via pipelineCall. These are
@@ -18,68 +19,107 @@ let
   # the top-level allPipelines registry (with an assertion).
   resolveTemplatePath =
     pc:
-    lib.findFirst (x: x != null)
-      (
-        assert lib.assertMsg (
-          allPipelines ? ${pc.pipeline} && allPipelines.${pc.pipeline}.gitlab-ci.templatePath != null
-        ) "pipelineCall: pipeline '${pc.pipeline}' has no gitlab-ci.templatePath set";
-        allPipelines.${pc.pipeline}.gitlab-ci.templatePath
-      )
-      [
-        # 1. Per-call explicit override wins.
-        pc.gitlab-ci.templatePath
-        # 2. Child pipeline definition (nested under this pipeline).
-        (config.pipelines.${pc.pipeline}.gitlab-ci.templatePath or null)
-      ];
+    if pc.gitlab-ci.templatePath != null then
+      pc.gitlab-ci.templatePath
+    else if
+      config.pipelines ? ${pc.pipeline} && config.pipelines.${pc.pipeline}.gitlab-ci.templatePath != null
+    then
+      config.pipelines.${pc.pipeline}.gitlab-ci.templatePath
+    else
+      assert lib.assertMsg (
+        allPipelines ? ${pc.pipeline} && allPipelines.${pc.pipeline}.gitlab-ci.templatePath != null
+      ) "pipelineCall: pipeline '${pc.pipeline}' has no gitlab-ci.templatePath set";
+      allPipelines.${pc.pipeline}.gitlab-ci.templatePath;
 
-  mkIncludeEntry =
+  resolveInputs =
     job:
     let
       pc = job.pipelineCall;
+      gl = pc.gitlab-ci;
       jobRules = job.gitlab-ci.rules or [ ];
-      augmentedBranches = ci-lib.gitlab-ci.augmentBranchesWithTriggers {
-        inherit (job) branches triggers;
-        inherit (config) jobs;
-      };
 
-      pipelineCallNeeds = builtins.filter (
+      # Only compute branch rules when at least one rules input is configured.
+      hasRulesInput = lib.any (x: x != null) [
+        gl.rulesInput
+        gl.allRulesInput
+        gl.pushRulesInput
+      ];
+      branchRules =
+        lib.pipe
+          {
+            inherit (job) branches triggers;
+            inherit (config) jobs;
+          }
+          [
+            ci-lib.gitlab-ci.augmentBranchesWithTriggers
+            ci-lib.gitlab-ci.mkBranchRules
+            (lib.optionalAttrs hasRulesInput)
+          ];
+
+      pipelineCallNeeds = lib.filter (
         need: config.jobs ? ${need.job} && config.jobs.${need.job}.pipelineCall != null
       ) job.needs;
 
-      computedNeedsInputs = lib.pipe pc.gitlab-ci.needsInputs [
-        (lib.mapAttrs (
-          _inputName: childJobSuffix:
-          map (need: {
+      # Map each needsInputs entry to a list of child job needs objects.
+      # Drop entries that resolve to an empty list (no pipelineCall deps).
+      computedNeedsInputs = lib.filterAttrs (_: v: v != [ ]) (
+        lib.mapAttrs (
+          _: childJobSuffix:
+          lib.map (need: {
             job = config.jobs.${need.job}.pipelineCall.gitlab-ci.toChildJobName childJobSuffix;
             optional = true;
             artifacts = false;
           }) pipelineCallNeeds
-        ))
-        (lib.filterAttrs (_: v: v != [ ]))
-      ];
+        ) gl.needsInputs
+      );
 
-      computedRules = lib.mergeAttrsList [
-        (lib.optionalAttrs (pc.gitlab-ci.rulesInput != null) {
-          ${pc.gitlab-ci.rulesInput} =
-            jobRules ++ (ci-lib.gitlab-ci.mkBranchRules augmentedBranches).allRules;
-        })
-        (lib.optionalAttrs (pc.gitlab-ci.allRulesInput != null) {
-          ${pc.gitlab-ci.allRulesInput} =
-            jobRules ++ (ci-lib.gitlab-ci.mkBranchRules augmentedBranches).allRules;
-        })
-        (lib.optionalAttrs (pc.gitlab-ci.pushRulesInput != null) {
-          ${pc.gitlab-ci.pushRulesInput} =
-            jobRules ++ (ci-lib.gitlab-ci.mkBranchRules augmentedBranches).pushRules;
-        })
-        computedNeedsInputs
-      ];
-      allInputs = lib.mergeAttrsList [
-        pc.inputs
-        pc.gitlab-ci.extraInputs
-        computedRules
-      ];
+      allRules = jobRules ++ (branchRules.allRules or [ ]);
+      pushRules = jobRules ++ (branchRules.pushRules or [ ]);
     in
-    { local = resolveTemplatePath pc; } // lib.optionalAttrs (allInputs != { }) { inputs = allInputs; };
+    pc.inputs
+    // pc.gitlab-ci.extraInputs
+    // lib.optionalAttrs (gl.rulesInput != null) { ${gl.rulesInput} = allRules; }
+    // lib.optionalAttrs (gl.allRulesInput != null) { ${gl.allRulesInput} = allRules; }
+    // lib.optionalAttrs (gl.pushRulesInput != null) { ${gl.pushRulesInput} = pushRules; }
+    // computedNeedsInputs;
+
+  resolvedJobs = lib.mapAttrs (_: job: {
+    inherit job;
+    inputs = resolveInputs job;
+  }) pipelineCallJobs;
+
+  mkIncludeEntry =
+    { job, inputs }:
+    {
+      local = resolveTemplatePath job.pipelineCall;
+    }
+    // lib.optionalAttrs (inputs != { }) { inherit inputs; };
+
+  resolveChildPipeline =
+    pc:
+    config.pipelines.${pc.pipeline} or allPipelines.${pc.pipeline}
+      or (throw "pipelineCall (inline): pipeline '${pc.pipeline}' not found in pipelines or allPipelines");
+
+  mkInlineJobs =
+    { job, inputs }:
+    lib.pipe (resolveChildPipeline job.pipelineCall).gitlab-ci.settings [
+      (lib.flip builtins.removeAttrs [
+        "cache"
+        "default"
+        "image"
+        "include"
+        "services"
+        "stages"
+        "variables"
+        "workflow"
+      ])
+      (lib.mapAttrs' (
+        name: value: {
+          name = substituteInputs inputs name;
+          value = substituteInputs inputs value;
+        }
+      ))
+    ];
 in
 {
   config.gitlab-ci.settings = lib.mkMerge [
@@ -88,8 +128,12 @@ in
       value = lib.filterAttrs (_: v: v != { }) (builtins.removeAttrs job.gitlab-ci [ "enable" ]);
     }) enabledJobs)
 
-    (lib.mkIf (pipelineCallJobs != { }) {
-      include = lib.mapAttrsToList (_: mkIncludeEntry) pipelineCallJobs;
+    (lib.mkIf (!config.gitlab-ci.inlinePipelineCalls && pipelineCallJobs != { }) {
+      include = lib.mapAttrsToList (_: mkIncludeEntry) resolvedJobs;
     })
+
+    (lib.mkIf (config.gitlab-ci.inlinePipelineCalls && pipelineCallJobs != { }) (
+      lib.mkMerge (lib.mapAttrsToList (_: mkInlineJobs) resolvedJobs)
+    ))
   ];
 }
