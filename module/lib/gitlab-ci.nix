@@ -47,7 +47,17 @@ let
       substitute =
         v:
         if builtins.isString v then
-          lib.replaceStrings froms tos v
+          let
+            # Check if string is a bare token that resolves to any value (including arrays).
+            token = extractToken v;
+            resolved = if token != null then inputs.${token} or null else null;
+          in
+          if resolved != null then
+            # Bare token found; recursively substitute within the resolved value
+            substitute resolved
+          else
+            # No bare token or token unresolved; do string replacement
+            lib.replaceStrings froms tos v
         else if builtins.isList v then
           lib.concatMap (
             elem:
