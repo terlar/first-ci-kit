@@ -73,9 +73,63 @@ let
           v;
     in
     substitute value;
+
+  # Pre-compute substitution context for bulk operations (many values with same inputs).
+  # Returns a function that applies substitution without recomputing maps each time.
+  # Useful for mkInlineJobs where 20-50+ fields need substitution.
+  mkSubstituteContext =
+    inputs:
+    let
+      stringInputKeys = lib.pipe inputs [
+        lib.attrNames
+        (lib.filter (k: builtins.isString inputs.${k}))
+      ];
+      froms = lib.map (k: "$[[ inputs.${k} ]]") stringInputKeys;
+      tos = lib.map (k: inputs.${k}) stringInputKeys;
+
+      tokenPattern = ''^\$[[][[] inputs\.([A-Za-z_][A-Za-z0-9_]*) []][]]$'';
+
+      extractToken =
+        elem:
+        if builtins.isString elem then
+          lib.pipe elem [
+            (builtins.match tokenPattern)
+            (m: if m != null then lib.head m else null)
+          ]
+        else
+          null;
+
+      substitute =
+        v:
+        if builtins.isString v then
+          let
+            token = extractToken v;
+            resolved = if token != null then inputs.${token} or null else null;
+          in
+          if resolved != null then substitute resolved else lib.replaceStrings froms tos v
+        else if builtins.isList v then
+          lib.concatMap (
+            elem:
+            let
+              token = extractToken elem;
+              resolved = if token != null then inputs.${token} or null else null;
+            in
+            if builtins.isList resolved then lib.map substitute resolved else [ (substitute elem) ]
+          ) v
+        else if builtins.isAttrs v then
+          lib.mapAttrs (_: substitute) v
+        else
+          v;
+    in
+    substitute;
 in
 {
-  inherit resolveBranchName mkBranchRef substituteInputs;
+  inherit
+    resolveBranchName
+    mkBranchRef
+    substituteInputs
+    mkSubstituteContext
+    ;
 
   # augmentBranchesWithTriggers: merge changed-path rules from trigger jobs
   # into a job's own branches config.

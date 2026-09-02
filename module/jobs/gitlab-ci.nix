@@ -7,7 +7,6 @@
 }:
 
 let
-  inherit (ci-lib.gitlab-ci) substituteInputs;
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.gitlab-ci.enable) config.jobs;
 
   # Jobs that delegate to a child pipeline via pipelineCall. These are
@@ -120,6 +119,8 @@ let
     { job, inputs }:
     let
       childPipeline = resolveChildPipeline job.pipelineCall;
+      # Pre-compute substitution context to avoid recomputing maps for every field
+      substitute = ci-lib.gitlab-ci.mkSubstituteContext inputs;
     in
     lib.pipe childPipeline.gitlab-ci.settings [
       (lib.flip builtins.removeAttrs [
@@ -134,8 +135,8 @@ let
       ])
       (lib.mapAttrs' (
         name: value: {
-          name = substituteInputs inputs name;
-          value = substituteInputs inputs value;
+          name = substitute name;
+          value = substitute value;
         }
       ))
     ];
