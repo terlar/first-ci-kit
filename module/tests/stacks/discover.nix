@@ -3,6 +3,7 @@
 let
   fakeTree = ./fixtures/stacks;
   fakeFlat = ./fixtures/flat;
+  fakeDeploymentsMerge = ./fixtures/deployments-merge;
 
   tofuFactory =
     {
@@ -449,5 +450,75 @@ in
           ])
         ];
     expected = "networking";
+  };
+
+  # Regression: component.nix setting one deployment key used to discard
+  # every other filesystem-discovered deployment key entirely, because the
+  # discovered defaults were wrapped in an outer `mkDefault` covering the
+  # whole `deployments` attrset. Any unmarked `deployments` definition from
+  # component.nix then won at the whole-option level, before the attrsOf
+  # per-key merge ever ran. Only "dev" is set in fixtures/deployments-merge's
+  # component.nix; "prod" must still be discovered.
+  test-stackdiscovery-component-nix-partial-deployments-override-keeps-other-keys = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = fakeDeploymentsMerge;
+              stackName = "deployments-merge";
+            };
+          }
+        ]
+        [ test-lib.evalConfig (lib.getAttr "jobs") builtins.attrNames ];
+    expected = [
+      "deployments-merge_svc_dev"
+      "deployments-merge_svc_prod"
+    ];
+  };
+
+  # Same fixture: the field set on "dev" in component.nix must still apply,
+  # and "prod" must keep its filesystem-derived default (no branchDeploy,
+  # environment = "prod").
+  test-stackdiscovery-component-nix-partial-deployments-override-applies-fields = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = fakeDeploymentsMerge;
+              stackName = "deployments-merge";
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "stacks"
+            "deployments-merge"
+            "components"
+            "svc"
+            "deployments"
+          ])
+          (deployments: {
+            dev = {
+              inherit (deployments.dev) branchDeploy environment;
+            };
+            prod = { inherit (deployments.prod) environment; };
+          })
+        ];
+    expected = {
+      dev = {
+        branchDeploy = true;
+        environment = "dev";
+      };
+      prod = {
+        environment = "prod";
+      };
+    };
   };
 }
