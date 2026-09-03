@@ -59,10 +59,16 @@ let
     lib.mkMerge [
       { inherit path stack; }
       {
-        deployments = lib.mkDefault (
-          lib.genAttrs deploymentNames (
-            name: lib.mkDefault { environment = lib.mkDefault (cfg.deployments.environmentFromName name); }
-          )
+        # Not wrapped in an outer mkDefault: option-level priority filtering
+        # happens before attrsOf's per-key merge runs, so an outer mkDefault
+        # here would let ANY unmarked `deployments` definition in
+        # component.nix discard this whole attrset (all discovered keys),
+        # instead of merging key-by-key. Keeping this definition unmarked
+        # lets zipAttrsWith combine it with component.nix's per-key, while
+        # the inner mkDefault still lets component.nix override fields of a
+        # given key.
+        deployments = lib.genAttrs deploymentNames (
+          name: lib.mkDefault { environment = lib.mkDefault (cfg.deployments.environmentFromName name); }
         );
       }
       componentConfig
