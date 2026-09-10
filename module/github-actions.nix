@@ -143,6 +143,24 @@ in
         (`branches.*.changes.paths`) configured, so that GitHub Actions accepts
         the inputs the parent passes automatically.
       '';
+
+      extraPaths = lib.mkOption {
+        type = types.attrsOf (types.listOf types.str);
+        default = { };
+        description = ''
+          Extra entries to fold into the auto-generated `changes` job's path
+          filter, keyed by an arbitrary name rather than a real job. Useful
+          when a step needs to react to "did path X change" (e.g. via
+          `fromJSON(needs.changes.outputs.changes)['name']` in a step-level
+          `if:`) without that name corresponding to an actual job that should
+          run or appear in the workflow graph.
+        '';
+        example = lib.literalExpression ''
+          {
+            docs-changed = [ "docs/**" "README.md" ];
+          }
+        '';
+      };
     };
 
     forceRunAll = {
