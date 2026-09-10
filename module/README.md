@@ -111,6 +111,43 @@ boolean
 
 
 
+## github-actions\.changes\.extraPaths
+
+
+
+Extra entries to fold into the auto-generated ` changes ` job’s path
+filter, keyed by an arbitrary name rather than a real job\. Useful
+when a step needs to react to “did path X change” (e\.g\. via
+` fromJSON(needs.changes.outputs.changes)['name'] ` in a step-level
+` if: `) without that name corresponding to an actual job that should
+run or appear in the workflow graph\.
+
+
+
+*Type:*
+attribute set of list of string
+
+
+
+*Default:*
+` { } `
+
+
+
+*Example:*
+
+```
+{
+  docs-changed = [ "docs/**" "README.md" ];
+}
+
+```
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.changesFetchDepth
 
 
@@ -2691,8 +2728,6 @@ raw value
 
 ## process-compose\.settings
 
-
-
 Configuration of process-compose to be passed to process-compose-flake settings\.
 
 
@@ -2737,6 +2772,8 @@ boolean
 
 
 ## stackDiscovery\.component\.configFile
+
+
 
 Filename within each component directory imported as a plain Nix
 attrset of component options\. May set any component option: ` needs `,

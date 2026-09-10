@@ -615,4 +615,90 @@ in
       };
     };
   };
+
+  # extraPaths registers a change-detection group not tied to any real job,
+  # useful for gating a step-level `if:` on a path pattern without that name
+  # needing to correspond to a job that actually runs.
+  test-github-actions-changes-extra-paths-adds-group-without-a-job = {
+    expr = test-lib.eval-github-actions {
+      github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        changes.extraPaths = {
+          docs-changed = [
+            "docs/**"
+            "README.md"
+          ];
+        };
+      };
+      jobs.job-a = {
+        branches.default = {
+          changes.paths = [ "src/**" ];
+          triggers.onPush = true;
+        };
+      };
+    };
+    expected = {
+      on.push.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            {
+              uses = "actions/checkout@v7";
+              "with"."fetch-depth" = 0;
+            }
+            (diffStep { DIFF_PATHS = "docs-changed:docs/**|README.md\njob-a:src/**"; })
+          ];
+        };
+        job-a = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v7"; } ];
+        };
+      };
+    };
+  };
+
+  # An extraPaths entry with an empty path list is dropped, same as a job
+  # with no changes.paths.
+  test-github-actions-changes-extra-paths-empty-list-ignored = {
+    expr = test-lib.eval-github-actions {
+      github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        changes.extraPaths.unused = [ ];
+      };
+      jobs.job-a = {
+        branches.default = {
+          changes.paths = [ "src/**" ];
+          triggers.onPush = true;
+        };
+      };
+    };
+    expected = {
+      on.push.branches = [ "main" ];
+      on.workflow_dispatch.inputs.force_run_all = forceRunAllInput;
+      jobs = {
+        changes = {
+          outputs.changes = "\${{ steps.diff.outputs.changes }}";
+          runs-on = "ubuntu-latest";
+          steps = [
+            {
+              uses = "actions/checkout@v7";
+              "with"."fetch-depth" = 0;
+            }
+            (diffStep { DIFF_PATHS = "job-a:src/**"; })
+          ];
+        };
+        job-a = {
+          needs = [ "changes" ];
+          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          runs-on = "ubuntu-latest";
+          steps = [ { uses = "actions/checkout@v7"; } ];
+        };
+      };
+    };
+  };
 }

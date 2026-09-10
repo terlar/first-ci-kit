@@ -9,7 +9,9 @@ let
     ;
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
 
-  changes = lib.pipe enabledJobs [
+  inherit (config.github-actions.changes) extraPaths;
+
+  jobDerivedPaths = lib.pipe enabledJobs [
     (builtins.mapAttrs (
       _: job:
       let
@@ -28,6 +30,9 @@ let
       lib.unique (jobPaths ++ (if jobPaths != [ ] then pathsFromTriggers else [ ]))
     ))
     (lib.filterAttrs (_: paths: paths != [ ]))
+  ];
+
+  changes = lib.pipe (jobDerivedPaths // lib.filterAttrs (_: paths: paths != [ ]) extraPaths) [
     (builtins.mapAttrs (_: builtins.concatStringsSep "|"))
     (lib.mapAttrsToList (name: paths: "${transformJobName name}:${paths}"))
   ];
