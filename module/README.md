@@ -730,32 +730,6 @@ null or string
 
 
 
-## jobs\.\<name>\.artifacts\.download\.path
-
-
-
-Destination path for the downloaded artifact\. Null uses the workspace root\.
-
-
-
-*Type:*
-null or string
-
-
-
-*Default:*
-` null `
-
-
-
-*Example:*
-` "terraform" `
-
-*Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
-
-
-
 ## jobs\.\<name>\.artifacts\.upload
 
 
