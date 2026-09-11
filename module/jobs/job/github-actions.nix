@@ -61,7 +61,12 @@ in
       steps = lib.mkOrder 600 [
         {
           uses = downloadArtifactAction;
-          "with".name = config.artifacts.download.name;
+          "with" = {
+            inherit (config.artifacts.download) name;
+          }
+          // lib.optionalAttrs (config.artifacts.download.path != null) {
+            inherit (config.artifacts.download) path;
+          };
         }
       ];
     })
