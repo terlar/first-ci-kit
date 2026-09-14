@@ -59,7 +59,6 @@
                 "with" = {
                   useDaemon = true;
                   name = "terlar";
-                  extraPullNames = "cuda-maintainers";
                   authToken = "\${{ secrets.CACHIX_AUTH_TOKEN }}";
                 };
               }
