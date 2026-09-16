@@ -144,7 +144,12 @@ in
     };
   };
 
-  config = lib.mkIf (config.inputs != { }) {
-    gitlab-ci.inputs = lib.mapAttrs renderGitlabInput config.inputs;
-  };
+  config = lib.mkMerge [
+    (lib.mkIf (config.inputs != { }) {
+      gitlab-ci.inputs = lib.mapAttrs renderGitlabInput config.inputs;
+    })
+    (lib.mkIf (config.env != { }) {
+      gitlab-ci.settings.variables = lib.mapAttrs (_: lib.mkDefault) config.env;
+    })
+  ];
 }
