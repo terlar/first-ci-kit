@@ -19,7 +19,10 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -41,15 +44,60 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "tofu-component" `
+
+```nix
+"tofu-component"
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
+## env
+
+
+
+Environment variables set for all backends at the pipeline level\.
+Merged into GitHub Actions workflow-level ` env: ` and GitLab CI
+pipeline-level ` variables: `\. Backend-specific settings
+(` github-actions.settings.env ` and ` gitlab-ci.settings.variables `)
+take precedence\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+
+
+*Example:*
+
+```nix
+{
+  NIX_CACHE_URL = "s3://example-cache?region=eu-west-1";
+}
+
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
 
 
 
@@ -73,7 +121,10 @@ function that evaluates to a(n) string
 
 
 *Default:*
-` lib.concatStringsSep "_" `
+
+```nix
+lib.concatStringsSep "_"
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -99,12 +150,18 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -130,13 +187,16 @@ attribute set of list of string
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   docs-changed = [ "docs/**" "README.md" ];
 }
@@ -165,12 +225,18 @@ signed integer
 
 
 *Default:*
-` 0 `
+
+```nix
+0
+```
 
 
 
 *Example:*
-` 50 `
+
+```nix
+50
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -191,12 +257,18 @@ string
 
 
 *Default:*
-` "actions/checkout@v7" `
+
+```nix
+"actions/checkout@v7"
+```
 
 
 
 *Example:*
-` "actions/checkout@v5" `
+
+```nix
+"actions/checkout@v5"
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -219,12 +291,18 @@ string
 
 
 *Default:*
-` "main" `
+
+```nix
+"main"
+```
 
 
 
 *Example:*
-` "master" `
+
+```nix
+"master"
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -245,7 +323,10 @@ null or string or list of string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -266,12 +347,18 @@ string
 
 
 *Default:*
-` "actions/download-artifact@v8" `
+
+```nix
+"actions/download-artifact@v8"
+```
 
 
 
 *Example:*
-` "actions/download-artifact@v3" `
+
+```nix
+"actions/download-artifact@v3"
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -296,12 +383,18 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -322,12 +415,18 @@ string
 
 
 *Default:*
-` "force_run_all" `
+
+```nix
+"force_run_all"
+```
 
 
 
 *Example:*
-` "run_all" `
+
+```nix
+"run_all"
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -350,7 +449,10 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -371,12 +473,18 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -401,12 +509,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "ghcr.io/org" `
+
+```nix
+"ghcr.io/org"
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -427,13 +541,16 @@ YAML value
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   name = "CI";
   on = [ "push" ];
@@ -461,12 +578,18 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -487,12 +610,18 @@ string
 
 
 *Default:*
-` "summary" `
+
+```nix
+"summary"
+```
 
 
 
 *Example:*
-` "workflow-summary" `
+
+```nix
+"workflow-summary"
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -514,12 +643,18 @@ null or string or list of string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "ubuntu-latest" `
+
+```nix
+"ubuntu-latest"
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -540,7 +675,10 @@ function that evaluates to a(n) string
 
 
 *Default:*
-` <function> `
+
+```nix
+<function>
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -561,12 +699,18 @@ string
 
 
 *Default:*
-` "actions/upload-artifact@v7" `
+
+```nix
+"actions/upload-artifact@v7"
+```
 
 
 
 *Example:*
-` "actions/upload-artifact@v3" `
+
+```nix
+"actions/upload-artifact@v3"
+```
 
 *Declared by:*
  - [github-actions\.nix](github-actions.nix)
@@ -587,7 +731,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -610,7 +757,10 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -631,12 +781,18 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -661,12 +817,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "registry.example.com/team" `
+
+```nix
+"registry.example.com/team"
+```
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -694,7 +856,10 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -716,13 +881,16 @@ YAML value
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   website = {};
   user.default = "test-user";
@@ -750,13 +918,16 @@ YAML value
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   image = "ubuntu";
   stages = [ "validate" "test" "build" "deploy" ];
@@ -788,7 +959,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -811,7 +985,10 @@ string
 
 
 *Default:*
-` "gitlab-templates" `
+
+```nix
+"gitlab-templates"
+```
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -832,7 +1009,10 @@ function that evaluates to a(n) string
 
 
 *Default:*
-` <function> `
+
+```nix
+<function>
+```
 
 *Declared by:*
  - [gitlab-ci\.nix](gitlab-ci.nix)
@@ -861,13 +1041,16 @@ lazy attribute set of string
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   tofu   = "registry.example.com/tofu:1.9";
   python = "registry.example.com/python:3.12";
@@ -898,13 +1081,16 @@ attribute set of (submodule)
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   service   = { type = "string"; required = true; description = "Service name to deploy."; };
   dry-run   = { type = "boolean"; default = "false"; description = "Skip destructive steps."; };
@@ -936,7 +1122,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -957,7 +1146,10 @@ string
 
 
 *Default:*
-` "" `
+
+```nix
+""
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -978,7 +1170,10 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -999,7 +1194,10 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -1020,7 +1218,10 @@ one of “string”, “boolean”, “number”, “environment”, “choice�
 
 
 *Default:*
-` "string" `
+
+```nix
+"string"
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -1046,13 +1247,16 @@ lazy attribute set of (submodule)
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   tofu-component.fn = { stack, component, deployment, formatJobName, needs, ... }:
     let jobName = formatJobName [ stack.name component.name deployment ]; in
@@ -1090,13 +1294,16 @@ list of (attribute set)
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
 
-```
+```nix
 [
   { stack = "networking"; component = "vpc"; deployment = "prod"; needs = []; }
   { stack = "networking"; component = "dns"; deployment = "prod"; needs = []; }
@@ -1130,7 +1337,7 @@ function that evaluates to a(n) (attribute set)
 
 *Example:*
 
-```
+```nix
 { stack, component, deployment, needs, formatJobName, ... }:
 let
   jobName = formatJobName [ stack.name component.name deployment ];
@@ -1165,7 +1372,10 @@ lazy attribute set of (Job Set configuration)
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 *Declared by:*
  - [job-sets/interface\.nix](job-sets/interface.nix)
@@ -1188,13 +1398,16 @@ lazy attribute set of raw value
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   image = "registry.example.com/tofu:1.9";
   tags = [ "linux" ];
@@ -1223,13 +1436,16 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
 
-```
+```nix
 [ "cluster_control-plane_prod" "cluster_node-pools_prod" ]
 
 ```
@@ -1255,13 +1471,16 @@ list of (Job set needs configuration)
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
 
-```
+```nix
 [
   { jobSet = "networking_vpc_prod"; }
   { jobSet = "security_iam_prod"; }
@@ -1288,7 +1507,10 @@ string
 
 
 *Example:*
-` "networking_vpc_prod" `
+
+```nix
+"networking_vpc_prod"
+```
 
 *Declared by:*
  - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
@@ -1311,12 +1533,18 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
-` [ "prod" "infra" ] `
+
+```nix
+[ "prod" "infra" ]
+```
 
 *Declared by:*
  - [job-sets/job-set/interface\.nix](job-sets/job-set/interface.nix)
@@ -1339,13 +1567,16 @@ lazy attribute set of (Job configuration)
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   build = {
     image = "nixos/nix:latest";
@@ -1381,12 +1612,18 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1407,13 +1644,16 @@ submodule
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   upload = { name = "build-output"; paths = [ "dist/" ]; };
   download = { name = "build-output"; };
@@ -1440,7 +1680,10 @@ null or (submodule)
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1461,7 +1704,10 @@ string
 
 
 *Example:*
-` "build-output" `
+
+```nix
+"build-output"
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1482,12 +1728,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` ".ci/terraform" `
+
+```nix
+".ci/terraform"
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1508,7 +1760,10 @@ null or (submodule)
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1529,7 +1784,10 @@ submodule
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1550,12 +1808,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "1 week" `
+
+```nix
+"1 week"
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1576,12 +1840,18 @@ null or (attribute set of string)
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` { terraform = ".ci/terraform/plan-summary.json"; } `
+
+```nix
+{ terraform = ".ci/terraform/plan-summary.json"; }
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1602,7 +1872,10 @@ string
 
 
 *Example:*
-` "build-output" `
+
+```nix
+"build-output"
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1623,12 +1896,18 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
-` [ "dist/" "result.log" ] `
+
+```nix
+[ "dist/" "result.log" ]
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1649,12 +1928,18 @@ null or signed integer
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` 7 `
+
+```nix
+7
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1675,13 +1960,16 @@ attribute set of (Job branch configuration)
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   main.triggers.onPush = true;
   main.changes.paths = [ "src/" ];
@@ -1708,12 +1996,18 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
-` [ "src/" "go.sum" ] `
+
+```nix
+[ "src/" "go.sum" ]
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1734,12 +2028,18 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1760,12 +2060,18 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1786,12 +2092,18 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1812,12 +2124,18 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
-` [ "make build" "make test" ] `
+
+```nix
+[ "make build" "make test" ]
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1840,13 +2158,16 @@ attribute set of string
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   LOG_LEVEL = "debug";
   CONFIG_FILE = "config.json";
@@ -1876,12 +2197,18 @@ null or signed integer
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` 0 `
+
+```nix
+0
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1903,18 +2230,21 @@ while keeping it active for other backends\.
 
 
 *Type:*
-YAML value
+open submodule of (YAML value)
 
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   runs-on = "ubuntu-latest";
   environment = "production";
@@ -1942,7 +2272,10 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -1964,18 +2297,21 @@ keeping it active for other backends\.
 
 
 *Type:*
-YAML value
+open submodule of (YAML value)
 
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   resource_group = "deploy-prod";
   interruptible = false;
@@ -2003,7 +2339,10 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2024,12 +2363,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "ubuntu:24.04" `
+
+```nix
+"ubuntu:24.04"
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2050,13 +2395,16 @@ list of (Needs configuration)
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
 
-```
+```nix
 [
   { job = "build"; }
   { jobSet = "integration"; optional = true; }
@@ -2083,7 +2431,10 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2104,7 +2455,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2125,7 +2479,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2146,7 +2503,10 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2173,13 +2533,16 @@ null or (submodule)
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   pipeline = "infra";
   inputs = { service = "api"; environment = "prod"; };
@@ -2209,7 +2572,10 @@ attribute set of string
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2232,7 +2598,10 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2257,7 +2626,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2281,7 +2653,10 @@ attribute set of (string or list of (string or (GitLab CI needs entry)))
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2307,7 +2682,10 @@ attribute set of string
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2331,7 +2709,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2355,7 +2736,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2379,7 +2763,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2411,7 +2798,10 @@ function that evaluates to a(n) string
 
 
 *Default:*
-` lib.id `
+
+```nix
+lib.id
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2435,7 +2825,10 @@ attribute set of string
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 *Declared by:*
  - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
@@ -2475,18 +2868,21 @@ while keeping it active for other backends\.
 
 
 *Type:*
-anything
+open submodule of anything
 
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   availability.restart = "on_failure";
   environment = [ "DEBUG=1" ];
@@ -2513,7 +2909,10 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2537,13 +2936,16 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
 
-```
+```nix
 [
   "nix print-dev-env .#profile-tofu > profile-tofu.sh"
   ". ./profile-tofu.sh"
@@ -2574,7 +2976,10 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2595,12 +3000,18 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
-` [ "gke-runner" ] `
+
+```nix
+[ "gke-runner" ]
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2621,12 +3032,18 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
-` [ "deploy" ] `
+
+```nix
+[ "deploy" ]
+```
 
 *Declared by:*
  - [jobs/job/interface\.nix](jobs/job/interface.nix)
@@ -2649,13 +3066,16 @@ attribute set of (submodule)
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   plan-summary.value = "${{ jobs.plan.outputs.summary }}";
 }
@@ -2681,7 +3101,10 @@ string
 
 
 *Default:*
-` "" `
+
+```nix
+""
+```
 
 *Declared by:*
  - [interface\.nix](interface.nix)
@@ -2707,8 +3130,6 @@ string
 
 ## process-compose\.cli
 
-
-
 CLI configuration of process-compose to be passed to process-compose-flake cli\.
 
 
@@ -2719,7 +3140,10 @@ raw value
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 *Declared by:*
  - [process-compose\.nix](process-compose.nix)
@@ -2727,6 +3151,8 @@ raw value
 
 
 ## process-compose\.settings
+
+
 
 Configuration of process-compose to be passed to process-compose-flake settings\.
 
@@ -2738,7 +3164,10 @@ module
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 *Declared by:*
  - [process-compose\.nix](process-compose.nix)
@@ -2759,12 +3188,18 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [stacks/discover\.nix](stacks/discover.nix)
@@ -2792,12 +3227,18 @@ string
 
 
 *Default:*
-` "component.nix" `
+
+```nix
+"component.nix"
+```
 
 
 
 *Example:*
-` "component.nix" `
+
+```nix
+"component.nix"
+```
 
 *Declared by:*
  - [stacks/discover\.nix](stacks/discover.nix)
@@ -2839,13 +3280,16 @@ module
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 { config, lib, ... }:
 lib.mkIf (config.path != null) {
   options.hasPackage = lib.mkOption {
@@ -2883,12 +3327,18 @@ one of “files”, “directories”
 
 
 *Default:*
-` "directories" `
+
+```nix
+"directories"
+```
 
 
 
 *Example:*
-` "files" `
+
+```nix
+"files"
+```
 
 *Declared by:*
  - [stacks/discover\.nix](stacks/discover.nix)
@@ -2923,12 +3373,18 @@ function that evaluates to a(n) string
 
 
 *Default:*
-` <function> `
+
+```nix
+<function>
+```
 
 
 
 *Example:*
-` dep: lib.head (lib.splitString "_" dep) `
+
+```nix
+dep: lib.head (lib.splitString "_" dep)
+```
 
 *Declared by:*
  - [stacks/discover\.nix](stacks/discover.nix)
@@ -2951,12 +3407,18 @@ string
 
 
 *Default:*
-` ".tfvars" `
+
+```nix
+".tfvars"
+```
 
 
 
 *Example:*
-` ".tfvars" `
+
+```nix
+".tfvars"
+```
 
 *Declared by:*
  - [stacks/discover\.nix](stacks/discover.nix)
@@ -2983,12 +3445,18 @@ null or string
 
 
 *Default:*
-` "deployments" `
+
+```nix
+"deployments"
+```
 
 
 
 *Example:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [stacks/discover\.nix](stacks/discover.nix)
@@ -3011,7 +3479,7 @@ list of string
 
 *Default:*
 
-```
+```nix
 [
   "modules"
 ]
@@ -3020,7 +3488,10 @@ list of string
 
 
 *Example:*
-` [ "modules" "shared" ] `
+
+```nix
+[ "modules" "shared" ]
+```
 
 *Declared by:*
  - [stacks/discover\.nix](stacks/discover.nix)
@@ -3045,7 +3516,10 @@ absolute path
 
 
 *Example:*
-` ./terraform `
+
+```nix
+./terraform
+```
 
 *Declared by:*
  - [stacks/discover\.nix](stacks/discover.nix)
@@ -3071,12 +3545,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "infra" `
+
+```nix
+"infra"
+```
 
 *Declared by:*
  - [stacks/discover\.nix](stacks/discover.nix)
@@ -3100,13 +3580,16 @@ lazy attribute set of (submodule)
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   networking = {
     deployments = { dev = { }; prod = { }; };
@@ -3142,18 +3625,21 @@ deployment via the stack’s factory\.
 
 
 *Type:*
-lazy attribute set of (attribute set)
+lazy attribute set of (open submodule of (attribute set))
 
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   vpc = { };
   dns.needs = [ { component = "vpc"; } ];
@@ -3179,18 +3665,21 @@ stack-level ` deployments ` for this component only\. When null
 
 
 *Type:*
-null or (lazy attribute set of (attribute set))
+null or (lazy attribute set of (open submodule of (attribute set)))
 
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   dev = { };
   stg = { };
@@ -3220,12 +3709,18 @@ null or string
 
 
 *Default:*
-` "‹name›" `
+
+```nix
+"‹name›"
+```
 
 
 
 *Example:*
-` "prod" `
+
+```nix
+"prod"
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3248,12 +3743,18 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
-` [ "shared/modules/**" "config/common.yaml" ] `
+
+```nix
+[ "shared/modules/**" "config/common.yaml" ]
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3276,12 +3777,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "tofu-component" `
+
+```nix
+"tofu-component"
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3310,13 +3817,16 @@ list of (submodule)
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 
 
 *Example:*
 
-```
+```nix
 [
   { component = "vpc"; }
   { stack = "security"; component = "iam"; }
@@ -3346,12 +3856,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "vpc" `
+
+```nix
+"vpc"
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3375,12 +3891,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "dev_tooling" `
+
+```nix
+"dev_tooling"
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3408,13 +3930,16 @@ null or (submodule)
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
 
-```
+```nix
 { environment = null; }   # same environment as current deployment
 
 ```
@@ -3442,12 +3967,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "prod" `
+
+```nix
+"prod"
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3471,12 +4002,18 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 
 
 *Example:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3497,12 +4034,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "networking" `
+
+```nix
+"networking"
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3521,18 +4064,21 @@ and any additional fields, which are passed to the job factory as
 
 
 *Type:*
-lazy attribute set of (attribute set)
+lazy attribute set of (open submodule of (attribute set))
 
 
 
 *Default:*
-` { } `
+
+```nix
+{ }
+```
 
 
 
 *Example:*
 
-```
+```nix
 {
   dev = { };
   stg = { };
@@ -3562,12 +4108,18 @@ null or string
 
 
 *Default:*
-` "‹name›" `
+
+```nix
+"‹name›"
+```
 
 
 
 *Example:*
-` "prod" `
+
+```nix
+"prod"
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3595,12 +4147,18 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 
 
 *Example:*
-` "tofu-component" `
+
+```nix
+"tofu-component"
+```
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
@@ -3626,7 +4184,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3649,7 +4210,10 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3670,7 +4234,10 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3691,7 +4258,10 @@ list of string
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3712,7 +4282,10 @@ list of attribute set of anything
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3734,7 +4307,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3755,7 +4331,10 @@ null or (attribute set of boolean)
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3792,7 +4371,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3813,7 +4395,10 @@ list of (Needs configuration)
 
 
 *Default:*
-` [ ] `
+
+```nix
+[ ]
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3834,7 +4419,10 @@ boolean
 
 
 *Default:*
-` true `
+
+```nix
+true
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3855,7 +4443,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3876,7 +4467,10 @@ null or string
 
 
 *Default:*
-` null `
+
+```nix
+null
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)
@@ -3897,7 +4491,10 @@ boolean
 
 
 *Default:*
-` false `
+
+```nix
+false
+```
 
 *Declared by:*
  - [pipelines/pipeline/interface\.nix](pipelines/pipeline/interface.nix)

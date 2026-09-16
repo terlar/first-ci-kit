@@ -190,5 +190,22 @@ in
         Set to false to opt out and manage env/variables manually.
       '';
     };
+
+    env = lib.mkOption {
+      type = types.attrsOf types.str;
+      default = { };
+      description = ''
+        Environment variables set for all backends at the pipeline level.
+        Merged into GitHub Actions workflow-level `env:` and GitLab CI
+        pipeline-level `variables:`. Backend-specific settings
+        (`github-actions.settings.env` and `gitlab-ci.settings.variables`)
+        take precedence.
+      '';
+      example = lib.literalExpression ''
+        {
+          NIX_CACHE_URL = "s3://example-cache?region=eu-west-1";
+        }
+      '';
+    };
   };
 }

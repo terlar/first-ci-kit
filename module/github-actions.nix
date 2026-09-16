@@ -255,5 +255,8 @@ in
         value = "\${{ inputs.${name} }}";
       }) config.inputs;
     })
+    (lib.mkIf (config.env != { }) {
+      github-actions.settings.env = lib.mapAttrs (_: lib.mkDefault) config.env;
+    })
   ];
 }
