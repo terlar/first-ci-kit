@@ -131,6 +131,46 @@ lib.concatStringsSep "_"
 
 
 
+## github-actions\.autoTriggers\.enable
+
+
+
+Whether to enable auto-population of ` on.push.branches ` / ` on.pull_request.branches `
+from the union of every enabled job’s own ` branches.*.triggers `\.
+Disable this for pipelines that should only ever run on other
+triggers (e\.g\. ` schedule `, ` workflow_dispatch `) regardless of what
+any individual job’s branch triggers say — for example a
+release-automation pipeline built from jobs that are shared with,
+and also need their push/pull_request triggers for, a separate
+main CI pipeline\.
+\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+
+```nix
+true
+```
+
+
+
+*Example:*
+
+```nix
+true
+```
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.changes\.enable
 
 
@@ -3113,8 +3153,6 @@ string
 
 ## outputs\.\<name>\.value
 
-
-
 Expression referencing the job output\.
 Example: “${{ jobs\.plan\.outputs\.plan }}”
 
@@ -3129,6 +3167,8 @@ string
 
 
 ## process-compose\.cli
+
+
 
 CLI configuration of process-compose to be passed to process-compose-flake cli\.
 
