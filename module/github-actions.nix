@@ -135,6 +135,23 @@ in
       example = "master";
     };
 
+    autoTriggers = {
+      enable =
+        lib.mkEnableOption ''
+          auto-population of `on.push.branches` / `on.pull_request.branches`
+          from the union of every enabled job's own `branches.*.triggers`.
+          Disable this for pipelines that should only ever run on other
+          triggers (e.g. `schedule`, `workflow_dispatch`) regardless of what
+          any individual job's branch triggers say — for example a
+          release-automation pipeline built from jobs that are shared with,
+          and also need their push/pull_request triggers for, a separate
+          main CI pipeline.
+        ''
+        // {
+          default = true;
+        };
+    };
+
     changes = {
       enable = lib.mkEnableOption ''
         auto-injection of `changes` and `changes_key` string inputs into this
@@ -240,10 +257,10 @@ in
         };
       };
     })
-    (lib.mkIf (pushBranches != [ ]) {
+    (lib.mkIf (config.github-actions.autoTriggers.enable && pushBranches != [ ]) {
       github-actions.settings.on.push.branches = lib.mkDefault pushBranches;
     })
-    (lib.mkIf (pullRequestBranches != [ ]) {
+    (lib.mkIf (config.github-actions.autoTriggers.enable && pullRequestBranches != [ ]) {
       github-actions.settings.on.pull_request.branches = lib.mkDefault pullRequestBranches;
     })
     (lib.mkIf (workflowCall != { }) {
