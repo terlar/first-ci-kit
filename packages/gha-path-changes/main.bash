@@ -10,23 +10,33 @@ pull_request)
 	git fetch origin "$GITHUB_BASE_REF" "$GITHUB_HEAD_REF"
 	;;
 workflow_dispatch)
-	change_lines=()
-	for p in $DIFF_PATHS; do
-		group="${p%:*}"
-		if [[ "${FORCE_RUN_ALL:-}" == "true" ]]; then
-			change_lines+=("\"$group\":true")
-		else
-			change_lines+=("\"$group\":false")
-		fi
-	done
-	change_object_body="$(printf '%s\n' "${change_lines[@]}" | paste -sd,)"
-	echo "changes={$change_object_body}" >>"$GITHUB_OUTPUT"
 	if [[ "${FORCE_RUN_ALL:-}" == "true" ]]; then
+		change_lines=()
+		for p in $DIFF_PATHS; do
+			group="${p%:*}"
+			change_lines+=("\"$group\":true")
+		done
+		change_object_body="$(printf '%s\n' "${change_lines[@]}" | paste -sd,)"
+		echo "changes={$change_object_body}" >>"$GITHUB_OUTPUT"
 		echo "## All jobs affected (change detection skipped)" >>"$GITHUB_STEP_SUMMARY"
-	else
-		echo "## No jobs affected (set force_run_all to run all jobs)" >>"$GITHUB_STEP_SUMMARY"
+		exit 0
 	fi
-	exit 0
+	if [[ -z "${ON_DEMAND_BASE_REF:-}" ]]; then
+		echo "::error::workflow_dispatch without force_run_all requires triggers.onDemand configured on at least one job branch (ON_DEMAND_BASE_REF is unset)" >&2
+		exit 1
+	fi
+	git fetch origin "$ON_DEMAND_BASE_REF"
+	first_commit="origin/$ON_DEMAND_BASE_REF"
+	last_commit="HEAD"
+	;;
+schedule)
+	if [[ -z "${ON_DEMAND_BASE_REF:-}" ]]; then
+		echo "::error::schedule events require triggers.onDemand configured on at least one job branch (ON_DEMAND_BASE_REF is unset)" >&2
+		exit 1
+	fi
+	git fetch origin "$ON_DEMAND_BASE_REF"
+	first_commit="origin/$ON_DEMAND_BASE_REF"
+	last_commit="HEAD"
 	;;
 esac
 

@@ -37,6 +37,20 @@ let
     (lib.mapAttrsToList (name: paths: "${transformJobName name}:${paths}"))
   ];
 
+  resolveBranchKey = key: if key == "default" then config.github-actions.defaultBranch else key;
+
+  onDemandBranches = lib.pipe enabledJobs [
+    builtins.attrValues
+    (lib.concatMap (job: lib.attrNames (lib.filterAttrs (_: b: b.triggers.onDemand) job.branches)))
+    (map resolveBranchKey)
+    lib.unique
+  ];
+
+  onDemandBaseRefAssertion =
+    assert lib.assertMsg (lib.length onDemandBranches <= 1)
+      "triggers.onDemand is only supported with a single distinct diff-base branch across all jobs in a pipeline (got: ${toString onDemandBranches})";
+    onDemandBranches;
+
   summaryJobCfg = config.github-actions.summaryJob;
 
   summaryJobNeeds =
@@ -69,6 +83,9 @@ in
                   }
                   (lib.optionalAttrs forceRunAll.enable {
                     FORCE_RUN_ALL = "\${{ inputs.${forceRunAll.inputName} }}";
+                  })
+                  (lib.optionalAttrs (onDemandBaseRefAssertion != [ ]) {
+                    ON_DEMAND_BASE_REF = builtins.head onDemandBaseRefAssertion;
                   })
                 ];
                 run = builtins.readFile ../../packages/gha-path-changes/main.bash;
