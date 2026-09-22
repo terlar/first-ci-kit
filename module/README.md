@@ -2054,6 +2054,42 @@ list of string
 
 
 
+## jobs\.\<name>\.branches\.\<name>\.triggers\.onDemand
+
+
+
+Whether to enable using this branch as the diff baseline for on-demand pipeline
+runs (scheduled or manually triggered), which otherwise have no
+natural diff range\. Equivalent to a pull request whose
+target/base branch is this one
+\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+
+```nix
+false
+```
+
+
+
+*Example:*
+
+```nix
+true
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.branches\.\<name>\.triggers\.onMergeRequest
 
 
@@ -3129,8 +3165,6 @@ attribute set of (submodule)
 
 ## outputs\.\<name>\.description
 
-
-
 Human-readable description of this output\.
 
 
@@ -3152,6 +3186,8 @@ string
 
 
 ## outputs\.\<name>\.value
+
+
 
 Expression referencing the job output\.
 Example: “${{ jobs\.plan\.outputs\.plan }}”

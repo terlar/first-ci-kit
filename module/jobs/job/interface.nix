@@ -17,6 +17,12 @@ let
           triggers = {
             onPush = lib.mkEnableOption "trigger on push to branch";
             onMergeRequest = lib.mkEnableOption "trigger on merge request to branch";
+            onDemand = lib.mkEnableOption ''
+              using this branch as the diff baseline for on-demand pipeline
+              runs (scheduled or manually triggered), which otherwise have no
+              natural diff range. Equivalent to a pull request whose
+              target/base branch is this one
+            '';
           };
 
           changes = {

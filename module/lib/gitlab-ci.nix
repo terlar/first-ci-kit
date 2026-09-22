@@ -117,11 +117,13 @@ in
   # Each branch entry is expected to have:
   #   triggers.onMergeRequest : bool
   #   triggers.onPush         : bool
+  #   triggers.onDemand       : bool
   #   changes.paths           : list of strings
   #
-  # Returns { allRules, pushRules } where:
-  #   allRules   — MR rules + push rules for all configured branches
-  #   pushRules  — push-only rules for all configured branches
+  # Returns { allRules, pushRules, onDemandRules } where:
+  #   allRules       — MR rules + push rules for all configured branches
+  #   pushRules      — push-only rules for all configured branches
+  #   onDemandRules  — schedule/manual-trigger rules for onDemand branches
   mkBranchRules =
     branches:
     let
@@ -147,17 +149,33 @@ in
             { "if" = "$CI_COMMIT_BRANCH == ${branchRef}"; }
             changesNoCmp
           ];
+          scheduleRule = lib.mergeAttrsList [
+            { "if" = "$CI_PIPELINE_SOURCE == 'schedule'"; }
+            changesWithCmp
+          ];
+          manualRule = lib.mergeAttrsList [
+            {
+              "if" =
+                "$CI_PIPELINE_SOURCE == 'web' || $CI_PIPELINE_SOURCE == 'trigger' || $CI_PIPELINE_SOURCE == 'api'";
+            }
+            changesWithCmp
+          ];
         in
         {
           allRules =
             lib.optionals cfg.triggers.onMergeRequest [ mrRule ]
             ++ lib.optionals cfg.triggers.onPush [ pushRule ];
           pushRules = lib.optionals cfg.triggers.onPush [ pushRule ];
+          onDemandRules = lib.optionals cfg.triggers.onDemand [
+            scheduleRule
+            manualRule
+          ];
         }
       ) branches;
     in
     {
       allRules = lib.concatMap (r: r.allRules) results;
       pushRules = lib.concatMap (r: r.pushRules) results;
+      onDemandRules = lib.concatMap (r: r.onDemandRules) results;
     };
 }

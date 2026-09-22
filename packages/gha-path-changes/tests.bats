@@ -96,16 +96,38 @@ setup() {
   [ "$output" = 'changes={"svc-a":true,"svc-b":true}' ]
 }
 
-@test "workflow_dispatch: all jobs skipped when force_run_all not set" {
+@test "workflow_dispatch: fails loudly without force_run_all and without ON_DEMAND_BASE_REF" {
   export GITHUB_EVENT_NAME=workflow_dispatch
-  (cd "$repo"; gha-path-changes) >/dev/null
-  run grep '^changes=' "$GITHUB_OUTPUT"
-  [ "$output" = 'changes={"svc-a":false,"svc-b":false}' ]
+  run bash -c "cd '$repo'; gha-path-changes"
+  [ "$status" -ne 0 ]
 }
 
-@test "workflow_dispatch: all jobs skipped when force_run_all=false" {
+@test "workflow_dispatch: fails loudly when force_run_all=false and without ON_DEMAND_BASE_REF" {
   export GITHUB_EVENT_NAME=workflow_dispatch FORCE_RUN_ALL=false
+  run bash -c "cd '$repo'; gha-path-changes"
+  [ "$status" -ne 0 ]
+}
+
+@test "workflow_dispatch: diffs against ON_DEMAND_BASE_REF when force_run_all not set" {
+  export GITHUB_EVENT_NAME=workflow_dispatch ON_DEMAND_BASE_REF=main
+  (cd "$repo"; git checkout feature)
   (cd "$repo"; gha-path-changes) >/dev/null
+  (cd "$repo"; git checkout main)
   run grep '^changes=' "$GITHUB_OUTPUT"
-  [ "$output" = 'changes={"svc-a":false,"svc-b":false}' ]
+  [ "$output" = 'changes={"svc-a":true,"svc-b":false}' ]
+}
+
+@test "schedule: diffs against ON_DEMAND_BASE_REF" {
+  export GITHUB_EVENT_NAME=schedule ON_DEMAND_BASE_REF=main
+  (cd "$repo"; git checkout feature)
+  (cd "$repo"; gha-path-changes) >/dev/null
+  (cd "$repo"; git checkout main)
+  run grep '^changes=' "$GITHUB_OUTPUT"
+  [ "$output" = 'changes={"svc-a":true,"svc-b":false}' ]
+}
+
+@test "schedule: fails loudly without ON_DEMAND_BASE_REF" {
+  export GITHUB_EVENT_NAME=schedule
+  run bash -c "cd '$repo'; gha-path-changes"
+  [ "$status" -ne 0 ]
 }
