@@ -136,7 +136,7 @@
     expr = test-lib.eval-github-actions {
       github-actions.defaultRunsOn = "ubuntu-latest";
       jobs.job1 = {
-        fetchDepth = 0;
+        checkout.fetchDepth = 0;
         commands = [ "git log" ];
       };
     };
@@ -176,6 +176,69 @@
 
   # fetchDepth = null (default) omits the with block entirely.
   test-github-actions-job-fetch-depth-null-omits-with = {
+    expr = test-lib.eval-github-actions {
+      jobs.job1.commands = [ "echo hi" ];
+    };
+    expected = {
+      jobs.job1.steps = [
+        { uses = "actions/checkout@v7"; }
+        { run = "echo hi"; }
+      ];
+    };
+  };
+
+  # ref adds with.ref to the checkout step.
+  test-github-actions-job-ref = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.job1 = {
+        checkout.ref = "production";
+        commands = [ "tofu apply" ];
+      };
+    };
+    expected = {
+      jobs.job1 = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          {
+            uses = "actions/checkout@v7";
+            "with".ref = "production";
+          }
+          { run = "tofu apply"; }
+        ];
+      };
+    };
+  };
+
+  # ref and fetchDepth both set merge into the same with block.
+  test-github-actions-job-ref-and-fetch-depth = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      jobs.job1 = {
+        checkout.ref = "production";
+        checkout.fetchDepth = 1;
+        commands = [ "tofu apply" ];
+      };
+    };
+    expected = {
+      jobs.job1 = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          {
+            uses = "actions/checkout@v7";
+            "with" = {
+              ref = "production";
+              "fetch-depth" = 1;
+            };
+          }
+          { run = "tofu apply"; }
+        ];
+      };
+    };
+  };
+
+  # ref = null (default) omits the with.ref field.
+  test-github-actions-job-ref-null-omits-with = {
     expr = test-lib.eval-github-actions {
       jobs.job1.commands = [ "echo hi" ];
     };

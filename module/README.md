@@ -2158,7 +2158,44 @@ true
 
 
 
-Whether to enable whether a git checkout should be made\.
+Git checkout settings\. A bool is accepted as shorthand for
+` checkout.enable `\.
+
+
+
+*Type:*
+(submodule) or boolean convertible to it
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+
+
+*Example:*
+
+```nix
+{
+  ref = "production";
+  fetchDepth = 0;
+}
+
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.checkout\.enable
+
+
+
+Whether to enable git checkout of the repository\.
 
 
 
@@ -2179,6 +2216,81 @@ true
 
 ```nix
 true
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.checkout\.fetchDepth
+
+
+
+Number of commits to fetch during clone/checkout\. ` null ` omits the
+setting, relying on the backend default (GitHub Actions: 1,
+GitLab CI: project-level Git shallow clone setting, typically 20)\.
+Set to ` 0 ` for a full clone with complete history\.
+
+
+
+*Type:*
+null or signed integer
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+
+
+*Example:*
+
+```nix
+0
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.checkout\.ref
+
+
+
+Git ref (branch, tag, or SHA) to check out for this job, instead of
+the ref that triggered the pipeline\.
+
+GitHub Actions: passed as ` with.ref ` on the checkout step\.
+
+GitLab CI: a pipeline is bound to a single ref for every job, so
+there is no native per-job override\. This is implemented as
+` git fetch origin <ref> && git checkout FETCH_HEAD `, prepended to
+the job’s ` before_script ` after the runner’s normal clone\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+
+
+*Example:*
+
+```nix
+"production"
 ```
 
 *Declared by:*
@@ -2249,41 +2361,6 @@ attribute set of string
   CONFIG_FILE = "config.json";
 }
 
-```
-
-*Declared by:*
- - [jobs/job/interface\.nix](jobs/job/interface.nix)
-
-
-
-## jobs\.\<name>\.fetchDepth
-
-
-
-Number of commits to fetch during clone/checkout\. ` null ` omits the
-setting, relying on the backend default (GitHub Actions: 1,
-GitLab CI: project-level Git shallow clone setting, typically 20)\.
-Set to ` 0 ` for a full clone with complete history\.
-
-
-
-*Type:*
-null or signed integer
-
-
-
-*Default:*
-
-```nix
-null
-```
-
-
-
-*Example:*
-
-```nix
-0
 ```
 
 *Declared by:*
@@ -3096,8 +3173,6 @@ list of string
 
 ## jobs\.\<name>\.triggers
 
-
-
 Jobs triggering the job\.
 
 
@@ -3164,6 +3239,8 @@ attribute set of (submodule)
 
 
 ## outputs\.\<name>\.description
+
+
 
 Human-readable description of this output\.
 

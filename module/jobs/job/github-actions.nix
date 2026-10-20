@@ -108,12 +108,14 @@ in
       };
 
       steps = lib.mkMerge [
-        (lib.mkIf config.checkout (
+        (lib.mkIf config.checkout.enable (
           lib.mkBefore [
-            (lib.mergeAttrsList [
-              { uses = checkoutAction; }
-              (lib.optionalAttrs (config.fetchDepth != null) {
-                "with"."fetch-depth" = config.fetchDepth;
+            (lib.foldl' lib.recursiveUpdate { uses = checkoutAction; } [
+              (lib.optionalAttrs (config.checkout.fetchDepth != null) {
+                "with".fetch-depth = config.checkout.fetchDepth;
+              })
+              (lib.optionalAttrs (config.checkout.ref != null) {
+                "with".ref = config.checkout.ref;
               })
             ])
           ]

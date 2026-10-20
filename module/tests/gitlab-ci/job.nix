@@ -206,7 +206,7 @@
   test-gitlab-ci-job-fetch-depth = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job1 = {
-        fetchDepth = 0;
+        checkout.fetchDepth = 0;
         commands = [ "git log" ];
       };
     };
@@ -218,8 +218,95 @@
     };
   };
 
+  # Legacy top-level fetchDepth and bool checkout still work.
+  test-gitlab-ci-job-checkout-legacy = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job1 = {
+        checkout = false;
+        fetchDepth = 0;
+        commands = [ "git log" ];
+      };
+    };
+    expected = {
+      job1 = {
+        script = [ "git log" ];
+        variables = {
+          GIT_CHECKOUT = "false";
+          GIT_DEPTH = "0";
+        };
+      };
+    };
+  };
+
   # fetchDepth = null (default) does not set GIT_DEPTH.
   test-gitlab-ci-job-fetch-depth-null-omits-variable = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job1.commands = [ "echo hi" ];
+    };
+    expected = {
+      job1.script = [ "echo hi" ];
+    };
+  };
+
+  # ref prepends a fetch+checkout to before_script, on top of the runner's clone.
+  test-gitlab-ci-job-ref = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job1 = {
+        checkout.ref = "production";
+        commands = [ "tofu apply" ];
+      };
+    };
+    expected = {
+      job1 = {
+        before_script = [
+          "git fetch origin production"
+          "git checkout FETCH_HEAD"
+        ];
+        script = [ "tofu apply" ];
+      };
+    };
+  };
+
+  # ref with fetchDepth passes --depth to the fetch.
+  test-gitlab-ci-job-ref-with-fetch-depth = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job1 = {
+        checkout.ref = "production";
+        checkout.fetchDepth = 1;
+        commands = [ "tofu apply" ];
+      };
+    };
+    expected = {
+      job1 = {
+        before_script = [
+          "git fetch origin production --depth=1"
+          "git checkout FETCH_HEAD"
+        ];
+        script = [ "tofu apply" ];
+        variables.GIT_DEPTH = "1";
+      };
+    };
+  };
+
+  # ref is ignored when checkout.enable = false: no clone to re-point.
+  test-gitlab-ci-job-ref-ignored-without-checkout = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job1 = {
+        checkout.ref = "production";
+        checkout.enable = false;
+        commands = [ "echo hi" ];
+      };
+    };
+    expected = {
+      job1 = {
+        script = [ "echo hi" ];
+        variables.GIT_CHECKOUT = "false";
+      };
+    };
+  };
+
+  # ref = null (default) does not set before_script.
+  test-gitlab-ci-job-ref-null-omits-before-script = {
     expr = test-lib.eval-gitlab-ci {
       jobs.job1.commands = [ "echo hi" ];
     };
