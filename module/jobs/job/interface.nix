@@ -110,6 +110,10 @@ let
       }) rootConfig.jobSets.${need.jobSet}.jobs;
 in
 {
+  imports = [
+    (lib.mkRenamedOptionModule [ "fetchDepth" ] [ "checkout" "fetchDepth" ])
+  ];
+
   options = {
     enable = (lib.mkEnableOption "Job") // {
       default = true;
@@ -190,20 +194,56 @@ in
       example = "ubuntu:24.04";
     };
 
-    checkout = (lib.mkEnableOption "whether a git checkout should be made") // {
-      default = true;
-    };
+    checkout = lib.mkOption {
+      type = types.coercedTo types.bool (enable: { inherit enable; }) (
+        types.submodule {
+          options = {
+            enable = (lib.mkEnableOption "git checkout of the repository") // {
+              default = true;
+            };
 
-    fetchDepth = lib.mkOption {
-      type = types.nullOr types.int;
-      default = null;
+            fetchDepth = lib.mkOption {
+              type = types.nullOr types.int;
+              default = null;
+              description = ''
+                Number of commits to fetch during clone/checkout. `null` omits the
+                setting, relying on the backend default (GitHub Actions: 1,
+                GitLab CI: project-level Git shallow clone setting, typically 20).
+                Set to `0` for a full clone with complete history.
+              '';
+              example = 0;
+            };
+
+            ref = lib.mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = ''
+                Git ref (branch, tag, or SHA) to check out for this job, instead of
+                the ref that triggered the pipeline.
+
+                GitHub Actions: passed as `with.ref` on the checkout step.
+
+                GitLab CI: a pipeline is bound to a single ref for every job, so
+                there is no native per-job override. This is implemented as
+                `git fetch origin <ref> && git checkout FETCH_HEAD`, prepended to
+                the job's `before_script` after the runner's normal clone.
+              '';
+              example = "production";
+            };
+          };
+        }
+      );
+      default = { };
       description = ''
-        Number of commits to fetch during clone/checkout. `null` omits the
-        setting, relying on the backend default (GitHub Actions: 1,
-        GitLab CI: project-level Git shallow clone setting, typically 20).
-        Set to `0` for a full clone with complete history.
+        Git checkout settings. A bool is accepted as shorthand for
+        `checkout.enable`.
       '';
-      example = 0;
+      example = lib.literalExpression ''
+        {
+          ref = "production";
+          fetchDepth = 0;
+        }
+      '';
     };
 
     commands = lib.mkOption {

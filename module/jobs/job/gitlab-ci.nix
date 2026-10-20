@@ -44,11 +44,11 @@ in
 
     variables = lib.mkMerge [
       (lib.mkIf (config.env != { }) (lib.mapAttrs (_: lib.mkDefault) config.env))
-      (lib.mkIf (!config.checkout) {
-        GIT_CHECKOUT = lib.boolToString config.checkout;
+      (lib.mkIf (!config.checkout.enable) {
+        GIT_CHECKOUT = "false";
       })
-      (lib.mkIf (config.fetchDepth != null) {
-        GIT_DEPTH = toString config.fetchDepth;
+      (lib.mkIf (config.checkout.fetchDepth != null) {
+        GIT_DEPTH = toString config.checkout.fetchDepth;
       })
       (lib.mkIf rootConfig.autoEnvInputs (
         lib.mapAttrs' (name: _: {
@@ -59,6 +59,20 @@ in
     ];
 
     script = lib.mkIf (config.commands != [ ]) config.commands;
+
+    # A GitLab pipeline is bound to a single ref for every job, so there is
+    # no native per-job override. Re-point the already-cloned working copy
+    # at the requested ref before the job's own before_script/script run.
+    before_script = lib.mkIf (config.checkout.enable && config.checkout.ref != null) (
+      lib.mkBefore [
+        "git fetch origin ${lib.escapeShellArg config.checkout.ref}${
+          lib.optionalString (
+            config.checkout.fetchDepth != null && config.checkout.fetchDepth != 0
+          ) " --depth=${toString config.checkout.fetchDepth}"
+        }"
+        "git checkout FETCH_HEAD"
+      ]
+    );
 
     artifacts = lib.mkIf (config.artifacts.upload != null) (
       lib.mkDefault (
