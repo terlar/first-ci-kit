@@ -2265,7 +2265,15 @@ null
 Git ref (branch, tag, or SHA) to check out for this job, instead of
 the ref that triggered the pipeline\.
 
-GitHub Actions: passed as ` with.ref ` on the checkout step\.
+May reference a variable declared in job ` env ` or workflow env
+(e\.g\. a pipeline input exposed via ` autoEnvInputs `) as plain
+` $VAR ` or ` ${VAR} `; shell forms like ` ${VAR:-x} ` are not
+supported\. An empty value at runtime keeps the default checkout\.
+
+GitHub Actions: passed as ` with.ref ` on the checkout step, with
+` $VAR ` translated to ` ${{ env.VAR }} `\.
+
+GitLab CI: the ref is double-quoted in shell, so ` $ ` is expanded\.
 
 GitLab CI: a pipeline is bound to a single ref for every job, so
 there is no native per-job override\. This is implemented as

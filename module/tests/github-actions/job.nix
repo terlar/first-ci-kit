@@ -249,4 +249,46 @@
       ];
     };
   };
+
+  # ref referencing an env var is translated to the env context.
+  test-github-actions-job-ref-env-var = {
+    expr = test-lib.eval-github-actions {
+      jobs.job1 = {
+        checkout.ref = "$REF";
+        env.REF = "production";
+        commands = [ "echo hi" ];
+      };
+    };
+    expected = {
+      jobs.job1 = {
+        env.REF = "production";
+        steps = [
+          {
+            uses = "actions/checkout@v7";
+            "with".ref = "\${{ env.REF }}";
+          }
+          { run = "echo hi"; }
+        ];
+      };
+    };
+  };
+
+  # ref referencing workflow-level env is translated too.
+  test-github-actions-job-ref-workflow-env-var = {
+    expr =
+      (test-lib.eval-github-actions {
+        github-actions.settings.env.REF = "production";
+        jobs.job1 = {
+          checkout.ref = "\${REF}";
+          commands = [ "echo hi" ];
+        };
+      }).jobs.job1.steps;
+    expected = [
+      {
+        uses = "actions/checkout@v7";
+        "with".ref = "\${{ env.REF }}";
+      }
+      { run = "echo hi"; }
+    ];
+  };
 }

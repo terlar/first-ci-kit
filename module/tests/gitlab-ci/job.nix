@@ -259,8 +259,7 @@
     expected = {
       job1 = {
         before_script = [
-          "git fetch origin production"
-          "git checkout FETCH_HEAD"
+          ''if [ -n "production" ]; then git fetch origin "production" && git checkout FETCH_HEAD; fi''
         ];
         script = [ "tofu apply" ];
       };
@@ -279,8 +278,7 @@
     expected = {
       job1 = {
         before_script = [
-          "git fetch origin production --depth=1"
-          "git checkout FETCH_HEAD"
+          ''if [ -n "production" ]; then git fetch origin "production" --depth=1 && git checkout FETCH_HEAD; fi''
         ];
         script = [ "tofu apply" ];
         variables.GIT_DEPTH = "1";
@@ -301,6 +299,25 @@
       job1 = {
         script = [ "echo hi" ];
         variables.GIT_CHECKOUT = "false";
+      };
+    };
+  };
+
+  # ref may reference an env var (e.g. from autoEnvInputs); expanded at runtime,
+  # and an empty value skips the re-checkout.
+  test-gitlab-ci-job-ref-env-var = {
+    expr = test-lib.eval-gitlab-ci {
+      jobs.job1 = {
+        checkout.ref = "$REF";
+        commands = [ "echo hi" ];
+      };
+    };
+    expected = {
+      job1 = {
+        before_script = [
+          ''if [ -n "$REF" ]; then git fetch origin "$REF" && git checkout FETCH_HEAD; fi''
+        ];
+        script = [ "echo hi" ];
       };
     };
   };

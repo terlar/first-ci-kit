@@ -115,7 +115,7 @@ in
                 "with".fetch-depth = config.checkout.fetchDepth;
               })
               (lib.optionalAttrs (config.checkout.ref != null) {
-                "with".ref = config.checkout.ref;
+                "with".ref = translatePath config.checkout.ref;
               })
             ])
           ]
