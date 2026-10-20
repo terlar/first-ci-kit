@@ -63,14 +63,17 @@ in
     # A GitLab pipeline is bound to a single ref for every job, so there is
     # no native per-job override. Re-point the already-cloned working copy
     # at the requested ref before the job's own before_script/script run.
+    # Double quotes (not escapeShellArg) so `$VAR` refs expand at runtime;
+    # an empty ref is a no-op, matching actions/checkout.
     before_script = lib.mkIf (config.checkout.enable && config.checkout.ref != null) (
+      let
+        ref = "\"${lib.escape [ "\\" "\"" "`" ] config.checkout.ref}\"";
+        depth = lib.optionalString (
+          config.checkout.fetchDepth != null && config.checkout.fetchDepth != 0
+        ) " --depth=${toString config.checkout.fetchDepth}";
+      in
       lib.mkBefore [
-        "git fetch origin ${lib.escapeShellArg config.checkout.ref}${
-          lib.optionalString (
-            config.checkout.fetchDepth != null && config.checkout.fetchDepth != 0
-          ) " --depth=${toString config.checkout.fetchDepth}"
-        }"
-        "git checkout FETCH_HEAD"
+        "if [ -n ${ref} ]; then git fetch origin ${ref}${depth} && git checkout FETCH_HEAD; fi"
       ]
     );
 
