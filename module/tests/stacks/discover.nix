@@ -134,6 +134,65 @@ in
     expected = [ { jobSet = "infra_db_dev"; } ];
   };
 
+  # includeComponents limits discovery to the listed components.
+  test-stackdiscovery-include-components = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = fakeFlat;
+              includeComponents = [ "iam" ];
+              deployments = {
+                subdirectory = null;
+                detection = "files";
+                extension = ".tfvars";
+              };
+            };
+          }
+        ]
+        [ test-lib.evalConfig (lib.getAttr "jobs") lib.attrNames ];
+    expected = [
+      "org_iam_acc"
+      "org_iam_dev"
+    ];
+  };
+
+  # Needs on excluded same-stack components are dropped; included and
+  # stack-level needs stay.
+  test-stackdiscovery-include-components-drops-excluded-needs = {
+    expr =
+      lib.pipe
+        [
+          baseConfig
+          {
+            stackDiscovery = {
+              enable = true;
+              path = ./fixtures/include;
+              stackName = "svc";
+              includeComponents = [
+                "app"
+                "net"
+              ];
+            };
+          }
+        ]
+        [
+          test-lib.evalConfig
+          (lib.getAttrFromPath [
+            "jobSets"
+            "svc_app_dev"
+            "needs"
+          ])
+        ];
+    expected = [
+      { jobSet = "svc_net_dev"; }
+      { jobSet = "base_dev"; }
+    ];
+  };
+
   # File-based detection with a custom extension
   test-stackdiscovery-custom-extension = {
     expr =
@@ -363,7 +422,7 @@ in
               enable = true;
               path = fakeTree;
               component.module =
-                { config, lib, ... }:
+                { lib, ... }:
                 {
                   options.customFlag = lib.mkOption {
                     type = lib.types.bool;

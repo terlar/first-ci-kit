@@ -50,11 +50,24 @@ let
     in
     if builtins.pathExists configPath then import configPath else { };
 
+  isIncluded = name: cfg.includeComponents == null || lib.elem name cfg.includeComponents;
+
+  # Keep only needs on included components; the rest have no jobs to wait
+  # for. Stack-level needs (no component) are kept, resolved downstream.
+  isIncludedNeed = need: need ? component -> isIncluded need.component;
+
+  dropExcludedNeeds =
+    componentConfig:
+    componentConfig
+    // lib.optionalAttrs (lib.isAttrs componentConfig && componentConfig ? needs) {
+      needs = lib.filter isIncludedNeed componentConfig.needs;
+    };
+
   mkComponent =
     stack: path:
     let
       deploymentNames = discoverDeployments path;
-      componentConfig = discoverComponentConfig path;
+      componentConfig = dropExcludedNeeds (discoverComponentConfig path);
     in
     lib.mkMerge [
       { inherit path stack; }
@@ -78,6 +91,7 @@ let
     components = lib.pipe stackPath [
       subdirs
       (lib.filter (name: isComponent "${stackPath}/${name}"))
+      (lib.filter isIncluded)
       (lib.flip lib.genAttrs (name: mkComponent stack "${stackPath}/${name}"))
     ];
   };
@@ -121,6 +135,21 @@ in
         treated as stack names.
       '';
       example = lib.literalExpression ''"infra"'';
+    };
+
+    includeComponents = lib.mkOption {
+      type = types.nullOr (types.listOf types.str);
+      default = null;
+      description = ''
+        Component names to discover. `null` (the default) discovers every
+        component. Useful for a pipeline that only deploys a subset of the
+        components found under `path`.
+
+        Needs in `component.nix` are filtered to the included components,
+        since excluded components have no jobs. Stack-level needs (without
+        `component`) are kept.
+      '';
+      example = lib.literalExpression ''[ "iam" ]'';
     };
 
     excludeDirs = lib.mkOption {

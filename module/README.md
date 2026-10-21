@@ -3659,6 +3659,44 @@ list of string
 
 
 
+## stackDiscovery\.includeComponents
+
+
+
+Component names to discover\. ` null ` (the default) discovers every
+component\. Useful for a pipeline that only deploys a subset of the
+components found under ` path `\.
+
+Needs in ` component.nix ` are filtered to the included components,
+since excluded components have no jobs\. Stack-level needs (without
+` component `) are kept\.
+
+
+
+*Type:*
+null or (list of string)
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+
+
+*Example:*
+
+```nix
+[ "iam" ]
+```
+
+*Declared by:*
+ - [stacks/discover\.nix](stacks/discover.nix)
+
+
+
 ## stackDiscovery\.path
 
 
