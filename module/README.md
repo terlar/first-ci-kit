@@ -3,7 +3,106 @@
 Options set under `first-ci-kit` in the flake-parts module. Each
 `pipelines.<name>` entry accepts the per-pipeline options below.
 
+## first-ci-kit\.componentPipelines
+
+Fan out one top-level pipeline per component found by stack discovery\.
+Each pipeline has ` stackDiscovery.includeComponents = [ component ] `\.
+
+
+
+*Type:*
+lazy attribute set of (submodule)
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.componentPipelines\.\<name>\.module
+
+
+
+Pipeline module imported into every generated pipeline\. The
+component name is available as the ` component ` module argument\.
+
+
+
+*Type:*
+module
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.componentPipelines\.\<name>\.name
+
+
+
+Pipeline name for a component\.
+
+
+
+*Type:*
+function that evaluates to a(n) string
+
+
+
+*Default:*
+
+```nix
+component: "${prefix}-${component}"
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.componentPipelines\.\<name>\.stackDiscovery
+
+
+
+` stackDiscovery ` settings used both to list components and in
+each generated pipeline\. ` stackName ` must be set\.
+
+
+
+*Type:*
+attribute set
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
 ## first-ci-kit\.pipelines
+
+
 
 Top-level pipelines\. Each entry accepts every per-pipeline option and
 renders to its own CI file (e\.g\. ` .github/workflows/<name>.yml `)\.
@@ -590,6 +689,79 @@ null
 
 ```nix
 "ghcr.io/org"
+```
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
+## github-actions\.pathTriggers\.enable
+
+
+
+Whether to enable auto-population of ` on.push.paths ` / ` on.pull_request.paths ` from the
+union of every enabled job’s own ` branches.*.changes.paths `, the
+pipeline-level ` changes.extraPaths ` and ` pathTriggers.extraPaths `\.
+Only set for an event (` push `/` pull_request `) that is already
+triggered by some job’s ` branches.*.triggers `\.
+\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+
+```nix
+false
+```
+
+
+
+*Example:*
+
+```nix
+true
+```
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
+## github-actions\.pathTriggers\.extraPaths
+
+
+
+Extra path patterns to fold into the auto-generated
+` on.push.paths ` / ` on.pull_request.paths ` filters, alongside every
+enabled job’s own ` branches.*.changes.paths `\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+
+```nix
+[ ]
+```
+
+
+
+*Example:*
+
+```nix
+[
+  "flake.lock"
+]
 ```
 
 *Declared by:*
@@ -3151,8 +3323,6 @@ list of string
 
 ## jobs\.\<name>\.runAlways
 
-
-
 Whether the job should run regardless of dependency failure\.
 Equivalent to GitLab CI’s ` when: always `\.
 On GitHub Actions, adds ` always() ` to the ` if ` condition and guards
@@ -3210,6 +3380,8 @@ list of string
 
 
 ## jobs\.\<name>\.triggers
+
+
 
 Jobs triggering the job\.
 

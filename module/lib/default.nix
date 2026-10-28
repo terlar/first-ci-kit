@@ -31,6 +31,54 @@ in
     else
       image;
 
+  # Component names as found by stackDiscovery. With `stackName` set, the
+  # names under `path`; otherwise "<stack>/<component>" across stacks.
+  # Defaults mirror the stackDiscovery option defaults.
+  discoverComponentNames =
+    {
+      path,
+      stackName ? null,
+      excludeDirs ? [ "modules" ],
+      deployments ? { },
+      ...
+    }:
+    let
+      deps = {
+        subdirectory = "deployments";
+        detection = "directories";
+        extension = ".tfvars";
+      }
+      // deployments;
+
+      subdirs =
+        dir:
+        lib.pipe dir [
+          builtins.readDir
+          (lib.filterAttrs (_: type: type == "directory"))
+          builtins.attrNames
+        ];
+
+      isComponent =
+        dir:
+        let
+          entries = builtins.readDir dir;
+        in
+        if deps.subdirectory != null then
+          (entries.${deps.subdirectory} or "") == "directory"
+        else if deps.detection == "files" then
+          builtins.any (lib.hasSuffix deps.extension) (builtins.attrNames entries)
+        else
+          builtins.any (t: t == "directory") (builtins.attrValues entries);
+
+      componentsIn = dir: lib.filter (name: isComponent "${dir}/${name}") (subdirs dir);
+    in
+    if stackName != null then
+      componentsIn path
+    else
+      lib.concatMap (stack: map (c: "${stack}/${c}") (componentsIn "${path}/${stack}")) (
+        lib.filter (s: !builtins.elem s excludeDirs) (subdirs path)
+      );
+
   documentsToYAML = lib.concatMapStringsSep "---\n" (x: (builtins.toJSON x) + "\n");
 
   types = {

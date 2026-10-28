@@ -15,4 +15,42 @@ in
       renders to its own CI file (e.g. `.github/workflows/<name>.yml`).
     '';
   };
+
+  options.componentPipelines = lib.mkOption {
+    type = types.lazyAttrsOf (
+      types.submodule (
+        { name, ... }:
+        {
+          options = {
+            module = lib.mkOption {
+              type = types.deferredModule;
+              default = { };
+              description = ''
+                Pipeline module imported into every generated pipeline. The
+                component name is available as the `component` module argument.
+              '';
+            };
+            stackDiscovery = lib.mkOption {
+              type = types.attrs;
+              description = ''
+                `stackDiscovery` settings used both to list components and in
+                each generated pipeline. `stackName` must be set.
+              '';
+            };
+            name = lib.mkOption {
+              type = types.functionTo types.str;
+              default = component: "${name}-${component}";
+              defaultText = lib.literalExpression ''component: "''${prefix}-''${component}"'';
+              description = "Pipeline name for a component.";
+            };
+          };
+        }
+      )
+    );
+    default = { };
+    description = ''
+      Fan out one top-level pipeline per component found by stack discovery.
+      Each pipeline has `stackDiscovery.includeComponents = [ component ]`.
+    '';
+  };
 }

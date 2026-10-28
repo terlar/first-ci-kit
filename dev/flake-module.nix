@@ -118,6 +118,7 @@
       };
 
       checks = {
+        component-pipelines = import ./checks/component-pipelines.nix { inherit lib pkgs inputs; };
         gha-path-changes = pkgs.callPackage ./checks/gha-path-changes.nix { inherit config; };
         gha-job-summary = pkgs.callPackage ./checks/gha-job-summary.nix { };
         git-hooks = pkgs.callPackage ./checks/git-hooks.nix { inherit lib config; };
