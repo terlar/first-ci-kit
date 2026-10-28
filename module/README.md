@@ -3,7 +3,106 @@
 Options set under `first-ci-kit` in the flake-parts module. Each
 `pipelines.<name>` entry accepts the per-pipeline options below.
 
+## first-ci-kit\.componentPipelines
+
+Fan out one top-level pipeline per component found by stack discovery\.
+Each pipeline has ` stackDiscovery.includeComponents = [ component ] `\.
+
+
+
+*Type:*
+lazy attribute set of (submodule)
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.componentPipelines\.\<name>\.module
+
+
+
+Pipeline module imported into every generated pipeline\. The
+component name is available as the ` component ` module argument\.
+
+
+
+*Type:*
+module
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.componentPipelines\.\<name>\.name
+
+
+
+Pipeline name for a component\.
+
+
+
+*Type:*
+function that evaluates to a(n) string
+
+
+
+*Default:*
+
+```nix
+component: "${prefix}-${component}"
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.componentPipelines\.\<name>\.stackDiscovery
+
+
+
+` stackDiscovery ` settings used both to list components and in
+each generated pipeline\. ` stackName ` must be set\.
+
+
+
+*Type:*
+attribute set
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
 ## first-ci-kit\.pipelines
+
+
 
 Top-level pipelines\. Each entry accepts every per-pipeline option and
 renders to its own CI file (e\.g\. ` .github/workflows/<name>.yml `)\.
