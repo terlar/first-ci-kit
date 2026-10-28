@@ -104,9 +104,7 @@ let
     };
 in
 {
-  # pipelines is absent when this module is instantiated as a nested pipeline
-  # (the option is disabled there, see pipelines/interface.nix)
-  config.gitlab-ci.settings = lib.pipe (config.pipelines or { }) [
+  config.gitlab-ci.settings = lib.pipe config.pipelines [
     (lib.filterAttrs (_: child: !child.gitlab-ci.asComponent))
     (lib.mapAttrsToList mkGitlabDispatchJobs)
     lib.mkMerge
