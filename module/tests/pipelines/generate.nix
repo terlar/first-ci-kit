@@ -36,4 +36,24 @@
     ];
     expected = false;
   };
+
+  # Child pipelines get the core module only, so nesting is rejected.
+  test-pipelines-nested-rejected = {
+    expr =
+      (builtins.tryEval (
+        builtins.deepSeq
+          (test-lib.evalConfig { pipelines.child.pipelines.grandchild = { }; })
+          .pipelines.child.github-actions.settings
+          null
+      )).success;
+    expected = false;
+  };
+
+  # Child pipelines still evaluate as full pipelines.
+  test-pipelines-child-evaluates = {
+    expr =
+      (test-lib.evalConfig { pipelines.child.gitlab-ci.generate = false; })
+      .pipelines.child.gitlab-ci.generate;
+    expected = false;
+  };
 }

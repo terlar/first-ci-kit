@@ -66,6 +66,27 @@ let
     };
   };
 
+  # Top-level options (`first-ci-kit.*` in the flake-parts module). Uses the
+  # interface only, so `pipelines.<name>` is documented as one entry instead
+  # of repeating every per-pipeline option under it.
+  topLevelDoc = nixosOptionsDoc {
+    inherit
+      (lib.evalModules {
+        modules = [ (moduleRoot + "/top-level/interface.nix") ];
+      })
+      options
+      ;
+    transformOptions =
+      opt:
+      mapDeclarations (
+        opt
+        // {
+          name = "first-ci-kit.${opt.name}";
+          visible = !lib.hasPrefix "_module" opt.name;
+        }
+      );
+  };
+
   pipelineDoc = nixosOptionsDoc {
     inherit (pipelineEval) options;
     transformOptions =
@@ -73,7 +94,7 @@ let
       mapDeclarations (
         opt
         // {
-          name = "pipelines.<name>.${opt.name}";
+          name = "<pipeline>.pipelines.<name>.${opt.name}";
           # Drop module-system internals (e.g. _module.args)
           visible = !lib.hasPrefix "_module" opt.name;
         }
@@ -82,12 +103,25 @@ let
 in
 # Append the child-pipeline-specific section to the main documentation.
 pkgs.runCommand "options.md" { } ''
+  cat <<'EOF' >> $out
+  ## Top-level
+
+  Options set under `first-ci-kit` in the flake-parts module. Each
+  `pipelines.<name>` entry accepts the per-pipeline options below.
+
+  EOF
+  cat ${topLevelDoc.optionsCommonMark} >> $out
+  cat <<'EOF' >> $out
+
+  ## Pipeline
+
+  EOF
   cat ${doc.optionsCommonMark} >> $out
   cat <<'EOF' >> $out
 
   ## Child pipelines
 
-  Each entry in `pipelines.<name>` is evaluated as an independent pipeline
+  Each entry in `<pipeline>.pipelines.<name>` is evaluated as an independent pipeline
   instance and accepts the same options as a top-level pipeline (jobs,
   jobSets, backend settings, and so on). The options below are specific to
   being dispatched as a child of another pipeline.

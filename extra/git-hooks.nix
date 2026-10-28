@@ -115,16 +115,24 @@ let
 in
 {
   options = {
-    first-ci-kit.autoConfigureHooks = lib.mkOption {
-      type = types.bool;
-      default = true;
-      description = ''
-        When enabled, automatically populate `settings.pipelines` on the
-        `first-ci-kit-gen-github-actions` and `first-ci-kit-gen-gitlab-ci`
-        pre-commit hooks from `first-ci-kit.pipelines`, following the
-        name-based path convention.  Set to `false` to manage hook pipeline
-        mappings manually.
-      '';
+    first-ci-kit = lib.mkOption {
+      type = types.submoduleWith {
+        modules = [
+          {
+            options.autoConfigureHooks = lib.mkOption {
+              type = types.bool;
+              default = true;
+              description = ''
+                When enabled, automatically populate `settings.pipelines` on the
+                `first-ci-kit-gen-github-actions` and `first-ci-kit-gen-gitlab-ci`
+                pre-commit hooks from `first-ci-kit.pipelines`, following the
+                name-based path convention.  Set to `false` to manage hook pipeline
+                mappings manually.
+              '';
+            };
+          }
+        ];
+      };
     };
 
     perSystem = flake-parts-lib.mkPerSystemOption {
