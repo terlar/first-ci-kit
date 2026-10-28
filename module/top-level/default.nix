@@ -2,6 +2,7 @@
 
 let
   topConfig = config;
+  ci-lib = import ../lib { inherit lib; };
 in
 {
   imports = [ ./interface.nix ];
@@ -27,4 +28,30 @@ in
       }
     );
   };
+
+  config.pipelines = lib.mkMerge (
+    lib.mapAttrsToList (
+      prefix: cp:
+      let
+        sd = cp.stackDiscovery;
+      in
+      if (sd.stackName or null) == null then
+        throw "first-ci-kit.componentPipelines.${prefix}: stackDiscovery.stackName must be set"
+      else
+        lib.listToAttrs (
+          map (
+            c:
+            lib.nameValuePair (cp.name c) (_: {
+              imports = [ cp.module ];
+              _module.args.component = c;
+              stackDiscovery = {
+                enable = true;
+                includeComponents = [ c ];
+              }
+              // sd;
+            })
+          ) (ci-lib.discoverComponentNames sd)
+        )
+    ) config.componentPipelines
+  );
 }

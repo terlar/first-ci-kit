@@ -1,4 +1,9 @@
-{ lib, config, ... }:
+{
+  lib,
+  config,
+  ci-lib,
+  ...
+}:
 
 let
   inherit (lib) types;
@@ -18,18 +23,6 @@ let
       "${componentPath}/${cfg.deployments.subdirectory}"
     else
       componentPath;
-
-  isComponent =
-    path:
-    let
-      entries = builtins.readDir path;
-    in
-    if cfg.deployments.subdirectory != null then
-      (entries.${cfg.deployments.subdirectory} or "") == "directory"
-    else if cfg.deployments.detection == "files" then
-      builtins.any (lib.hasSuffix cfg.deployments.extension) (builtins.attrNames entries)
-    else
-      builtins.any (t: t == "directory") (builtins.attrValues entries);
 
   discoverDeployments =
     componentPath:
@@ -89,8 +82,14 @@ let
 
   mkStack = stack: stackPath: {
     components = lib.pipe stackPath [
-      subdirs
-      (lib.filter (name: isComponent "${stackPath}/${name}"))
+      (
+        path:
+        ci-lib.discoverComponentNames {
+          inherit path;
+          inherit (cfg) deployments;
+          stackName = stack;
+        }
+      )
       (lib.filter isIncluded)
       (lib.flip lib.genAttrs (name: mkComponent stack "${stackPath}/${name}"))
     ];
