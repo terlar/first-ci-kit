@@ -597,6 +597,79 @@ null
 
 
 
+## github-actions\.pathTriggers\.enable
+
+
+
+Whether to enable auto-population of ` on.push.paths ` / ` on.pull_request.paths ` from the
+union of every enabled job’s own ` branches.*.changes.paths `, the
+pipeline-level ` changes.extraPaths ` and ` pathTriggers.extraPaths `\.
+Only set for an event (` push `/` pull_request `) that is already
+triggered by some job’s ` branches.*.triggers `\.
+\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+
+```nix
+false
+```
+
+
+
+*Example:*
+
+```nix
+true
+```
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
+## github-actions\.pathTriggers\.extraPaths
+
+
+
+Extra path patterns to fold into the auto-generated
+` on.push.paths ` / ` on.pull_request.paths ` filters, alongside every
+enabled job’s own ` branches.*.changes.paths `\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+
+```nix
+[ ]
+```
+
+
+
+*Example:*
+
+```nix
+[
+  "flake.lock"
+]
+```
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.settings
 
 
@@ -3151,8 +3224,6 @@ list of string
 
 ## jobs\.\<name>\.runAlways
 
-
-
 Whether the job should run regardless of dependency failure\.
 Equivalent to GitLab CI’s ` when: always `\.
 On GitHub Actions, adds ` always() ` to the ` if ` condition and guards
@@ -3210,6 +3281,8 @@ list of string
 
 
 ## jobs\.\<name>\.triggers
+
+
 
 Jobs triggering the job\.
 

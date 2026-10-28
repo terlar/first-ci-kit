@@ -23,6 +23,34 @@ let
     lib.unique
   ];
 
+  extraChangePaths = lib.concatLists (lib.attrValues config.github-actions.changes.extraPaths);
+
+  jobChangePathsFor =
+    eventPred:
+    lib.pipe enabledJobs [
+      builtins.attrValues
+      (lib.concatMap (
+        job:
+        lib.concatMap (b: b.changes.paths) (lib.attrValues (lib.filterAttrs (_: eventPred) job.branches))
+      ))
+    ];
+
+  pushPaths = lib.naturalSort (
+    lib.unique (
+      jobChangePathsFor (b: b.triggers.onPush)
+      ++ extraChangePaths
+      ++ config.github-actions.pathTriggers.extraPaths
+    )
+  );
+
+  pullRequestPaths = lib.naturalSort (
+    lib.unique (
+      jobChangePathsFor (b: b.triggers.onMergeRequest)
+      ++ extraChangePaths
+      ++ config.github-actions.pathTriggers.extraPaths
+    )
+  );
+
   renderInput =
     _name: input:
     lib.mergeAttrsList [
@@ -152,6 +180,27 @@ in
         };
     };
 
+    pathTriggers = {
+      enable = lib.mkEnableOption ''
+        auto-population of `on.push.paths` / `on.pull_request.paths` from the
+        union of every enabled job's own `branches.*.changes.paths`, the
+        pipeline-level `changes.extraPaths` and `pathTriggers.extraPaths`.
+        Only set for an event (`push`/`pull_request`) that is already
+        triggered by some job's `branches.*.triggers`.
+      '';
+
+      extraPaths = lib.mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = ''
+          Extra path patterns to fold into the auto-generated
+          `on.push.paths` / `on.pull_request.paths` filters, alongside every
+          enabled job's own `branches.*.changes.paths`.
+        '';
+        example = [ "flake.lock" ];
+      };
+    };
+
     changes = {
       enable = lib.mkEnableOption ''
         auto-injection of `changes` and `changes_key` string inputs into this
@@ -263,6 +312,12 @@ in
     (lib.mkIf (config.github-actions.autoTriggers.enable && pullRequestBranches != [ ]) {
       github-actions.settings.on.pull_request.branches = lib.mkDefault pullRequestBranches;
     })
+    (lib.mkIf (config.github-actions.pathTriggers.enable && pushBranches != [ ] && pushPaths != [ ]) {
+      github-actions.settings.on.push.paths = lib.mkDefault pushPaths;
+    })
+    (lib.mkIf (
+      config.github-actions.pathTriggers.enable && pullRequestBranches != [ ] && pullRequestPaths != [ ]
+    ) { github-actions.settings.on.pull_request.paths = lib.mkDefault pullRequestPaths; })
     (lib.mkIf (workflowCall != { }) {
       github-actions.settings.on.workflow_call = workflowCall;
     })
