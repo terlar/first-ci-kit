@@ -1,3 +1,33 @@
+## Top-level
+
+Options set under `first-ci-kit` in the flake-parts module. Each
+`pipelines.<name>` entry accepts the per-pipeline options below.
+
+## first-ci-kit\.pipelines
+
+Top-level pipelines\. Each entry accepts every per-pipeline option and
+renders to its own CI file (e\.g\. ` .github/workflows/<name>.yml `)\.
+
+
+
+*Type:*
+lazy attribute set of (submodule)
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## Pipeline
+
 ## autoEnvInputs
 
 When true and inputs are declared, automatically inject each input as an
@@ -4366,12 +4396,12 @@ null
 
 ## Child pipelines
 
-Each entry in `pipelines.<name>` is evaluated as an independent pipeline
+Each entry in `<pipeline>.pipelines.<name>` is evaluated as an independent pipeline
 instance and accepts the same options as a top-level pipeline (jobs,
 jobSets, backend settings, and so on). The options below are specific to
 being dispatched as a child of another pipeline.
 
-## pipelines\.\<name>\.github-actions\.dispatch\.callerIf
+## \<pipeline>\.pipelines\.\<name>\.github-actions\.dispatch\.callerIf
 
 If condition on the caller job in ci\.yaml\.
 
@@ -4393,7 +4423,7 @@ null
 
 
 
-## pipelines\.\<name>\.gitlab-ci\.asComponent
+## \<pipeline>\.pipelines\.\<name>\.gitlab-ci\.asComponent
 
 
 
@@ -4419,7 +4449,7 @@ false
 
 
 
-## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.beforeScript
+## \<pipeline>\.pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.beforeScript
 
 
 
@@ -4443,7 +4473,7 @@ list of string
 
 
 
-## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.extraArtifactPaths
+## \<pipeline>\.pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.extraArtifactPaths
 
 
 
@@ -4467,7 +4497,7 @@ list of string
 
 
 
-## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.extraRules
+## \<pipeline>\.pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.extraRules
 
 
 
@@ -4491,7 +4521,7 @@ list of attribute set of anything
 
 
 
-## pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.image
+## \<pipeline>\.pipelines\.\<name>\.gitlab-ci\.dispatch\.generateJob\.image
 
 
 
@@ -4516,7 +4546,7 @@ null
 
 
 
-## pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.forward
+## \<pipeline>\.pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.forward
 
 
 
@@ -4540,7 +4570,7 @@ null
 
 
 
-## pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.stage
+## \<pipeline>\.pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.stage
 
 
 
@@ -4556,7 +4586,7 @@ string
 
 
 
-## pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.strategy
+## \<pipeline>\.pipelines\.\<name>\.gitlab-ci\.dispatch\.trigger\.strategy
 
 
 
@@ -4580,7 +4610,7 @@ null
 
 
 
-## pipelines\.\<name>\.needs
+## \<pipeline>\.pipelines\.\<name>\.needs
 
 
 
@@ -4604,7 +4634,7 @@ list of (Needs configuration)
 
 
 
-## pipelines\.\<name>\.needs\.\*\.artifacts
+## \<pipeline>\.pipelines\.\<name>\.needs\.\*\.artifacts
 
 
 
@@ -4628,7 +4658,7 @@ true
 
 
 
-## pipelines\.\<name>\.needs\.\*\.job
+## \<pipeline>\.pipelines\.\<name>\.needs\.\*\.job
 
 
 
@@ -4652,7 +4682,7 @@ null
 
 
 
-## pipelines\.\<name>\.needs\.\*\.jobSet
+## \<pipeline>\.pipelines\.\<name>\.needs\.\*\.jobSet
 
 
 
@@ -4676,7 +4706,7 @@ null
 
 
 
-## pipelines\.\<name>\.needs\.\*\.optional
+## \<pipeline>\.pipelines\.\<name>\.needs\.\*\.optional
 
 
 
