@@ -300,6 +300,42 @@ true
 
 
 
+## github-actions\.autoTriggers\.pullRequest\.enable
+
+
+
+Whether to enable ` on.pull_request ` triggers (branches and paths) being emitted at
+all\. Defaults to ` true `\. Disable this for a repo whose service
+workflows should stop triggering on ` pull_request ` entirely,
+while leaving ` on.push ` unaffected\.
+\.
+
+
+
+*Type:*
+boolean
+
+
+
+*Default:*
+
+```nix
+true
+```
+
+
+
+*Example:*
+
+```nix
+true
+```
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.changes\.enable
 
 
@@ -3274,8 +3310,6 @@ string
 
 ## jobs\.\<name>\.process-compose
 
-
-
 process-compose-specific job configuration\. Accepts arbitrary
 process-compose fields that are merged into the process definition for
 this job (e\.g\. ` availability `, ` readiness_probe `)\.
@@ -3338,6 +3372,8 @@ true
 
 
 ## jobs\.\<name>\.process-compose\.before_script
+
+
 
 Commands to run before the main ` commands ` in process-compose\.
 Equivalent to ` gitlab-ci.before_script `; use this in
