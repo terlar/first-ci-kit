@@ -2940,6 +2940,39 @@ null
 
 
 
+## jobs\.\<name>\.pipelineCall\.github-actions\.condition
+
+
+
+Extra GitHub Actions expression (without ` ${{ }} `) ANDed into the
+calling job’s generated ` if `, e\.g\. to skip the call on pull requests\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+
+
+*Example:*
+
+```nix
+"github.event_name != 'pull_request'"
+```
+
+*Declared by:*
+ - [jobs/job/pipeline-call\.nix](jobs/job/pipeline-call.nix)
+
+
+
 ## jobs\.\<name>\.pipelineCall\.github-actions\.extraInputs
 
 
@@ -3282,6 +3315,8 @@ open submodule of anything
 
 ## jobs\.\<name>\.process-compose\.enable
 
+
+
 Whether the job is enabled for process-compose\.
 
 
@@ -3303,8 +3338,6 @@ true
 
 
 ## jobs\.\<name>\.process-compose\.before_script
-
-
 
 Commands to run before the main ` commands ` in process-compose\.
 Equivalent to ` gitlab-ci.before_script `; use this in
