@@ -2356,6 +2356,29 @@ true
 
 
 
+## jobs\.\<name>\.changesKey
+
+
+
+Name of the job whose change-detection key this job uses instead of
+its own\. Jobs sharing a key share one ` DIFF_PATHS ` entry (paths are
+merged), e\.g\. the plan and deploy jobs of one deployment\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+the job name
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.checkout
 
 
@@ -3260,8 +3283,6 @@ open submodule of anything
 
 ## jobs\.\<name>\.process-compose\.enable
 
-
-
 Whether the job is enabled for process-compose\.
 
 
@@ -3322,6 +3343,8 @@ list of string
 
 
 ## jobs\.\<name>\.runAlways
+
+
 
 Whether the job should run regardless of dependency failure\.
 Equivalent to GitLab CI’s ` when: always `\.
