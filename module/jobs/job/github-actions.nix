@@ -21,6 +21,15 @@ let
   resolveJobName = name: if jobs ? ${name} then transformJobName name else name;
   changesKey = transformJobName config.changesKey;
 
+  # Only pass change detection to called pipelines that declare the inputs.
+  passChanges =
+    let
+      inherit (config.pipelineCall) pipeline;
+      allPipelines = rootConfig._module.args.allPipelines or { };
+      called = rootConfig.pipelines.${pipeline} or allPipelines.${pipeline} or null;
+    in
+    hasChanges && called != null && called.github-actions.changes.enable;
+
   translatePath =
     s:
     let
@@ -172,7 +181,7 @@ in
           "with" = lib.mergeAttrsList [
             config.pipelineCall.inputs
             config.pipelineCall."github-actions".extraInputs
-            (lib.optionalAttrs hasChanges {
+            (lib.optionalAttrs passChanges {
               changes = "\${{ needs.changes.outputs.changes }}";
               changes_key = changesKey;
             })

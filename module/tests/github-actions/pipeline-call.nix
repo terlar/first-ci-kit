@@ -45,13 +45,15 @@ in
     expr =
       (test-lib.eval-github-actions {
         jobs.deploy.pipelineCall.pipeline = "my-pipeline";
-      }).jobs.deploy ? "steps";
+      }).jobs.deploy
+        ? "steps";
     expected = false;
   };
 
   test-github-actions-job-pipeline-call-with-changes = {
     expr = test-lib.eval-github-actions {
       github-actions.defaultRunsOn = "ubuntu-latest";
+      _module.args.allPipelines.my-pipeline.github-actions.changes.enable = true;
       jobs.deploy = {
         branches.default.changes.paths = [ "src/**" ];
         pipelineCall.pipeline = "my-pipeline";
@@ -85,13 +87,35 @@ in
           uses = "./.github/workflows/my-pipeline.yml";
           secrets = "inherit";
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}";
           "with" = {
             changes = "\${{ needs.changes.outputs.changes }}";
             changes_key = "deploy";
           };
         };
       };
+    };
+  };
+
+  # Without changes.enable on the called pipeline, only the caller's if gates it.
+  test-github-actions-job-pipeline-call-changes-not-passed = {
+    expr =
+      let
+        job =
+          (test-lib.eval-github-actions {
+            github-actions.defaultRunsOn = "ubuntu-latest";
+            jobs.deploy = {
+              branches.default.changes.paths = [ "src/**" ];
+              pipelineCall.pipeline = "my-pipeline";
+            };
+          }).jobs.deploy;
+      in
+      {
+        inherit (job) "if" "with";
+      };
+    expected = {
+      "if" = "\${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true }}";
+      "with" = { };
     };
   };
 
