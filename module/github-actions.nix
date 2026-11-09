@@ -178,6 +178,19 @@ in
         // {
           default = true;
         };
+
+      pullRequest = {
+        enable =
+          lib.mkEnableOption ''
+            `on.pull_request` triggers (branches and paths) being emitted at
+            all. Defaults to `true`. Disable this for a repo whose service
+            workflows should stop triggering on `pull_request` entirely,
+            while leaving `on.push` unaffected.
+          ''
+          // {
+            default = true;
+          };
+      };
     };
 
     pathTriggers = {
@@ -308,14 +321,19 @@ in
     (lib.mkIf (config.github-actions.autoTriggers.enable && pushBranches != [ ]) {
       github-actions.settings.on.push.branches = lib.mkDefault pushBranches;
     })
-    (lib.mkIf (config.github-actions.autoTriggers.enable && pullRequestBranches != [ ]) {
-      github-actions.settings.on.pull_request.branches = lib.mkDefault pullRequestBranches;
-    })
+    (lib.mkIf (
+      config.github-actions.autoTriggers.enable
+      && config.github-actions.autoTriggers.pullRequest.enable
+      && pullRequestBranches != [ ]
+    ) { github-actions.settings.on.pull_request.branches = lib.mkDefault pullRequestBranches; })
     (lib.mkIf (config.github-actions.pathTriggers.enable && pushBranches != [ ] && pushPaths != [ ]) {
       github-actions.settings.on.push.paths = lib.mkDefault pushPaths;
     })
     (lib.mkIf (
-      config.github-actions.pathTriggers.enable && pullRequestBranches != [ ] && pullRequestPaths != [ ]
+      config.github-actions.pathTriggers.enable
+      && config.github-actions.autoTriggers.pullRequest.enable
+      && pullRequestBranches != [ ]
+      && pullRequestPaths != [ ]
     ) { github-actions.settings.on.pull_request.paths = lib.mkDefault pullRequestPaths; })
     (lib.mkIf (workflowCall != { }) {
       github-actions.settings.on.workflow_call = workflowCall;
