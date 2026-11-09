@@ -33,8 +33,19 @@ let
   ];
 
   changes = lib.pipe (jobDerivedPaths // lib.filterAttrs (_: paths: paths != [ ]) extraPaths) [
-    (builtins.mapAttrs (_: builtins.concatStringsSep "|"))
-    (lib.mapAttrsToList (name: paths: "${transformJobName name}:${paths}"))
+    # Jobs sharing a changesKey share one entry with their paths merged.
+    (lib.mapAttrsToList (
+      name: paths: { ${transformJobName (config.jobs.${name}.changesKey or name)} = paths; }
+    ))
+    (lib.zipAttrsWith (
+      _: paths:
+      lib.pipe paths [
+        lib.flatten
+        lib.unique
+        (lib.concatStringsSep "|")
+      ]
+    ))
+    (lib.mapAttrsToList (name: paths: "${name}:${paths}"))
   ];
 
   resolveBranchKey = key: if key == "default" then config.github-actions.defaultBranch else key;

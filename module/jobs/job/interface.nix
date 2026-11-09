@@ -119,6 +119,17 @@ in
       default = true;
     };
 
+    changesKey = lib.mkOption {
+      type = types.str;
+      default = name;
+      defaultText = lib.literalMD "the job name";
+      description = ''
+        Name of the job whose change-detection key this job uses instead of
+        its own. Jobs sharing a key share one `DIFF_PATHS` entry (paths are
+        merged), e.g. the plan and deploy jobs of one deployment.
+      '';
+    };
+
     factoryName = lib.mkOption {
       type = types.nullOr types.str;
       default = null;

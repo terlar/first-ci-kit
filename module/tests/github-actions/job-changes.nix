@@ -58,7 +58,7 @@ in
         job-a = {
           needs = [ "changes" ];
           "if" =
-            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+            "\${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v7"; }
@@ -125,7 +125,7 @@ in
         job-a = {
           needs = [ "changes" ];
           "if" =
-            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+            "\${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v5"; }
@@ -175,7 +175,7 @@ in
             "job-a"
           ];
           "if" =
-            ''''${{ always() && fromJSON(needs.changes.outputs.changes)['job-b'] == true && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
+            "\${{ always() && fromJSON(needs.changes.outputs.changes)['job-b'] == true && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -222,7 +222,7 @@ in
             "changes"
             "job-a"
           ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-b'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['job-b'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -261,7 +261,7 @@ in
         org_svc-a = {
           needs = [ "changes" ];
           "if" =
-            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['org_svc-a'] == true }}'';
+            "\${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['org_svc-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -308,7 +308,7 @@ in
         deploy = {
           needs = [ "changes" ];
           "if" =
-            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+            "\${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v7"; }
@@ -366,7 +366,7 @@ in
         deploy = {
           needs = [ "changes" ];
           "if" =
-            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}'';
+            "\${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['deploy'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v7"; }
@@ -375,7 +375,7 @@ in
         };
         post-deploy-test = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['post-deploy-test'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['post-deploy-test'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [
             { uses = "actions/checkout@v7"; }
@@ -415,7 +415,7 @@ in
         };
         job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -459,7 +459,7 @@ in
         };
         job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -493,7 +493,7 @@ in
         };
         job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -528,7 +528,7 @@ in
         };
         job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -566,7 +566,7 @@ in
         job-a = {
           needs = [ "changes" ];
           "if" =
-            ''''${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+            "\${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -608,7 +608,7 @@ in
         };
         job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -654,7 +654,7 @@ in
         };
         job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
@@ -694,11 +694,45 @@ in
         };
         job-a = {
           needs = [ "changes" ];
-          "if" = ''''${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}'';
+          "if" = "\${{ fromJSON(needs.changes.outputs.changes)['job-a'] == true }}";
           runs-on = "ubuntu-latest";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
+    };
+  };
+
+  # Jobs sharing a changesKey share one DIFF_PATHS entry with merged paths.
+  test-github-actions-changes-key-shared = {
+    expr =
+      let
+        result = test-lib.eval-github-actions {
+          github-actions.defaultRunsOn = "ubuntu-latest";
+          jobs = {
+            plan.branches.default = {
+              changes.paths = [ "config/**" ];
+              triggers.onMergeRequest = true;
+            };
+            deploy = {
+              changesKey = "plan";
+              branches.default = {
+                changes.paths = [
+                  "config/**"
+                  "extra/**"
+                ];
+                triggers.onMergeRequest = true;
+              };
+            };
+          };
+        };
+      in
+      {
+        diffPaths = (builtins.elemAt result.jobs.changes.steps 1).env.DIFF_PATHS;
+        deployIf = result.jobs.deploy."if";
+      };
+    expected = {
+      diffPaths = "plan:config/**|extra/**";
+      deployIf = "\${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['plan'] == true }}";
     };
   };
 }

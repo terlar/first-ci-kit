@@ -19,6 +19,7 @@ let
 
   isEnabledJob = name: (jobs.${name}.enable or true) && (jobs.${name}.github-actions.enable or true);
   resolveJobName = name: if jobs ? ${name} then transformJobName name else name;
+  changesKey = transformJobName config.changesKey;
 
   translatePath =
     s:
@@ -82,7 +83,7 @@ let
 
   conditions = builtins.concatLists [
     (lib.optional onlyOnMergeRequest "github.event_name == 'pull_request'")
-    (lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${transformJobName name}'] == true")
+    (lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${changesKey}'] == true")
     (map (
       job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')"
     ) optionalNeedJobs)
@@ -173,7 +174,7 @@ in
             config.pipelineCall."github-actions".extraInputs
             (lib.optionalAttrs hasChanges {
               changes = "\${{ needs.changes.outputs.changes }}";
-              changes_key = transformJobName name;
+              changes_key = changesKey;
             })
           ];
         }
