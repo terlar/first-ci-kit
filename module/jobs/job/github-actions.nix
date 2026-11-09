@@ -93,6 +93,9 @@ let
   conditions = builtins.concatLists [
     (lib.optional onlyOnMergeRequest "github.event_name == 'pull_request'")
     (lib.optional hasChanges "fromJSON(needs.changes.outputs.changes)['${changesKey}'] == true")
+    (lib.optional (
+      config.pipelineCall != null && config.pipelineCall.github-actions.condition != null
+    ) "(${config.pipelineCall.github-actions.condition})")
     (map (
       job: "(needs.${job}.result == 'success' || needs.${job}.result == 'skipped')"
     ) optionalNeedJobs)

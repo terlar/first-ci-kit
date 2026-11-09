@@ -193,4 +193,19 @@ in
       };
     };
   };
+
+  # condition is ANDed (parenthesised) into the calling job's if.
+  test-github-actions-job-pipeline-call-condition = {
+    expr =
+      (test-lib.eval-github-actions {
+        jobs.deploy = {
+          branches.default.changes.paths = [ "src/**" ];
+          pipelineCall = {
+            pipeline = "my-pipeline";
+            github-actions.condition = "github.event_name != 'pull_request'";
+          };
+        };
+      }).jobs.deploy."if";
+    expected = "\${{ fromJSON(needs.changes.outputs.changes)['deploy'] == true && (github.event_name != 'pull_request') }}";
+  };
 }

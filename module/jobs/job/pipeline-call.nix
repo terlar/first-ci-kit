@@ -62,6 +62,16 @@ in
         '';
       };
 
+      condition = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = ''
+          Extra GitHub Actions expression (without `''${{ }}`) ANDed into the
+          calling job's generated `if`, e.g. to skip the call on pull requests.
+        '';
+        example = "github.event_name != 'pull_request'";
+      };
+
       passSecrets = lib.mkOption {
         type = types.bool;
         default = true;
