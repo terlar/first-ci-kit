@@ -204,10 +204,9 @@ in
     changes = {
       enable = lib.mkEnableOption ''
         auto-injection of `changes` and `changes_key` string inputs into this
-        pipeline's `on.workflow_call.inputs`. Enable this on pipelines that are
-        called via `pipelineCall` from a parent job that has change detection
-        (`branches.*.changes.paths`) configured, so that GitHub Actions accepts
-        the inputs the parent passes automatically.
+        pipeline's `on.workflow_call.inputs`. Calling jobs with change detection
+        (`branches.*.changes.paths`) pass these inputs only to pipelines with
+        this enabled; otherwise the caller's `if` alone gates the call
       '';
 
       extraPaths = lib.mkOption {
