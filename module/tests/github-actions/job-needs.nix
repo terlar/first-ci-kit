@@ -102,12 +102,37 @@
         };
         job-b = {
           needs = [ "job-a" ];
-          "if" =
-            ''''${{ always() && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}'';
+          "if" = "\${{ always() && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') }}";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
     };
+  };
+
+  # conditions holds the generated if parts: another job can reuse them and add its own.
+  test-github-actions-job-conditions = {
+    expr =
+      let
+        cfg = test-lib.evalConfig (
+          { config, ... }:
+          {
+            jobs = {
+              job-a = { };
+              job-b.needs = [
+                {
+                  job = "job-a";
+                  optional = true;
+                }
+              ];
+              job-c.github-actions.conditions = config.jobs.job-b.github-actions.conditions ++ [
+                "github.event_name == 'push'"
+              ];
+            };
+          }
+        );
+      in
+      cfg.github-actions.settings.jobs.job-c."if";
+    expected = "\${{ always() && (needs.job-a.result == 'success' || needs.job-a.result == 'skipped') && github.event_name == 'push' }}";
   };
 
   test-github-actions-job-run-always = {
@@ -123,8 +148,7 @@
         job-a.steps = [ { uses = "actions/checkout@v7"; } ];
         job-b = {
           needs = [ "job-a" ];
-          "if" =
-            ''''${{ always() && (needs.job-a.result == 'success' || needs.job-a.result == 'failure') }}'';
+          "if" = "\${{ always() && (needs.job-a.result == 'success' || needs.job-a.result == 'failure') }}";
           steps = [ { uses = "actions/checkout@v7"; } ];
         };
       };
@@ -150,7 +174,7 @@
     expected = {
       on.pull_request.branches = [ "main" ];
       jobs.job = {
-        "if" = ''''${{ github.event_name == 'pull_request' }}'';
+        "if" = "\${{ github.event_name == 'pull_request' }}";
         runs-on = "ubuntu-latest";
         steps = [ { uses = "actions/checkout@v7"; } ];
       };
