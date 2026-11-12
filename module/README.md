@@ -2703,6 +2703,64 @@ true
 
 
 
+## jobs\.\<name>\.github-actions\.conditions
+
+
+
+Expressions joined with ` && ` into the job’s ` if `\. Pre-filled
+from needs, change detection and triggers; add to it to
+extend the condition, or read it to reuse another job’s\.
+Each entry must stand alone, so wrap ` || ` in parentheses\.
+
+
+
+*Type:*
+list of string
+
+
+
+*Default:*
+
+```nix
+[ ]
+```
+
+
+
+*Example:*
+
+```nix
+[
+  "(github.event_name == 'push' || github.event_name == 'schedule')"
+]
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.github-actions\."if"
+
+
+
+The job’s ` if `\. Set it to replace the generated condition\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+` conditions ` joined with ` && `, or ` null ` when empty
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
 ## jobs\.\<name>\.gitlab-ci
 
 
@@ -3264,8 +3322,6 @@ lib.id
 
 ## jobs\.\<name>\.pipelineCall\.inputs
 
-
-
 Input values forwarded to the called pipeline on both GitHub Actions
 (` with: `) and GitLab CI (` inputs: `)\. Changes-detection inputs
 (` changes `, ` changes_key `) are injected automatically on GitHub
@@ -3309,6 +3365,8 @@ string
 
 
 ## jobs\.\<name>\.process-compose
+
+
 
 process-compose-specific job configuration\. Accepts arbitrary
 process-compose fields that are merged into the process definition for

@@ -317,16 +317,42 @@ in
     github-actions = lib.mkOption {
       type = types.submoduleWith {
         modules = [
-          {
-            options = {
-              enable = lib.mkOption {
-                type = types.bool;
-                default = true;
-                description = "Whether the job is enabled for GitHub Actions.";
+          (
+            { config, ... }:
+            {
+              options = {
+                enable = lib.mkOption {
+                  type = types.bool;
+                  default = true;
+                  description = "Whether the job is enabled for GitHub Actions.";
+                };
+
+                conditions = lib.mkOption {
+                  type = types.listOf types.str;
+                  default = [ ];
+                  description = ''
+                    Expressions joined with `&&` into the job's `if`. Pre-filled
+                    from needs, change detection and triggers; add to it to
+                    extend the condition, or read it to reuse another job's.
+                    Each entry must stand alone, so wrap `||` in parentheses.
+                  '';
+                  example = [ "(github.event_name == 'push' || github.event_name == 'schedule')" ];
+                };
+
+                "if" = lib.mkOption {
+                  type = types.nullOr types.str;
+                  default =
+                    if config.conditions == [ ] then
+                      null
+                    else
+                      "\${{ ${lib.concatStringsSep " && " config.conditions} }}";
+                  defaultText = lib.literalMD "`conditions` joined with `&&`, or `null` when empty";
+                  description = "The job's `if`. Set it to replace the generated condition.";
+                };
               };
-            };
-            config._module.freeformType = rootConfig.types.yamlType;
-          }
+              config._module.freeformType = rootConfig.types.yamlType;
+            }
+          )
         ];
       };
       default = { };

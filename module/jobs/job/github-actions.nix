@@ -142,8 +142,7 @@ in
     })
 
     (lib.mkIf (conditions != [ ]) {
-      "if" =
-        "\${{ ${lib.optionalString needsAlways "always() && "}${lib.concatStringsSep " && " conditions} }}";
+      conditions = lib.mkBefore (lib.optional needsAlways "always()" ++ conditions);
     })
 
     (lib.mkIf (config.artifacts.download != null) {
