@@ -248,6 +248,39 @@ let
             };
     in
     steps: lib.concatLists (lib.imap0 (i: step: renderStep [ ] [ i ] step) steps);
+
+  # { blocks } -> name -> attrs, a composite action.yml for one block.
+  toGithubAction =
+    { blocks }:
+    name:
+    let
+      block = blocks.${name} or (throw "stepBlocks.${name}: unknown block");
+      placeholderInputs = lib.mapAttrs (n: _: "\${{ inputs.${n} }}") block.inputs;
+      steps = map (step: if step ? run && !(step ? shell) then step // { shell = "bash"; } else step) (
+        toGithubSteps {
+          inherit blocks;
+          native = true;
+        } (block.steps { inputs = placeholderInputs; })
+      );
+    in
+    lib.mergeAttrsList [
+      { inherit name; }
+      (lib.optionalAttrs (block.description != "") { inherit (block) description; })
+      {
+        inputs = lib.mapAttrs (
+          _: spec:
+          lib.mergeAttrsList [
+            { required = spec.default == null; }
+            (lib.optionalAttrs (spec.default != null) { inherit (spec) default; })
+            (lib.optionalAttrs (spec.description != "") { inherit (spec) description; })
+          ]
+        ) block.inputs;
+        runs = {
+          using = "composite";
+          inherit steps;
+        };
+      }
+    ];
 in
 {
   inherit
@@ -257,5 +290,6 @@ in
     usedBlocks
     toGithubSteps
     toShellLines
+    toGithubAction
     ;
 }
