@@ -125,6 +125,311 @@ lazy attribute set of (submodule)
 
 
 
+## first-ci-kit\.stepBlocks
+
+
+
+Named, reusable groups of backend-neutral steps with declared inputs\.
+Every top-level pipeline inherits these entries (overridable per pipeline)\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.description
+
+
+
+Used for the composite action description\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+
+```nix
+""
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.inputs
+
+
+
+Declared inputs for this block\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.inputs\.\<name>\.default
+
+
+
+Default value\. ` null ` means the input is required\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.inputs\.\<name>\.description
+
+
+
+Input description\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+
+```nix
+""
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.steps
+
+
+
+Function from ` { inputs } ` to a list of steps\.
+
+
+
+*Type:*
+function that evaluates to a(n) list of (submodule)
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.steps\.\<function body>\.\*\.block
+
+
+
+Name of a stepBlocks entry to use\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.steps\.\<function body>\.\*\.env
+
+
+
+Environment variables for this step\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.steps\.\<function body>\.\*\.github-actions
+
+
+
+Raw GitHub Actions step attrs, merged over the rendered step for ` run `/` block ` (native mode); a GitHub-only step on its own\.
+
+
+
+*Type:*
+null or (attribute set of anything)
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.steps\.\<function body>\.\*\.gitlab-ci
+
+
+
+GitLab script lines for a GitLab-only step; ignored when ` run ` or ` block ` is set\.
+
+
+
+*Type:*
+null or (list of string)
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.steps\.\<function body>\.\*\.inputs
+
+
+
+Inputs passed to the block\. Only valid together with ` block `\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.steps\.\<function body>\.\*\.name
+
+
+
+Optional display name for the step\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
+## first-ci-kit\.stepBlocks\.\<name>\.steps\.\<function body>\.\*\.run
+
+
+
+Shell command to run\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [top-level/interface\.nix](top-level/interface.nix)
+
+
+
 ## Pipeline
 
 ## autoEnvInputs
@@ -841,6 +1146,42 @@ YAML value
 
 
 
+## github-actions\.stepBlocks\.mode
+
+
+
+How block steps (` { block = "<name>"; } `) are rendered\.
+` "expanded" ` inlines the block’s steps into the job\.
+` "native" ` renders a call to a generated composite action under
+` ./.github/actions/<name> `, requiring ` checkout.enable ` on jobs
+that use a block\.
+
+
+
+*Type:*
+one of “expanded”, “native”
+
+
+
+*Default:*
+
+```nix
+"expanded"
+```
+
+
+
+*Example:*
+
+```nix
+"native"
+```
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.summaryJob\.enable
 
 
@@ -1211,6 +1552,40 @@ YAML value
   default.tags = [ "gke-runner" ];
 }
 
+```
+
+*Declared by:*
+ - [gitlab-ci\.nix](gitlab-ci.nix)
+
+
+
+## gitlab-ci\.stepBlocks\.mode
+
+
+
+How block steps (` { block = "<name>"; } `) are rendered\.
+` "expanded" ` inlines the block’s steps into the job script\.
+` "native" ` is not supported yet\.
+
+
+
+*Type:*
+one of “expanded”, “native”
+
+
+
+*Default:*
+
+```nix
+"expanded"
+```
+
+
+
+*Example:*
+
+```nix
+"expanded"
 ```
 
 *Declared by:*
@@ -3260,8 +3635,6 @@ null
 
 ## jobs\.\<name>\.pipelineCall\.gitlab-ci\.templatePath
 
-
-
 Local path to the GitLab CI component template for the called
 pipeline (e\.g\. “ci/gitlab-templates/profile-terraform/template\.yml”)\.
 When set, takes precedence over looking up the path via
@@ -3321,6 +3694,8 @@ lib.id
 
 
 ## jobs\.\<name>\.pipelineCall\.inputs
+
+
 
 Input values forwarded to the called pipeline on both GitHub Actions
 (` with: `) and GitLab CI (` inputs: `)\. Changes-detection inputs
@@ -3489,6 +3864,213 @@ boolean
 
 ```nix
 false
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.steps
+
+
+
+Backend-neutral steps for this job\. Ordered with ` commands `
+(` run ` steps, at default priority, before ` commands ` at ` mkAfter `)\.
+A step is a shell ` run ` command, a ` block ` reference into the
+pipeline’s ` stepBlocks `, or a raw ` github-actions `/` gitlab-ci ` step\.
+
+
+
+*Type:*
+list of (submodule)
+
+
+
+*Default:*
+
+```nix
+[ ]
+```
+
+
+
+*Example:*
+
+```nix
+[
+  { run = "make build"; }
+  { block = "nix-cache"; inputs.key = "cargo"; }
+]
+
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.steps\.\*\.block
+
+
+
+Name of a stepBlocks entry to use\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.steps\.\*\.env
+
+
+
+Environment variables for this step\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.steps\.\*\.github-actions
+
+
+
+Raw GitHub Actions step attrs, merged over the rendered step for ` run `/` block ` (native mode); a GitHub-only step on its own\.
+
+
+
+*Type:*
+null or (attribute set of anything)
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.steps\.\*\.gitlab-ci
+
+
+
+GitLab script lines for a GitLab-only step; ignored when ` run ` or ` block ` is set\.
+
+
+
+*Type:*
+null or (list of string)
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.steps\.\*\.inputs
+
+
+
+Inputs passed to the block\. Only valid together with ` block `\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.steps\.\*\.name
+
+
+
+Optional display name for the step\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [jobs/job/interface\.nix](jobs/job/interface.nix)
+
+
+
+## jobs\.\<name>\.steps\.\*\.run
+
+
+
+Shell command to run\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
 ```
 
 *Declared by:*
@@ -4712,6 +5294,326 @@ null
 
 *Declared by:*
  - [stacks/interface\.nix](stacks/interface.nix)
+
+
+
+## stepBlocks
+
+
+
+Named, reusable groups of backend-neutral steps with declared inputs\.
+Used from job ` steps ` via ` { block = "<name>"; inputs = { ... }; } `\.
+Child pipelines inherit the parent’s ` stepBlocks ` (overridable)\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+
+
+*Example:*
+
+```nix
+{
+  greet = {
+    inputs.who.default = "world";
+    steps = { inputs }: [ { run = "echo ${inputs.who}"; } ];
+  };
+}
+
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.description
+
+
+
+Used for the composite action description\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+
+```nix
+""
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.inputs
+
+
+
+Declared inputs for this block\.
+
+
+
+*Type:*
+attribute set of (submodule)
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.inputs\.\<name>\.default
+
+
+
+Default value\. ` null ` means the input is required\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.inputs\.\<name>\.description
+
+
+
+Input description\.
+
+
+
+*Type:*
+string
+
+
+
+*Default:*
+
+```nix
+""
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.steps
+
+
+
+Function from ` { inputs } ` to a list of steps\.
+
+
+
+*Type:*
+function that evaluates to a(n) list of (submodule)
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.steps\.\<function body>\.\*\.block
+
+
+
+Name of a stepBlocks entry to use\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.steps\.\<function body>\.\*\.env
+
+
+
+Environment variables for this step\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.steps\.\<function body>\.\*\.github-actions
+
+
+
+Raw GitHub Actions step attrs, merged over the rendered step for ` run `/` block ` (native mode); a GitHub-only step on its own\.
+
+
+
+*Type:*
+null or (attribute set of anything)
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.steps\.\<function body>\.\*\.gitlab-ci
+
+
+
+GitLab script lines for a GitLab-only step; ignored when ` run ` or ` block ` is set\.
+
+
+
+*Type:*
+null or (list of string)
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.steps\.\<function body>\.\*\.inputs
+
+
+
+Inputs passed to the block\. Only valid together with ` block `\.
+
+
+
+*Type:*
+attribute set of string
+
+
+
+*Default:*
+
+```nix
+{ }
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.steps\.\<function body>\.\*\.name
+
+
+
+Optional display name for the step\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
+
+
+
+## stepBlocks\.\<name>\.steps\.\<function body>\.\*\.run
+
+
+
+Shell command to run\.
+
+
+
+*Type:*
+null or string
+
+
+
+*Default:*
+
+```nix
+null
+```
+
+*Declared by:*
+ - [interface\.nix](interface.nix)
 
 
 
