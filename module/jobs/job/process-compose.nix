@@ -14,13 +14,23 @@ let
     inherit jobs;
     inherit (config) needs runAlways;
   };
+
+  nameLines = _id: name: {
+    start = "echo '${builtins.replaceStrings [ "'" ] [ "'\\''" ] name}'";
+    end = "";
+  };
+
+  stepLines = ci-lib.stepBlocks.toShellLines {
+    blocks = rootConfig.stepBlocks;
+    inherit nameLines;
+  } config.steps;
 in
 {
   imports = [ ./interface.nix ];
 
   config.process-compose = lib.mkMerge [
-    (lib.mkIf (config.commands != [ ]) {
-      command = lib.concatStringsSep "\n" config.commands;
+    (lib.mkIf (stepLines != [ ] || config.commands != [ ]) {
+      command = lib.concatStringsSep "\n" (stepLines ++ config.commands);
     })
 
     (lib.mkIf (depends_on != { }) {

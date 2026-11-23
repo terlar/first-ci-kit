@@ -17,6 +17,22 @@ let
     (builtins.filter (need: isEnabledJob need.job))
     (map (need: need // { job = resolveJobName need.job; }))
   ];
+
+  nameLines = id: name: {
+    start = "echo -e \"\\e[0Ksection_start:$(date +%s):${id}[collapsed=true]\\r\\e[0K${
+      lib.escape [ "\\" "\"" "`" "$" ] name
+    }\"";
+    end = "echo -e \"\\e[0Ksection_end:$(date +%s):${id}\\r\\e[0K\"";
+  };
+
+  stepLines =
+    if rootConfig.gitlab-ci.stepBlocks.mode == "native" then
+      throw ''gitlab-ci.stepBlocks.mode = "native" is not supported yet; use "expanded"''
+    else
+      ci-lib.stepBlocks.toShellLines {
+        blocks = rootConfig.stepBlocks;
+        inherit nameLines;
+      } config.steps;
 in
 {
   config.gitlab-ci = {
@@ -58,7 +74,7 @@ in
       ))
     ];
 
-    script = lib.mkIf (config.commands != [ ]) config.commands;
+    script = lib.mkIf (stepLines != [ ] || config.commands != [ ]) (stepLines ++ config.commands);
 
     # A GitLab pipeline is bound to a single ref for every job, so there is
     # no native per-job override. Re-point the already-cloned working copy

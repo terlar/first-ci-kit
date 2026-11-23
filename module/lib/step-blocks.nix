@@ -164,6 +164,90 @@ let
           lib.concatMap (leaf: renderNonBlockStep (leaf // { env = checked.env // leaf.env; })) leaves;
     in
     lib.concatMap renderStep;
+
+  # Render a step's own run/raw lines, ignoring env/name (applied by the caller).
+  renderShellLeaf =
+    step:
+    if step.run != null then
+      [ step.run ]
+    else if step.gitlab-ci != null then
+      step.gitlab-ci
+    else
+      # Raw-only github-actions step: dropped on neutral shell backends.
+      [ ];
+
+  # Wrap a step's rendered body lines with its own env (one collapsed shell
+  # group) and then its name (start/end lines around the result).
+  wrapShellStep =
+    { nameLines }:
+    {
+      step,
+      lines,
+      id,
+    }:
+    let
+      withEnv =
+        if step.env != { } then
+          let
+            exports = lib.concatStringsSep " " (
+              map (k: ''${k}="${lib.escape [ "\\" "\"" "`" ] step.env.${k}}"'') (builtins.attrNames step.env)
+            );
+          in
+          [ "( export ${exports}\n${lib.concatStringsSep "\n" lines}\n)" ]
+        else
+          lines;
+    in
+    if step.name != null then
+      let
+        nl = nameLines id step.name;
+      in
+      (lib.optional (nl.start != "") nl.start) ++ withEnv ++ (lib.optional (nl.end != "") nl.end)
+    else
+      withEnv;
+
+  # { blocks, nameLines } -> listOf step -> listOf str
+  toShellLines =
+    { blocks, nameLines }:
+    let
+      wrap = wrapShellStep { inherit nameLines; };
+
+      renderStep =
+        stack: path: step:
+        let
+          checked = checkStep step;
+          id = "step_${lib.concatStringsSep "_" (map toString path)}";
+        in
+        if checked.block == null then
+          wrap {
+            step = checked;
+            lines = renderShellLeaf checked;
+            inherit id;
+          }
+        else
+          let
+            name = checked.block;
+          in
+          if builtins.elem name stack then
+            throw "stepBlocks: cycle ${lib.concatStringsSep " -> " (stack ++ [ name ])}"
+          else
+            let
+              block = blocks.${name} or (throw "stepBlocks.${name}: unknown block");
+              resolvedInputs = resolveInputs {
+                inherit blocks name;
+                inherit (checked) inputs;
+              };
+              nestedSteps = builtins.deepSeq resolvedInputs (block.steps { inputs = resolvedInputs; });
+              bodyLines = lib.concatLists (
+                lib.imap0 (j: s: renderStep (stack ++ [ name ]) (path ++ [ j ]) s) nestedSteps
+              );
+            in
+            wrap {
+              step = checked;
+              lines = bodyLines;
+              inherit id;
+            };
+    in
+    steps: lib.concatLists (lib.imap0 (i: step: renderStep [ ] [ i ] step) steps);
 in
 {
   inherit
@@ -172,5 +256,6 @@ in
     instantiate
     usedBlocks
     toGithubSteps
+    toShellLines
     ;
 }
