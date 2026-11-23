@@ -23,6 +23,9 @@ let
       !(gl.settings.pipelines ? "github-actions-only");
     "autoConfigureHooks: github-actions includes pipeline with gitlab-ci.generate = false" =
       gh.settings.pipelines ? "github-actions-only";
+
+    "github-actions: actions auto-configured" =
+      gh.settings.actions.greet == ".github/actions/greet/action.yml";
   };
 in
 pkgs.runCommand "test-git-hooks" { } (

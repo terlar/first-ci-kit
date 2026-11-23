@@ -23,6 +23,14 @@
   first-ci-kit.pipelines = {
     github-actions-only = {
       gitlab-ci.generate = false;
+      github-actions.stepBlocks.mode = "native";
+
+      stepBlocks.greet.steps = _: [ { run = "echo hello"; } ];
+
+      jobs.greet = {
+        checkout.enable = true;
+        steps = [ { block = "greet"; } ];
+      };
     };
 
     default = {
