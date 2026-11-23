@@ -21,30 +21,31 @@
           path = getter value;
         }) config.first-ci-kit.pipelines;
 
+      # Top-level pipelines (with their children) that generate GitHub Actions.
+      githubActionsPipelines = lib.concatMap (p: [ p ] ++ lib.attrValues p.pipelines) (
+        lib.attrValues (lib.filterAttrs (_: p: p.github-actions.generate) config.first-ci-kit.pipelines)
+      );
+
       # Union of github-actions.actionFiles over every generated top-level
-      # pipeline and its children, keyed by action name. Two pipelines that
-      # produce the same action name with different content is an error.
-      actionEntries =
-        lib.concatMap
-          (
-            pipeline: lib.mapAttrsToList (name: value: { inherit name value; }) pipeline.github-actions.actions
-          )
-          (
-            lib.concatMap (p: [ p ] ++ lib.attrValues p.pipelines) (
-              lib.attrValues (lib.filterAttrs (_: p: p.github-actions.generate) config.first-ci-kit.pipelines)
-            )
-          );
-      actionsUnion = lib.foldl' (
-        acc: entry:
-        if acc ? ${entry.name} && builtins.toJSON acc.${entry.name} != builtins.toJSON entry.value then
-          throw "first-ci-kit: action ${entry.name} differs between pipelines"
-        else
-          acc // { ${entry.name} = entry.value; }
-      ) { } actionEntries;
-      actionFiles = lib.mapAttrsToList (name: value: {
+      # pipeline and its children, keyed by action name. Files are
+      # content-addressed, so a differing path means differing content.
+      actionFilesUnion = lib.foldl' (
+        acc: pipeline:
+        lib.foldl' (
+          acc': name:
+          let
+            path = pipeline.github-actions.actionFiles.${name};
+          in
+          if acc' ? ${name} && acc'.${name} != path then
+            throw "first-ci-kit: action ${name} differs between pipelines"
+          else
+            acc' // { ${name} = path; }
+        ) acc (lib.attrNames pipeline.github-actions.actionFiles)
+      ) { } githubActionsPipelines;
+      actionFiles = lib.mapAttrsToList (name: path: {
         name = "actions/${name}/action.yml";
-        path = builtins.toFile "action.yml" (builtins.toJSON value);
-      }) actionsUnion;
+        inherit path;
+      }) actionFilesUnion;
     in
     {
       packages.gha-path-changes = pkgs.callPackage ./packages/gha-path-changes { };

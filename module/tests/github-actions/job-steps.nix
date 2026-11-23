@@ -241,6 +241,28 @@ in
     expected = false;
   };
 
+  test-github-actions-steps-expanded-nested-override-fails = {
+    expr =
+      (builtins.tryEval (
+        builtins.deepSeq (test-lib.eval-github-actions {
+          github-actions.defaultRunsOn = "ubuntu-latest";
+          stepBlocks = {
+            greet = greetBlock;
+            outer.steps = _: [
+              {
+                block = "greet";
+                github-actions."if" = "always()";
+              }
+            ];
+          };
+          jobs.build = {
+            steps = [ { block = "outer"; } ];
+          };
+        }) null
+      )).success;
+    expected = false;
+  };
+
   test-github-actions-steps-ordering = {
     expr = test-lib.eval-github-actions {
       github-actions.defaultRunsOn = "ubuntu-latest";

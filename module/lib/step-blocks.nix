@@ -43,6 +43,10 @@ let
     {
       blocks,
       stack ? [ ],
+      # Set by the expanded GitHub renderer: a `github-actions` override on
+      # any block step along the expansion (not only the top-level one)
+      # needs native mode, same as the top-level check.
+      forbidGithubActions ? false,
     }:
     step:
     let
@@ -50,6 +54,8 @@ let
     in
     if checked.block == null then
       [ checked ]
+    else if forbidGithubActions && checked.github-actions != null then
+      throw "step: github-actions overrides on a block step need native mode"
     else
       let
         name = checked.block;
@@ -66,7 +72,7 @@ let
           nestedSteps = block.steps { inputs = resolvedInputs; };
         in
         lib.concatMap (instantiate {
-          inherit blocks;
+          inherit blocks forbidGithubActions;
           stack = stack ++ [ name ];
         }) nestedSteps;
 
@@ -159,7 +165,10 @@ let
           throw "step: github-actions overrides on a block step need native mode"
         else
           let
-            leaves = instantiate { inherit blocks; } checked;
+            leaves = instantiate {
+              inherit blocks;
+              forbidGithubActions = true;
+            } checked;
           in
           lib.concatMap (leaf: renderNonBlockStep (leaf // { env = checked.env // leaf.env; })) leaves;
     in
@@ -189,6 +198,7 @@ let
       withEnv =
         if step.env != { } then
           let
+            # `$VAR` is intentionally left to expand, like GitHub's `${{ }}`.
             exports = lib.concatStringsSep " " (
               map (k: ''${k}="${lib.escape [ "\\" "\"" "`" ] step.env.${k}}"'') (builtins.attrNames step.env)
             );
@@ -206,6 +216,8 @@ let
       withEnv;
 
   # { blocks, nameLines } -> listOf step -> listOf str
+  # Does not reuse `instantiate`: it needs a per-step path (not just the
+  # flattened leaves) to derive stable section ids for nested blocks.
   toShellLines =
     { blocks, nameLines }:
     let
@@ -256,6 +268,7 @@ let
     let
       block = blocks.${name} or (throw "stepBlocks.${name}: unknown block");
       placeholderInputs = lib.mapAttrs (n: _: "\${{ inputs.${n} }}") block.inputs;
+      # Composite action `run` steps require an explicit shell.
       steps = map (step: if step ? run && !(step ? shell) then step // { shell = "bash"; } else step) (
         toGithubSteps {
           inherit blocks;

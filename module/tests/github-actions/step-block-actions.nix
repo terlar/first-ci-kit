@@ -65,14 +65,21 @@ in
       {
         hasGreet = actions ? greet;
         hasOuter = actions ? outer;
-        outerSteps = actions.outer.runs.steps;
+        inherit (actions) outer;
       };
     expected = {
       hasGreet = true;
       hasOuter = true;
-      outerSteps = [
-        { uses = "./.github/actions/greet"; }
-      ];
+      outer = {
+        name = "outer";
+        inputs = { };
+        runs = {
+          using = "composite";
+          steps = [
+            { uses = "./.github/actions/greet"; }
+          ];
+        };
+      };
     };
   };
 

@@ -38,13 +38,13 @@ let
       github-actions = lib.mkOption {
         type = types.nullOr (types.attrsOf types.anything);
         default = null;
-        description = "Raw GitHub Actions step attrs, merged over the rendered step.";
+        description = "Raw GitHub Actions step attrs, merged over the rendered step for `run`/`block` (native mode); a GitHub-only step on its own.";
       };
 
       gitlab-ci = lib.mkOption {
         type = types.nullOr (types.listOf types.str);
         default = null;
-        description = "Raw GitLab CI script lines, merged over the rendered step.";
+        description = "GitLab script lines for a GitLab-only step; ignored when `run` or `block` is set.";
       };
     };
   };

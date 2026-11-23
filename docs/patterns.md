@@ -728,4 +728,6 @@ By default (`github-actions.stepBlocks.mode = "expanded"`), GitHub Actions inlin
 
 **GitLab CI only supports expanded mode** — `gitlab-ci.stepBlocks.mode = "native"` fails eval with `gitlab-ci.stepBlocks.mode = "native" is not supported yet; use "expanded"`.
 
-In expanded GitHub mode, caller-side `name` and raw `github-actions`/`gitlab-ci` overrides on a block step are ignored or forbidden (`step: github-actions overrides on a block step need native mode`) — use native mode if you need to attach backend-specific step fields to a block call.
+In expanded GitHub mode, a block step's caller-side `name` is silently dropped (it does not appear anywhere in the expanded output); on GitLab and process-compose the same `name` becomes a section (`section_start`/`section_end` on GitLab, an `echo` line on process-compose), and in native GitHub mode it becomes the caller step's `name`. A `github-actions` override on a block step is forbidden in expanded GitHub mode (`step: github-actions overrides on a block step need native mode`), including when the override is on a nested block step inside another block — use native mode if you need to attach backend-specific step fields to a block call. GitLab and process-compose ignore `github-actions` overrides on block steps by design (they only apply on GitHub).
+
+Env values on GitLab and process-compose are double-quoted with `\`, `"` and `` ` `` escaped, so `$VAR` (e.g. `$CI_COMMIT_SHA`) still expands at runtime, the same way `${{ }}` expands on GitHub.
