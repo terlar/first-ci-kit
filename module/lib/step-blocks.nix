@@ -102,6 +102,68 @@ let
       lib.unique
       (lib.sort (a: b: a < b))
     ];
+
+  # Render a single run step's attrs, used both for top-level run steps and
+  # for the leaves left after expanding a block step.
+  renderRunStep =
+    step:
+    lib.mergeAttrsList [
+      { inherit (step) run; }
+      (lib.optionalAttrs (step.name != null) { inherit (step) name; })
+      (lib.optionalAttrs (step.env != { }) { inherit (step) env; })
+      (if step.github-actions != null then step.github-actions else { })
+    ];
+
+  # step (already checked) -> listOf attrs, for a non-block step.
+  renderNonBlockStep =
+    step:
+    if step.run != null then
+      [ (renderRunStep step) ]
+    else if step.github-actions != null then
+      [ step.github-actions ]
+    else
+      # Raw-only gitlab-ci step: dropped on GitHub Actions.
+      [ ];
+
+  # { blocks, native } -> listOf step -> listOf attrs
+  toGithubSteps =
+    { blocks, native }:
+    let
+      renderStep =
+        step:
+        let
+          checked = checkStep step;
+        in
+        if checked.block == null then
+          renderNonBlockStep checked
+        else if native then
+          let
+            # Validate the block/inputs (unknown block, unknown input names);
+            # defaults are not emitted, only the caller-supplied inputs are.
+            validated = resolveInputs {
+              inherit blocks;
+              name = checked.block;
+              inherit (checked) inputs;
+            };
+          in
+          builtins.seq validated [
+            (lib.mergeAttrsList [
+              { uses = "./.github/actions/${checked.block}"; }
+              (lib.optionalAttrs (checked.inputs != { }) { "with" = checked.inputs; })
+              (lib.optionalAttrs (checked.name != null) { inherit (checked) name; })
+              (lib.optionalAttrs (checked.env != { }) { inherit (checked) env; })
+              (if checked.github-actions != null then checked.github-actions else { })
+            ])
+          ]
+        else if checked.github-actions != null then
+          throw "step: github-actions overrides on a block step need native mode"
+        else
+          let
+            leaves = instantiate { inherit blocks; } checked;
+          in
+          lib.concatMap (leaf: renderNonBlockStep (leaf // { env = checked.env // leaf.env; })) leaves;
+    in
+    lib.concatMap renderStep;
 in
 {
   inherit
@@ -109,5 +171,6 @@ in
     resolveInputs
     instantiate
     usedBlocks
+    toGithubSteps
     ;
 }

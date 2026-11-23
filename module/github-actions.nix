@@ -294,6 +294,24 @@ in
       };
     };
 
+    stepBlocks = {
+      mode = lib.mkOption {
+        type = types.enum [
+          "expanded"
+          "native"
+        ];
+        default = "expanded";
+        description = ''
+          How block steps (`{ block = "<name>"; }`) are rendered.
+          `"expanded"` inlines the block's steps into the job.
+          `"native"` renders a call to a generated composite action under
+          `./.github/actions/<name>`, requiring `checkout.enable` on jobs
+          that use a block.
+        '';
+        example = "native";
+      };
+    };
+
     file = lib.mkOption {
       internal = true;
       type = types.package;
