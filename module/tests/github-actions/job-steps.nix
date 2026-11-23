@@ -202,6 +202,26 @@ in
     expected = false;
   };
 
+  test-github-actions-steps-native-missing-required-input-fails = {
+    expr =
+      (builtins.tryEval (
+        builtins.deepSeq (test-lib.eval-github-actions {
+          github-actions = {
+            defaultRunsOn = "ubuntu-latest";
+            stepBlocks.mode = "native";
+          };
+          stepBlocks.requires = {
+            inputs.needed.default = null;
+            steps = { inputs }: [ { run = inputs.needed; } ];
+          };
+          jobs.build = {
+            steps = [ { block = "requires"; } ];
+          };
+        }) null
+      )).success;
+    expected = false;
+  };
+
   test-github-actions-steps-expanded-override-fails = {
     expr =
       (builtins.tryEval (

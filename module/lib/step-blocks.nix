@@ -146,7 +146,7 @@ let
               inherit (checked) inputs;
             };
           in
-          builtins.seq validated [
+          builtins.deepSeq validated [
             (lib.mergeAttrsList [
               { uses = "./.github/actions/${checked.block}"; }
               (lib.optionalAttrs (checked.inputs != { }) { "with" = checked.inputs; })
