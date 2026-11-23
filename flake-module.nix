@@ -20,6 +20,31 @@
           name = "${name}.yml";
           path = getter value;
         }) config.first-ci-kit.pipelines;
+
+      # Union of github-actions.actionFiles over every generated top-level
+      # pipeline and its children, keyed by action name. Two pipelines that
+      # produce the same action name with different content is an error.
+      actionEntries =
+        lib.concatMap
+          (
+            pipeline: lib.mapAttrsToList (name: value: { inherit name value; }) pipeline.github-actions.actions
+          )
+          (
+            lib.concatMap (p: [ p ] ++ lib.attrValues p.pipelines) (
+              lib.attrValues (lib.filterAttrs (_: p: p.github-actions.generate) config.first-ci-kit.pipelines)
+            )
+          );
+      actionsUnion = lib.foldl' (
+        acc: entry:
+        if acc ? ${entry.name} && builtins.toJSON acc.${entry.name} != builtins.toJSON entry.value then
+          throw "first-ci-kit: action ${entry.name} differs between pipelines"
+        else
+          acc // { ${entry.name} = entry.value; }
+      ) { } actionEntries;
+      actionFiles = lib.mapAttrsToList (name: value: {
+        name = "actions/${name}/action.yml";
+        path = builtins.toFile "action.yml" (builtins.toJSON value);
+      }) actionsUnion;
     in
     {
       packages.gha-path-changes = pkgs.callPackage ./packages/gha-path-changes { };
@@ -42,7 +67,7 @@
         # Used by git hooks to avoid N separate nix build invocations (one eval each).
         {
           ci-pipelines-github-actions = pkgs.linkFarm "ci-pipelines-github-actions" (
-            allPipelineFiles (p: p.github-actions.file)
+            allPipelineFiles (p: p.github-actions.file) ++ actionFiles
           );
           ci-pipelines-gitlab-ci = pkgs.linkFarm "ci-pipelines-gitlab-ci" (
             allPipelineFiles (p: p.gitlab-ci.file)
