@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, config, ... }:
 
 {
   # internal/visible=false keeps this out of the main docs: the submodule
@@ -17,6 +17,8 @@
           # nesting (pipelines.x.pipelines.y) is not supported.
           ../core
           ./pipeline/interface.nix
+          # Children inherit the parent's stepBlocks (per entry, overridable).
+          { config.stepBlocks = lib.mapAttrs (_: lib.mkDefault) config.stepBlocks; }
         ];
       }
     );

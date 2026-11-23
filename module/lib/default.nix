@@ -3,6 +3,89 @@
 let
   inherit (lib) types;
 
+  stepType = types.submodule {
+    options = {
+      run = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Shell command to run.";
+      };
+
+      block = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Name of a stepBlocks entry to use.";
+      };
+
+      inputs = lib.mkOption {
+        type = types.attrsOf types.str;
+        default = { };
+        description = "Inputs passed to the block. Only valid together with `block`.";
+      };
+
+      name = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Optional display name for the step.";
+      };
+
+      env = lib.mkOption {
+        type = types.attrsOf types.str;
+        default = { };
+        description = "Environment variables for this step.";
+      };
+
+      github-actions = lib.mkOption {
+        type = types.nullOr (types.attrsOf types.anything);
+        default = null;
+        description = "Raw GitHub Actions step attrs, merged over the rendered step.";
+      };
+
+      gitlab-ci = lib.mkOption {
+        type = types.nullOr (types.listOf types.str);
+        default = null;
+        description = "Raw GitLab CI script lines, merged over the rendered step.";
+      };
+    };
+  };
+
+  stepBlockType = types.submodule {
+    options = {
+      description = lib.mkOption {
+        type = types.str;
+        default = "";
+        description = "Used for the composite action description.";
+      };
+
+      inputs = lib.mkOption {
+        type = types.attrsOf (
+          types.submodule {
+            options = {
+              description = lib.mkOption {
+                type = types.str;
+                default = "";
+                description = "Input description.";
+              };
+
+              default = lib.mkOption {
+                type = types.nullOr types.str;
+                default = null;
+                description = "Default value. `null` means the input is required.";
+              };
+            };
+          }
+        );
+        default = { };
+        description = "Declared inputs for this block.";
+      };
+
+      steps = lib.mkOption {
+        type = types.functionTo (types.listOf stepType);
+        description = "Function from `{ inputs }` to a list of steps.";
+      };
+    };
+  };
+
   expandPipelineNeed =
     jobSets: need:
     if need.jobSet != null then
@@ -114,6 +197,8 @@ in
         }
       ];
     };
+
+    inherit stepType stepBlockType;
   };
 
   jobToNeed = job: {
@@ -142,4 +227,5 @@ in
 
   gitlab-ci = import ./gitlab-ci.nix { inherit lib; };
   process-compose = import ./process-compose.nix { inherit lib; };
+  stepBlocks = import ./step-blocks.nix { inherit lib; };
 }
