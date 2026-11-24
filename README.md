@@ -83,7 +83,12 @@ first-ci-kit has **no nixpkgs dependency** — it only requires `flake-parts`:
   - **Component** — a logical unit within a stack (e.g. a service, a Terraform root module). Carries options such as `needs`, `jobFactory`, and any extras declared via `stackDiscovery.component.module`.
   - **Deployment** — an instance of a component (e.g. `dev`, `prod`). Each component × deployment triple becomes one factory invocation.
 - **Pipeline** — a collection of jobs with backend-specific settings (stages, triggers, runners).
+  - **Pipeline call** — a job that runs a child pipeline with inputs instead of commands (a reusable workflow call on GitHub Actions, a child pipeline trigger on GitLab CI).
+  - **Component pipelines** — one generated pipeline per discovered component, all built from a shared pipeline module.
 - **JobFactory** — a parameterised function that generates jobs from a common template.
+- **Step** — one backend-neutral entry in a job's `steps`: a `run` command, a step block, or a raw backend-only step.
+- **StepBlock** — a named, reusable group of steps with declared inputs, defined once at top level and usable from any pipeline. Rendered inline, or on GitHub Actions optionally as a generated composite action.
+- **Backend** — a target that pipelines render to: GitHub Actions, GitLab CI, or process-compose for running jobs locally.
 
 ## Module documentation
 
