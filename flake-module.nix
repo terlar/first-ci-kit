@@ -31,16 +31,21 @@
       # Union of github-actions.actionFiles over every generated top-level
       # pipeline and its children, keyed by action name. Files are
       # content-addressed, so a differing path means differing content.
-      actionFilesUnion = lib.zipAttrsWith (
-        name: paths:
-        lib.throwIf (
-          lib.length (lib.unique paths) > 1
-        ) "first-ci-kit: action ${name} differs between pipelines" (lib.head paths)
-      ) (map (p: p.github-actions.actionFiles) githubActionsPipelines);
-      actionFiles = lib.mapAttrsToList (name: path: {
-        name = "actions/${name}/action.yml";
-        inherit path;
-      }) actionFilesUnion;
+      actionFiles = lib.pipe githubActionsPipelines [
+        (map (p: p.github-actions.actionFiles))
+        (lib.zipAttrsWith (
+          name: paths:
+          lib.throwIf (
+            lib.length (lib.unique paths) > 1
+          ) "first-ci-kit: action ${name} differs between pipelines" (lib.head paths)
+        ))
+        (lib.mapAttrsToList (
+          name: path: {
+            name = "actions/${name}/action.yml";
+            inherit path;
+          }
+        ))
+      ];
     in
     {
       packages.gha-path-changes = pkgs.callPackage ./packages/gha-path-changes { };
