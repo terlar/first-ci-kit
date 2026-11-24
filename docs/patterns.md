@@ -731,3 +731,19 @@ By default (`github-actions.stepBlocks.mode = "expanded"`), GitHub Actions inlin
 In expanded GitHub mode, a block step's caller-side `name` is silently dropped (it does not appear anywhere in the expanded output); on GitLab and process-compose the same `name` becomes a section (`section_start`/`section_end` on GitLab, an `echo` line on process-compose), and in native GitHub mode it becomes the caller step's `name`. A `github-actions` override on a block step is forbidden in expanded GitHub mode (`step: github-actions overrides on a block step need native mode`), including when the override is on a nested block step inside another block — use native mode if you need to attach backend-specific step fields to a block call. GitLab and process-compose ignore `github-actions` overrides on block steps by design (they only apply on GitHub).
 
 Env values on GitLab and process-compose are double-quoted with `\`, `"` and `` ` `` escaped, so `$VAR` (e.g. `$CI_COMMIT_SHA`) still expands at runtime, the same way `${{ }}` expands on GitHub.
+
+---
+
+## 15. Change detection as a composite action
+
+**Problem:** Every workflow with change detection inlines the same ~100-line detection script in its `changes` job, which bloats generated workflows and their diffs.
+
+Set `github-actions.changes.mode = "native"` to render the script once as a composite action under `./.github/actions/first-ci-kit-changes` and call it from the `changes` job:
+
+```nix
+{
+  github-actions.changes.mode = "native";
+}
+```
+
+The action is identical for every pipeline (the path groups, `force_run_all` and the on-demand base branch are passed as inputs), so several pipelines can share it. The `changes` job already checks out the repository, and its `changes` output is unchanged, so jobs reading `needs.changes.outputs.changes` need no changes. The git hooks write the action file alongside the workflows.

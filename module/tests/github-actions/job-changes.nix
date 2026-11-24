@@ -735,4 +735,74 @@ in
       deployIf = "\${{ github.event_name == 'pull_request' && fromJSON(needs.changes.outputs.changes)['plan'] == true }}";
     };
   };
+
+  # Native mode calls the generated action with the pipeline specifics as
+  # inputs; the action itself carries no pipeline specifics.
+  test-github-actions-changes-native = {
+    expr =
+      let
+        cfg = test-lib.evalConfig {
+          github-actions = {
+            defaultRunsOn = "ubuntu-latest";
+            changes.mode = "native";
+          };
+          jobs.job-a.branches.default = {
+            changes.paths = [ "src/**" ];
+            triggers = {
+              onMergeRequest = true;
+              onDemand = true;
+            };
+          };
+        };
+        action = cfg.github-actions.actions.first-ci-kit-changes;
+      in
+      {
+        step = builtins.elemAt cfg.github-actions.settings.jobs.changes.steps 1;
+        actionNames = builtins.attrNames cfg.github-actions.actions;
+        inherit (action) outputs;
+        inputs = builtins.attrNames action.inputs;
+        actionEnv = (builtins.head action.runs.steps).env;
+      };
+    expected = {
+      step = {
+        id = "diff";
+        uses = "./.github/actions/first-ci-kit-changes";
+        "with" = {
+          paths = "job-a:src/**";
+          force-run-all = "\${{ inputs.force_run_all }}";
+          on-demand-base-ref = "main";
+        };
+      };
+      actionNames = [ "first-ci-kit-changes" ];
+      outputs.changes = {
+        description = "JSON object of group name to changed boolean.";
+        value = "\${{ steps.diff.outputs.changes }}";
+      };
+      inputs = [
+        "force-run-all"
+        "on-demand-base-ref"
+        "paths"
+      ];
+      actionEnv = {
+        DIFF_PATHS = "\${{ inputs.paths }}";
+        GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+        GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+        FORCE_RUN_ALL = "\${{ inputs.force-run-all }}";
+        ON_DEMAND_BASE_REF = "\${{ inputs.on-demand-base-ref }}";
+      };
+    };
+  };
+
+  # No changes job, no action.
+  test-github-actions-changes-native-without-changes-has-no-action = {
+    expr =
+      (test-lib.evalConfig {
+        github-actions = {
+          defaultRunsOn = "ubuntu-latest";
+          changes.mode = "native";
+        };
+        jobs.job-a.branches.default.triggers.onMergeRequest = true;
+      }).github-actions.actions;
+    expected = { };
+  };
 }

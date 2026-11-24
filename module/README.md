@@ -717,6 +717,42 @@ attribute set of list of string
 
 
 
+## github-actions\.changes\.mode
+
+
+
+How the change detection step of the auto-generated ` changes ` job is
+rendered\. ` "expanded" ` inlines the detection script into the
+workflow\. ` "native" ` calls a generated composite action under
+` ./.github/actions/first-ci-kit-changes ` instead, so the script is
+written once rather than into every workflow\.
+
+
+
+*Type:*
+one of “expanded”, “native”
+
+
+
+*Default:*
+
+```nix
+"expanded"
+```
+
+
+
+*Example:*
+
+```nix
+"native"
+```
+
+*Declared by:*
+ - [github-actions\.nix](github-actions.nix)
+
+
+
 ## github-actions\.changesFetchDepth
 
 
@@ -3608,8 +3644,6 @@ null
 
 ## jobs\.\<name>\.pipelineCall\.gitlab-ci\.rulesInput
 
-
-
 When set to an input name (e\.g\. ` "rules" `), automatically computes
 all GitLab CI rules (MR + push) from the job’s ` branches ` config and
 passes them as that input to the child pipeline\. The computed value
@@ -3634,6 +3668,8 @@ null
 
 
 ## jobs\.\<name>\.pipelineCall\.gitlab-ci\.templatePath
+
+
 
 Local path to the GitLab CI component template for the called
 pipeline (e\.g\. “ci/gitlab-templates/profile-terraform/template\.yml”)\.

@@ -64,6 +64,87 @@ let
 
   summaryJobCfg = config.github-actions.summaryJob;
 
+  changesActionName = "first-ci-kit-changes";
+  nativeChanges = config.github-actions.changes.mode == "native";
+  diffScript = builtins.readFile ../../packages/gha-path-changes/main.bash;
+
+  # Inputs of the diff step; the expanded step gets them as env, the native
+  # step passes them to the composite action.
+  diffInputs = lib.mergeAttrsList [
+    { paths = builtins.concatStringsSep "\n" changes; }
+    (lib.optionalAttrs forceRunAll.enable {
+      force-run-all = "\${{ inputs.${forceRunAll.inputName} }}";
+    })
+    (lib.optionalAttrs (onDemandBaseRefAssertion != [ ]) {
+      on-demand-base-ref = builtins.head onDemandBaseRefAssertion;
+    })
+  ];
+
+  diffEnv =
+    inputs:
+    {
+      DIFF_PATHS = inputs.paths;
+      GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
+      GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
+    }
+    // lib.optionalAttrs (inputs ? force-run-all) { FORCE_RUN_ALL = inputs.force-run-all; }
+    // lib.optionalAttrs (inputs ? on-demand-base-ref) {
+      ON_DEMAND_BASE_REF = inputs.on-demand-base-ref;
+    };
+
+  diffStep =
+    if nativeChanges then
+      {
+        id = "diff";
+        uses = "./.github/actions/${changesActionName}";
+        "with" = diffInputs;
+      }
+    else
+      {
+        id = "diff";
+        shell = "bash";
+        env = diffEnv diffInputs;
+        run = diffScript;
+      };
+
+  # Identical for every pipeline (pipeline specifics are inputs), so pipelines
+  # can share one action file.
+  changesAction = {
+    name = changesActionName;
+    description = "Detect which first-ci-kit change groups have changed paths.";
+    inputs = {
+      paths = {
+        description = "Newline-separated `<group>:<glob>|<glob>` entries.";
+        required = true;
+      };
+      force-run-all = {
+        description = "Mark every group changed when `true`.";
+        required = false;
+        default = "";
+      };
+      on-demand-base-ref = {
+        description = "Branch to diff against on workflow_dispatch and schedule events.";
+        required = false;
+        default = "";
+      };
+    };
+    outputs.changes = {
+      description = "JSON object of group name to changed boolean.";
+      value = "\${{ steps.diff.outputs.changes }}";
+    };
+    runs = {
+      using = "composite";
+      steps = [
+        {
+          id = "diff";
+          shell = "bash";
+          env = diffEnv (lib.mapAttrs (n: _: "\${{ inputs.${n} }}") changesAction.inputs);
+          run = diffScript;
+        }
+      ];
+    };
+  };
+
   summaryJobNeeds =
     (lib.optional (changes != [ ]) "changes") ++ (map transformJobName (lib.attrNames enabledJobs));
 
@@ -82,24 +163,7 @@ in
                 uses = checkoutAction;
                 "with"."fetch-depth" = changesFetchDepth;
               }
-              {
-                id = "diff";
-                shell = "bash";
-                env = lib.mergeAttrsList [
-                  {
-                    DIFF_PATHS = builtins.concatStringsSep "\n" changes;
-                    GITHUB_EVENT_BEFORE = "\${{ github.event.before }}";
-                    GITHUB_EVENT_AFTER = "\${{ github.event.after }}";
-                  }
-                  (lib.optionalAttrs forceRunAll.enable {
-                    FORCE_RUN_ALL = "\${{ inputs.${forceRunAll.inputName} }}";
-                  })
-                  (lib.optionalAttrs (onDemandBaseRefAssertion != [ ]) {
-                    ON_DEMAND_BASE_REF = builtins.head onDemandBaseRefAssertion;
-                  })
-                ];
-                run = builtins.readFile ../../packages/gha-path-changes/main.bash;
-              }
+              diffStep
             ];
           };
         })
@@ -152,4 +216,8 @@ in
       };
     })
   ];
+
+  github-actions.actions = lib.mkIf (nativeChanges && changes != [ ]) {
+    ${changesActionName} = changesAction;
+  };
 }
