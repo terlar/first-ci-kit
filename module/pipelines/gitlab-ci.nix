@@ -21,10 +21,7 @@ let
         let
           generateImage = child.gitlab-ci.dispatch.generateJob.image;
         in
-        if generateImage != null then
-          ci-lib.resolveImage config.gitlab-ci.images.repository config.imageRegistry generateImage
-        else
-          null;
+        lib.mapNullable (ci-lib.resolveImage config.gitlab-ci.images.repository config.imageRegistry) generateImage;
 
       generateJob = lib.mergeAttrsList [
         (lib.optionalAttrs (image != null) { inherit image; })

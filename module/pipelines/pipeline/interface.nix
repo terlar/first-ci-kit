@@ -88,6 +88,6 @@ in
   };
 
   config.gitlab-ci.dispatch.trigger.stage = lib.mkDefault (
-    if config.gitlab-ci.defaultStage != null then config.gitlab-ci.defaultStage else ".post"
+    lib.defaultTo ".post" config.gitlab-ci.defaultStage
   );
 }

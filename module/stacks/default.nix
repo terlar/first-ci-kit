@@ -11,7 +11,7 @@ let
     currentStack: deployment: currentDeploymentSettings: need:
     let
       inherit (need) component;
-      stack = if need.stack != null then need.stack else currentStack;
+      stack = lib.defaultTo currentStack need.stack;
 
       mkName =
         dep: config.formatJobName ([ stack ] ++ lib.optional (component != null) component ++ [ dep ]);
@@ -28,8 +28,7 @@ let
       matchByEnvironment =
         let
           filterEnv = need.matchDeployment.environment;
-          expectedEnv =
-            if filterEnv == null then currentDeploymentSettings.environment or null else filterEnv;
+          expectedEnv = lib.defaultTo (currentDeploymentSettings.environment or null) filterEnv;
           matches = dep: (targetDeployments.${dep}.environment or null) == expectedEnv;
         in
         lib.pipe targetDeployments [
@@ -40,7 +39,7 @@ let
 
       resolveByName =
         let
-          dep = if need.deployment != null then need.deployment else deployment;
+          dep = lib.defaultTo deployment need.deployment;
         in
         lib.optional (targetDeployments ? ${dep} || !need.optional) (mkName dep);
     in
@@ -66,11 +65,7 @@ let
       let
         componentConfig = stackConfig.components.${component};
         factoryName = resolveJobFactory stack stackConfig componentConfig;
-        deployments =
-          if componentConfig.deployments != null then
-            componentConfig.deployments
-          else
-            stackConfig.deployments;
+        deployments = lib.defaultTo stackConfig.deployments componentConfig.deployments;
         mkNeed = jobSet: { inherit jobSet; };
       in
       map (deployment: {
