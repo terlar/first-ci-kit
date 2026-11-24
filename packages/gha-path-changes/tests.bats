@@ -18,6 +18,13 @@ setup() {
   [ "$output" = 'changes={"svc-a":true,"svc-b":false}' ]
 }
 
+@test "pull_request: changes on base branch after branching are ignored" {
+  export GITHUB_EVENT_NAME=pull_request GITHUB_BASE_REF=main GITHUB_HEAD_REF=feature-unrelated
+  (cd "$repo"; gha-path-changes) >/dev/null
+  run grep '^changes=' "$GITHUB_OUTPUT"
+  [ "$output" = 'changes={"svc-a":false,"svc-b":false}' ]
+}
+
 @test "push: no service changed" {
   export GITHUB_EVENT_NAME=push GITHUB_EVENT_BEFORE="$HEAD_SHA" GITHUB_EVENT_AFTER="$NEW_HEAD"
   (cd "$repo"; gha-path-changes) >/dev/null

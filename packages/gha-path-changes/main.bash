@@ -40,7 +40,7 @@ schedule)
 	;;
 esac
 
-files=$(git diff --name-only --diff-filter=d "${first_commit}" "${last_commit}")
+files=$(git diff --name-only --diff-filter=d "${first_commit}...${last_commit}")
 change_lines=()
 for p in $DIFF_PATHS; do
 	group="${p%:*}"

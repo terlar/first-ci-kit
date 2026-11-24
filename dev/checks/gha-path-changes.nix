@@ -58,6 +58,14 @@ pkgs.runCommand "test-gha-path-changes"
     git -C "$repo" push origin feature
     git -C "$repo" checkout main
 
+    # branch from BASE_SHA touching no service, while main has since changed svc-a
+    git -C "$repo" checkout -b feature-unrelated "$BASE_SHA"
+    printf 'docs' > "$repo/docs.txt"
+    git -C "$repo" add .
+    git -C "$repo" commit -m "unrelated change on branch"
+    git -C "$repo" push origin feature-unrelated
+    git -C "$repo" checkout main
+
     # unrelated commit (neither service touched)
     printf 'unrelated' > "$repo/other.txt"
     git -C "$repo" add .
