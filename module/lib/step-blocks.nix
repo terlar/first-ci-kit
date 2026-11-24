@@ -90,18 +90,11 @@ let
           step:
           let
             name = step.block;
+            block = enterBlock blocks stack name;
+            placeholderInputs = lib.mapAttrs (_: spec: lib.defaultTo "" spec.default) block.inputs;
+            nested = block.steps { inputs = placeholderInputs; };
           in
-          if name == null then
-            [ ]
-          else
-            let
-              block = enterBlock blocks stack name;
-              placeholderInputs = lib.mapAttrs (
-                _: spec: if spec.default != null then spec.default else ""
-              ) block.inputs;
-              nested = block.steps { inputs = placeholderInputs; };
-            in
-            [ name ] ++ recurse (stack ++ [ name ]) nested
+          if name == null then [ ] else [ name ] ++ recurse (stack ++ [ name ]) nested
         );
     in
     steps:

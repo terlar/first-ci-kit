@@ -85,6 +85,27 @@ in
     ];
   };
 
+  # Required inputs get a placeholder, so blocks reachable only through
+  # them are still found.
+  test-lib-step-blocks-used-required-input = {
+    expr = usedBlocks {
+      blocks = blocks // {
+        requires = {
+          description = "";
+          inputs.needed = {
+            description = "";
+            default = null;
+          };
+          steps = { inputs }: [ (step { block = "greet${inputs.needed}"; }) ];
+        };
+      };
+    } [ (step { block = "requires"; }) ];
+    expected = [
+      "greet"
+      "requires"
+    ];
+  };
+
   test-lib-step-blocks-unknown-block-fails = {
     expr =
       (builtins.tryEval (
