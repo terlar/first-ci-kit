@@ -22,9 +22,11 @@
         }) config.first-ci-kit.pipelines;
 
       # Top-level pipelines (with their children) that generate GitHub Actions.
-      githubActionsPipelines = lib.concatMap (p: [ p ] ++ lib.attrValues p.pipelines) (
-        lib.attrValues (lib.filterAttrs (_: p: p.github-actions.generate) config.first-ci-kit.pipelines)
-      );
+      githubActionsPipelines = lib.pipe config.first-ci-kit.pipelines [
+        (lib.filterAttrs (_: p: p.github-actions.generate))
+        lib.attrValues
+        (lib.concatMap (p: [ p ] ++ lib.attrValues p.pipelines))
+      ];
 
       # Union of github-actions.actionFiles over every generated top-level
       # pipeline and its children, keyed by action name. Files are
