@@ -3,16 +3,26 @@
 let
   checkStep =
     step:
-    if step.run != null && step.block != null then
+    let
+      hasRun = step.run != null;
+      hasBlock = step.block != null;
+      hasRaw = step.github-actions != null || step.gitlab-ci != null;
+    in
+    if (hasRun && hasBlock) || !(hasRun || hasBlock || hasRaw) then
       throw "step: set exactly one of run or block, or only backend-specific fields"
-    else if step.inputs != { } && step.block == null then
+    else if step.inputs != { } && !hasBlock then
       throw "step: inputs are only valid with block"
-    else if
-      step.run == null && step.block == null && step.github-actions == null && step.gitlab-ci == null
-    then
-      throw "step: set exactly one of run or block, or only backend-specific fields"
     else
       step;
+
+  # Block `name`, entered from the chain of blocks in `stack`; throws on a
+  # cycle or an unknown name.
+  enterBlock =
+    blocks: stack: name:
+    if builtins.elem name stack then
+      throw "stepBlocks: cycle ${lib.concatStringsSep " -> " (stack ++ [ name ])}"
+    else
+      blocks.${name} or (throw "stepBlocks.${name}: unknown block");
 
   resolveInputs =
     {
@@ -37,76 +47,69 @@ let
         )
       ) block.inputs;
 
-  # step -> listOf step, expanding `block` recursively. `stack` is the chain
-  # of block names currently being expanded, used to detect cycles.
+  # step -> listOf step, expanding `block` recursively.
   instantiate =
     {
       blocks,
-      stack ? [ ],
       # Set by the expanded GitHub renderer: a `github-actions` override on
-      # any block step along the expansion (not only the top-level one)
-      # needs native mode, same as the top-level check.
+      # any block step along the expansion needs native mode.
       forbidGithubActions ? false,
     }:
-    step:
     let
-      checked = checkStep step;
-    in
-    if checked.block == null then
-      [ checked ]
-    else if forbidGithubActions && checked.github-actions != null then
-      throw "step: github-actions overrides on a block step need native mode"
-    else
-      let
-        name = checked.block;
-      in
-      if builtins.elem name stack then
-        throw "stepBlocks: cycle ${lib.concatStringsSep " -> " (stack ++ [ name ])}"
-      else
+      # `stack` is the chain of block names being expanded, for cycle detection.
+      recurse =
+        stack: step:
         let
-          block = blocks.${name} or (throw "stepBlocks.${name}: unknown block");
-          resolvedInputs = resolveInputs {
-            inherit blocks name;
-            inherit (checked) inputs;
-          };
-          nestedSteps = block.steps { inputs = resolvedInputs; };
+          checked = checkStep step;
+          name = checked.block;
         in
-        lib.concatMap (instantiate {
-          inherit blocks forbidGithubActions;
-          stack = stack ++ [ name ];
-        }) nestedSteps;
+        if name == null then
+          [ checked ]
+        else if forbidGithubActions && checked.github-actions != null then
+          throw "step: github-actions overrides on a block step need native mode"
+        else
+          let
+            block = enterBlock blocks stack name;
+            resolvedInputs = resolveInputs {
+              inherit blocks name;
+              inherit (checked) inputs;
+            };
+            nestedSteps = builtins.deepSeq resolvedInputs (block.steps { inputs = resolvedInputs; });
+          in
+          lib.concatMap (recurse (stack ++ [ name ])) nestedSteps;
+    in
+    recurse [ ];
 
   # Transitive block names referenced by `steps`, used only to decide which
   # blocks are reachable (input values here are placeholders, not validated).
-  usedBlocksImpl =
-    blocks: stack: steps:
-    lib.concatMap (
-      step:
-      if step.block == null then
-        [ ]
-      else
-        let
-          name = step.block;
-        in
-        if builtins.elem name stack then
-          throw "stepBlocks: cycle ${lib.concatStringsSep " -> " (stack ++ [ name ])}"
-        else
-          let
-            block = blocks.${name} or (throw "stepBlocks.${name}: unknown block");
-            placeholderInputs = lib.mapAttrs (
-              _: spec: if spec.default != null then spec.default else ""
-            ) block.inputs;
-            nested = block.steps { inputs = placeholderInputs; };
-          in
-          [ name ] ++ usedBlocksImpl blocks (stack ++ [ name ]) nested
-    ) steps;
-
   usedBlocks =
     { blocks }:
+    let
+      recurse =
+        stack:
+        lib.concatMap (
+          step:
+          let
+            name = step.block;
+          in
+          if name == null then
+            [ ]
+          else
+            let
+              block = enterBlock blocks stack name;
+              placeholderInputs = lib.mapAttrs (
+                _: spec: if spec.default != null then spec.default else ""
+              ) block.inputs;
+              nested = block.steps { inputs = placeholderInputs; };
+            in
+            [ name ] ++ recurse (stack ++ [ name ]) nested
+        );
+    in
     steps:
-    lib.pipe (usedBlocksImpl blocks [ ] steps) [
+    lib.pipe steps [
+      (recurse [ ])
       lib.unique
-      (lib.sort (a: b: a < b))
+      (lib.sort lib.lessThan)
     ];
 
   # Render a single run step's attrs, used both for top-level run steps and
@@ -117,7 +120,7 @@ let
       { inherit (step) run; }
       (lib.optionalAttrs (step.name != null) { inherit (step) name; })
       (lib.optionalAttrs (step.env != { }) { inherit (step) env; })
-      (if step.github-actions != null then step.github-actions else { })
+      (lib.optionalAttrs (step.github-actions != null) step.github-actions)
     ];
 
   # step (already checked) -> listOf attrs, for a non-block step.
@@ -158,11 +161,9 @@ let
               (lib.optionalAttrs (checked.inputs != { }) { "with" = checked.inputs; })
               (lib.optionalAttrs (checked.name != null) { inherit (checked) name; })
               (lib.optionalAttrs (checked.env != { }) { inherit (checked) env; })
-              (if checked.github-actions != null then checked.github-actions else { })
+              (lib.optionalAttrs (checked.github-actions != null) checked.github-actions)
             ])
           ]
-        else if checked.github-actions != null then
-          throw "step: github-actions overrides on a block step need native mode"
         else
           let
             leaves = instantiate {
@@ -238,26 +239,21 @@ let
         else
           let
             name = checked.block;
-          in
-          if builtins.elem name stack then
-            throw "stepBlocks: cycle ${lib.concatStringsSep " -> " (stack ++ [ name ])}"
-          else
-            let
-              block = blocks.${name} or (throw "stepBlocks.${name}: unknown block");
-              resolvedInputs = resolveInputs {
-                inherit blocks name;
-                inherit (checked) inputs;
-              };
-              nestedSteps = builtins.deepSeq resolvedInputs (block.steps { inputs = resolvedInputs; });
-              bodyLines = lib.concatLists (
-                lib.imap0 (j: s: renderStep (stack ++ [ name ]) (path ++ [ j ]) s) nestedSteps
-              );
-            in
-            wrap {
-              step = checked;
-              lines = bodyLines;
-              inherit id;
+            block = enterBlock blocks stack name;
+            resolvedInputs = resolveInputs {
+              inherit blocks name;
+              inherit (checked) inputs;
             };
+            nestedSteps = builtins.deepSeq resolvedInputs (block.steps { inputs = resolvedInputs; });
+            bodyLines = lib.concatLists (
+              lib.imap0 (j: s: renderStep (stack ++ [ name ]) (path ++ [ j ]) s) nestedSteps
+            );
+          in
+          wrap {
+            step = checked;
+            lines = bodyLines;
+            inherit id;
+          };
     in
     steps: lib.concatLists (lib.imap0 (i: step: renderStep [ ] [ i ] step) steps);
 

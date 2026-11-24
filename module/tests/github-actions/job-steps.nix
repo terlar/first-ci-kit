@@ -222,6 +222,25 @@ in
     expected = false;
   };
 
+  # Expanded mode must also reject a missing required input, even when the
+  # block's steps never read it.
+  test-github-actions-steps-expanded-unused-missing-required-input-fails = {
+    expr =
+      (builtins.tryEval (
+        builtins.deepSeq (test-lib.eval-github-actions {
+          github-actions.defaultRunsOn = "ubuntu-latest";
+          stepBlocks.requires = {
+            inputs.needed.default = null;
+            steps = _: [ { run = "echo hi"; } ];
+          };
+          jobs.build = {
+            steps = [ { block = "requires"; } ];
+          };
+        }) null
+      )).success;
+    expected = false;
+  };
+
   test-github-actions-steps-expanded-override-fails = {
     expr =
       (builtins.tryEval (
