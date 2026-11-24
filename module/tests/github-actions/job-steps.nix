@@ -282,6 +282,123 @@ in
     expected = false;
   };
 
+  # Expanded: the block step's env flows onto every leaf, leaf env wins.
+  test-github-actions-steps-expanded-nested-env = {
+    expr = test-lib.eval-github-actions {
+      github-actions.defaultRunsOn = "ubuntu-latest";
+      stepBlocks = {
+        greet = greetBlock;
+        outer.steps = _: [
+          { block = "greet"; }
+          {
+            run = "b";
+            env.X = "leaf";
+          }
+        ];
+      };
+      jobs.build.steps = [
+        {
+          block = "outer";
+          env = {
+            X = "block";
+            Y = "1";
+          };
+        }
+      ];
+    };
+    expected = {
+      jobs.build = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          { uses = "actions/checkout@v7"; }
+          {
+            run = "echo world";
+            env = {
+              X = "block";
+              Y = "1";
+            };
+          }
+          {
+            run = "b";
+            env = {
+              X = "leaf";
+              Y = "1";
+            };
+          }
+        ];
+      };
+    };
+  };
+
+  test-github-actions-steps-native-caller-name-env-override = {
+    expr = test-lib.eval-github-actions {
+      github-actions = {
+        defaultRunsOn = "ubuntu-latest";
+        stepBlocks.mode = "native";
+      };
+      stepBlocks.greet = greetBlock;
+      jobs.build.steps = [
+        {
+          block = "greet";
+          name = "Greet";
+          env.X = "1";
+          github-actions."if" = "always()";
+        }
+      ];
+    };
+    expected = {
+      jobs.build = {
+        runs-on = "ubuntu-latest";
+        steps = [
+          { uses = "actions/checkout@v7"; }
+          {
+            uses = "./.github/actions/greet";
+            name = "Greet";
+            env.X = "1";
+            "if" = "always()";
+          }
+        ];
+      };
+    };
+  };
+
+  test-github-actions-steps-native-unknown-input-fails = {
+    expr =
+      (builtins.tryEval (
+        builtins.deepSeq (test-lib.eval-github-actions {
+          github-actions = {
+            defaultRunsOn = "ubuntu-latest";
+            stepBlocks.mode = "native";
+          };
+          stepBlocks.greet = greetBlock;
+          jobs.build.steps = [
+            {
+              block = "greet";
+              inputs.nope = "x";
+            }
+          ];
+        }) null
+      )).success;
+    expected = false;
+  };
+
+  test-github-actions-steps-native-cycle-fails = {
+    expr =
+      (builtins.tryEval (
+        builtins.deepSeq
+          (test-lib.evalConfig {
+            github-actions.stepBlocks.mode = "native";
+            stepBlocks = {
+              a.steps = _: [ { block = "b"; } ];
+              b.steps = _: [ { block = "a"; } ];
+            };
+            jobs.build.steps = [ { block = "a"; } ];
+          }).github-actions.actions
+          null
+      )).success;
+    expected = false;
+  };
+
   test-github-actions-steps-ordering = {
     expr = test-lib.eval-github-actions {
       github-actions.defaultRunsOn = "ubuntu-latest";
