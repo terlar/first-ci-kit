@@ -69,37 +69,36 @@ let
       forbidGithubActions ? false,
     }:
     let
-      fromParent =
-        parent: leaf:
-        leaf
-        // {
-          env = parent.env // leaf.env;
-          name =
-            if parent.name == null then
-              leaf.name
-            else if leaf.name == null then
-              parent.name
-            else
-              "${parent.name}: ${leaf.name}";
-        };
-
       # `stack` is the chain of block names being expanded, for cycle detection.
       recurse =
         stack: step:
         let
           checked = checkStep step;
-          name = checked.block;
         in
-        if name == null then
+        if checked.block == null then
           [ checked ]
         else
-          lib.throwIf (forbidGithubActions && checked.github-actions != null)
-            "step: github-actions overrides on a block step need native mode"
-            (
-              map (fromParent checked) (
-                lib.concatMap (recurse (stack ++ [ name ])) (blockSteps blocks stack checked)
-              )
-            );
+          lib.pipe checked [
+            (lib.throwIf (
+              forbidGithubActions && checked.github-actions != null
+            ) "step: github-actions overrides on a block step need native mode")
+            (blockSteps blocks stack)
+            (lib.concatMap (recurse (stack ++ [ checked.block ])))
+            (map (
+              leaf:
+              leaf
+              // {
+                env = checked.env // leaf.env;
+                name =
+                  if checked.name == null then
+                    leaf.name
+                  else if leaf.name == null then
+                    checked.name
+                  else
+                    "${checked.name}: ${leaf.name}";
+              }
+            ))
+          ];
     in
     recurse [ ];
 
