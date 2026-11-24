@@ -282,23 +282,31 @@ in
     expected = false;
   };
 
-  # Expanded: the block step's env flows onto every leaf, leaf env wins.
+  # Expanded: a block step's env flows onto every leaf (leaf env wins) and
+  # its name prefixes theirs, at every nesting level.
   test-github-actions-steps-expanded-nested-env = {
     expr = test-lib.eval-github-actions {
       github-actions.defaultRunsOn = "ubuntu-latest";
       stepBlocks = {
         greet = greetBlock;
         outer.steps = _: [
-          { block = "greet"; }
+          {
+            block = "greet";
+            name = "Inner";
+            env.Z = "2";
+          }
           {
             run = "b";
+            name = "B";
             env.X = "leaf";
           }
+          { github-actions.uses = "x/y@v1"; }
         ];
       };
       jobs.build.steps = [
         {
           block = "outer";
+          name = "Outer";
           env = {
             X = "block";
             Y = "1";
@@ -312,16 +320,27 @@ in
         steps = [
           { uses = "actions/checkout@v7"; }
           {
+            name = "Outer: Inner";
             run = "echo world";
             env = {
               X = "block";
               Y = "1";
+              Z = "2";
             };
           }
           {
+            name = "Outer: B";
             run = "b";
             env = {
               X = "leaf";
+              Y = "1";
+            };
+          }
+          {
+            name = "Outer";
+            uses = "x/y@v1";
+            env = {
+              X = "block";
               Y = "1";
             };
           }

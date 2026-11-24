@@ -59,7 +59,8 @@ let
     in
     builtins.deepSeq inputs (block.steps { inherit inputs; });
 
-  # step -> listOf step, expanding `block` recursively.
+  # step -> listOf step, expanding `block` recursively. A block step's env
+  # flows onto its leaves (leaf env wins) and its name prefixes theirs.
   instantiate =
     {
       blocks,
@@ -68,6 +69,20 @@ let
       forbidGithubActions ? false,
     }:
     let
+      fromParent =
+        parent: leaf:
+        leaf
+        // {
+          env = parent.env // leaf.env;
+          name =
+            if parent.name == null then
+              leaf.name
+            else if leaf.name == null then
+              parent.name
+            else
+              "${parent.name}: ${leaf.name}";
+        };
+
       # `stack` is the chain of block names being expanded, for cycle detection.
       recurse =
         stack: step:
@@ -80,7 +95,11 @@ let
         else
           lib.throwIf (forbidGithubActions && checked.github-actions != null)
             "step: github-actions overrides on a block step need native mode"
-            (lib.concatMap (recurse (stack ++ [ name ])) (blockSteps blocks stack checked));
+            (
+              map (fromParent checked) (
+                lib.concatMap (recurse (stack ++ [ name ])) (blockSteps blocks stack checked)
+              )
+            );
     in
     recurse [ ];
 
@@ -125,7 +144,7 @@ let
     if step.run != null then
       [ (renderStepAttrs { inherit (step) run; } step) ]
     else if step.github-actions != null then
-      [ step.github-actions ]
+      [ (renderStepAttrs { } step) ]
     else
       # Raw-only gitlab-ci step: dropped on GitHub Actions.
       [ ];
@@ -162,7 +181,7 @@ let
             ) checked)
           ]
         else
-          lib.concatMap (leaf: renderNonBlockStep (leaf // { env = checked.env // leaf.env; })) leaves;
+          lib.concatMap renderNonBlockStep leaves;
     in
     lib.concatMap renderStep;
 
