@@ -1,8 +1,6 @@
 { lib, ... }:
 
 let
-  inherit (lib) types;
-
   expandPipelineNeed =
     jobSets: need:
     if need.jobSet != null then
@@ -81,40 +79,7 @@ in
 
   documentsToYAML = lib.concatMapStringsSep "---\n" (x: (builtins.toJSON x) + "\n");
 
-  types = {
-    needsType = types.submoduleWith {
-      description = "Needs configuration";
-      modules = [
-        {
-          options = {
-            job = lib.mkOption {
-              type = types.nullOr types.str;
-              default = null;
-              description = "Name of the needed job.";
-            };
-
-            jobSet = lib.mkOption {
-              type = types.nullOr types.str;
-              default = null;
-              description = "Name of the needed job set.";
-            };
-
-            optional = lib.mkOption {
-              type = types.bool;
-              default = false;
-              description = "Whether need is optional.";
-            };
-
-            artifacts = lib.mkOption {
-              type = types.bool;
-              default = true;
-              description = "Whether artifacts from dependency are used.";
-            };
-          };
-        }
-      ];
-    };
-  };
+  types = import ./types.nix { inherit lib; };
 
   jobToNeed = job: {
     inherit job;
@@ -142,4 +107,5 @@ in
 
   gitlab-ci = import ./gitlab-ci.nix { inherit lib; };
   process-compose = import ./process-compose.nix { inherit lib; };
+  stepBlocks = import ./step-blocks.nix { inherit lib; };
 }

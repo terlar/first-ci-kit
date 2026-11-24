@@ -126,6 +126,22 @@ in
       '';
     };
 
+    stepBlocks = {
+      mode = lib.mkOption {
+        type = types.enum [
+          "expanded"
+          "native"
+        ];
+        default = "expanded";
+        description = ''
+          How block steps (`{ block = "<name>"; }`) are rendered.
+          `"expanded"` inlines the block's steps into the job script.
+          `"native"` is not supported yet.
+        '';
+        example = "expanded";
+      };
+    };
+
     fileDocuments = lib.mkOption {
       internal = true;
       type = types.listOf config.types.yamlType;

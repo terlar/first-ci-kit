@@ -58,6 +58,9 @@ let
       builtins.replaceStrings [ "\$${varName}" "\${${varName}}" ] [ replacement replacement ] acc
     ) s varNames;
 
+  nativeStepBlocksEnabled = rootConfig.github-actions.stepBlocks.mode == "native";
+  usesNativeStepBlocks = nativeStepBlocksEnabled && lib.any (step: step.block != null) config.steps;
+
   needs = lib.pipe config.needs [
     (builtins.filter (need: isEnabledJob need.job))
     (map (need: need // { job = resolveJobName need.job; }))
@@ -132,6 +135,16 @@ in
               })
             ])
           ]
+        ))
+        (lib.mkIf (config.steps != [ ]) (
+          lib.throwIf (usesNativeStepBlocks && !config.checkout.enable)
+            "job ${name}: native step blocks need checkout"
+            (
+              ci-lib.stepBlocks.toGithubSteps {
+                blocks = rootConfig.stepBlocks;
+                native = nativeStepBlocksEnabled;
+              } config.steps
+            )
         ))
         (lib.mkAfter (map (command: { run = command; }) config.commands))
       ];

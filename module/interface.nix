@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, ci-lib, ... }:
 
 let
   inherit (lib) types;
@@ -204,6 +204,24 @@ in
       example = lib.literalExpression ''
         {
           NIX_CACHE_URL = "s3://example-cache?region=eu-west-1";
+        }
+      '';
+    };
+
+    stepBlocks = lib.mkOption {
+      type = types.attrsOf ci-lib.types.stepBlockType;
+      default = { };
+      description = ''
+        Named, reusable groups of backend-neutral steps with declared inputs.
+        Used from job `steps` via `{ block = "<name>"; inputs = { ... }; }`.
+        Child pipelines inherit the parent's `stepBlocks` (overridable).
+      '';
+      example = lib.literalExpression ''
+        {
+          greet = {
+            inputs.who.default = "world";
+            steps = { inputs }: [ { run = "echo ''${inputs.who}"; } ];
+          };
         }
       '';
     };

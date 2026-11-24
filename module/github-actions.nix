@@ -1,9 +1,18 @@
-{ lib, config, ... }:
+{
+  lib,
+  config,
+  ci-lib,
+  ...
+}:
 
 let
   inherit (lib) types;
 
   enabledJobs = lib.filterAttrs (_: job: job.enable && job.github-actions.enable) config.jobs;
+
+  usedStepBlockNames = ci-lib.stepBlocks.usedBlocks { blocks = config.stepBlocks; } (
+    lib.concatMap (job: job.steps) (builtins.attrValues enabledJobs)
+  );
 
   resolveBranchKey = key: if key == "default" then config.github-actions.defaultBranch else key;
 
@@ -294,6 +303,24 @@ in
       };
     };
 
+    stepBlocks = {
+      mode = lib.mkOption {
+        type = types.enum [
+          "expanded"
+          "native"
+        ];
+        default = "expanded";
+        description = ''
+          How block steps (`{ block = "<name>"; }`) are rendered.
+          `"expanded"` inlines the block's steps into the job.
+          `"native"` renders a call to a generated composite action under
+          `./.github/actions/<name>`, requiring `checkout.enable` on jobs
+          that use a block.
+        '';
+        example = "native";
+      };
+    };
+
     file = lib.mkOption {
       internal = true;
       type = types.package;
@@ -302,6 +329,26 @@ in
         (builtins.toFile "workflow.yml")
       ];
       description = "Package of the workflow.yml";
+    };
+
+    actions = lib.mkOption {
+      internal = true;
+      type = types.attrsOf types.attrs;
+      default =
+        if config.github-actions.stepBlocks.mode == "native" then
+          lib.genAttrs usedStepBlockNames (ci-lib.stepBlocks.toGithubAction { blocks = config.stepBlocks; })
+        else
+          { };
+      description = "Generated composite action.yml attrs, keyed by block name.";
+    };
+
+    actionFiles = lib.mkOption {
+      internal = true;
+      type = types.attrsOf types.package;
+      default = lib.mapAttrs (
+        _: a: builtins.toFile "action.yml" (builtins.toJSON a)
+      ) config.github-actions.actions;
+      description = "Package per generated composite action.yml.";
     };
   };
 

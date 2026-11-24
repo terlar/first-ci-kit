@@ -22,6 +22,7 @@ in
               # "<templatesPath>/<name>/template.yml" so that pipelines used as
               # GitLab CI components require no explicit path configuration.
               gitlab-ci.templatePath = lib.mkDefault "${config.gitlab-ci.templatesPath}/${name}/template.yml";
+              stepBlocks = lib.mapAttrs (_: lib.mkDefault) topConfig.stepBlocks;
             }
           )
         ];

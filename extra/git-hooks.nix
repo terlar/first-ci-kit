@@ -19,7 +19,11 @@ let
       # Build a shell script that evaluates all pipelines in one nix build call
       # by referencing the bundle derivation, then copies each file to its destination.
       writePipelineGenerator =
-        { backend, pipelines }:
+        {
+          backend,
+          pipelines,
+          actions ? { },
+        }:
         pkgs.writeShellApplication {
           name = "generate-${backend}";
           runtimeInputs = [ pkgs.yq-go ];
@@ -29,6 +33,10 @@ let
                 mkdir -p "$(dirname "${outputPath}")"
                 yq --prettyPrint --output-format yaml "$bundle/${name}.yml" > "${outputPath}"
               '';
+              copyAction = name: outputPath: ''
+                mkdir -p "$(dirname "${outputPath}")"
+                yq --prettyPrint --output-format yaml "$bundle/actions/${name}/action.yml" > "${outputPath}"
+              '';
             in
             ''
               bundle="$(nix build --extra-experimental-features 'nix-command flakes' \
@@ -36,7 +44,8 @@ let
                 .#ci-pipelines-${backend}
               )"
             ''
-            + lib.concatStringsSep "\n" (lib.mapAttrsToList copyPipeline pipelines);
+            + lib.concatStringsSep "\n" (lib.mapAttrsToList copyPipeline pipelines)
+            + lib.concatStringsSep "\n" (lib.mapAttrsToList copyAction actions);
         };
     in
     {
@@ -56,6 +65,16 @@ let
                   {
                     default = ".github/workflows/ci.yaml";
                     nightly = ".github/workflows/nightly.yaml";
+                  }
+                '';
+              };
+              actions = lib.mkOption {
+                type = types.attrsOf types.str;
+                default = { };
+                description = "Action name to output path mapping.";
+                example = lib.literalExpression ''
+                  {
+                    greet = ".github/actions/greet/action.yml";
                   }
                 '';
               };
@@ -92,7 +111,7 @@ let
           description = "generate GitHub Actions workflow";
           package = writePipelineGenerator {
             backend = "github-actions";
-            inherit (config.hooks.first-ci-kit-gen-github-actions.settings) pipelines;
+            inherit (config.hooks.first-ci-kit-gen-github-actions.settings) pipelines actions;
           };
           entry = "${config.hooks.first-ci-kit-gen-github-actions.package}/bin/generate-github-actions";
           files = lib.mkDefault "\\.nix$";
@@ -153,6 +172,15 @@ in
         (lib.mapAttrs (
           name: _: lib.mkDefault ".github/workflows/${if name == "default" then "ci" else name}.yml"
         ))
+      ];
+
+      first-ci-kit-gen-github-actions.settings.actions = lib.pipe config.first-ci-kit.pipelines [
+        (lib.filterAttrs (_: pipeline: pipeline.github-actions.generate))
+        lib.attrValues
+        (lib.concatMap (p: [ p ] ++ lib.attrValues p.pipelines))
+        (map (p: p.github-actions.actions))
+        lib.mergeAttrsList
+        (lib.mapAttrs (n: _: lib.mkDefault ".github/actions/${n}/action.yml"))
       ];
 
       first-ci-kit-gen-gitlab-ci.settings.pipelines = lib.pipe config.first-ci-kit.pipelines [

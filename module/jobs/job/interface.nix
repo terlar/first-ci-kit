@@ -272,6 +272,23 @@ in
       example = lib.literalExpression ''[ "make build" "make test" ]'';
     };
 
+    steps = lib.mkOption {
+      type = types.listOf ci-lib.types.stepType;
+      default = [ ];
+      description = ''
+        Backend-neutral steps for this job. Ordered with `commands`
+        (`run` steps, at default priority, before `commands` at `mkAfter`).
+        A step is a shell `run` command, a `block` reference into the
+        pipeline's `stepBlocks`, or a raw `github-actions`/`gitlab-ci` step.
+      '';
+      example = lib.literalExpression ''
+        [
+          { run = "make build"; }
+          { block = "nix-cache"; inputs.key = "cargo"; }
+        ]
+      '';
+    };
+
     env = lib.mkOption {
       type = types.attrsOf types.str;
       default = { };

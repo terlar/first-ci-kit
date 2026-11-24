@@ -20,6 +20,32 @@
           name = "${name}.yml";
           path = getter value;
         }) config.first-ci-kit.pipelines;
+
+      # Top-level pipelines (with their children) that generate GitHub Actions.
+      githubActionsPipelines = lib.pipe config.first-ci-kit.pipelines [
+        (lib.filterAttrs (_: p: p.github-actions.generate))
+        lib.attrValues
+        (lib.concatMap (p: [ p ] ++ lib.attrValues p.pipelines))
+      ];
+
+      # Union of github-actions.actionFiles over every generated top-level
+      # pipeline and its children, keyed by action name. Files are
+      # content-addressed, so a differing path means differing content.
+      actionFiles = lib.pipe githubActionsPipelines [
+        (map (p: p.github-actions.actionFiles))
+        (lib.zipAttrsWith (
+          name: paths:
+          lib.throwIf (
+            lib.length (lib.unique paths) > 1
+          ) "first-ci-kit: action ${name} differs between pipelines" (lib.head paths)
+        ))
+        (lib.mapAttrsToList (
+          name: path: {
+            name = "actions/${name}/action.yml";
+            inherit path;
+          }
+        ))
+      ];
     in
     {
       packages.gha-path-changes = pkgs.callPackage ./packages/gha-path-changes { };
@@ -42,7 +68,7 @@
         # Used by git hooks to avoid N separate nix build invocations (one eval each).
         {
           ci-pipelines-github-actions = pkgs.linkFarm "ci-pipelines-github-actions" (
-            allPipelineFiles (p: p.github-actions.file)
+            allPipelineFiles (p: p.github-actions.file) ++ actionFiles
           );
           ci-pipelines-gitlab-ci = pkgs.linkFarm "ci-pipelines-gitlab-ci" (
             allPipelineFiles (p: p.gitlab-ci.file)
