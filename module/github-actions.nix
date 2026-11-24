@@ -248,6 +248,22 @@ in
           }
         '';
       };
+
+      mode = lib.mkOption {
+        type = types.enum [
+          "expanded"
+          "native"
+        ];
+        default = "expanded";
+        description = ''
+          How the change detection step of the auto-generated `changes` job is
+          rendered. `"expanded"` inlines the detection script into the
+          workflow. `"native"` calls a generated composite action under
+          `./.github/actions/first-ci-kit-changes` instead, so the script is
+          written once rather than into every workflow.
+        '';
+        example = "native";
+      };
     };
 
     forceRunAll = {
@@ -334,12 +350,8 @@ in
     actions = lib.mkOption {
       internal = true;
       type = types.attrsOf types.attrs;
-      default =
-        if config.github-actions.stepBlocks.mode == "native" then
-          lib.genAttrs usedStepBlockNames (ci-lib.stepBlocks.toGithubAction { blocks = config.stepBlocks; })
-        else
-          { };
-      description = "Generated composite action.yml attrs, keyed by block name.";
+      default = { };
+      description = "Generated composite action.yml attrs, keyed by action name.";
     };
 
     actionFiles = lib.mkOption {
@@ -353,6 +365,11 @@ in
   };
 
   config = lib.mkMerge [
+    (lib.mkIf (config.github-actions.stepBlocks.mode == "native") {
+      github-actions.actions = lib.genAttrs usedStepBlockNames (
+        ci-lib.stepBlocks.toGithubAction { blocks = config.stepBlocks; }
+      );
+    })
     (lib.mkIf config.github-actions.changes.enable {
       github-actions.settings.on.workflow_call.inputs = {
         changes = {
