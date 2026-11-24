@@ -104,12 +104,11 @@ let
       (lib.sort lib.lessThan)
     ];
 
-  # Render a single run step's attrs, used both for top-level run steps and
-  # for the leaves left after expanding a block step.
-  renderRunStep =
-    step:
+  # Base attrs plus a step's optional name/env and github-actions override.
+  renderStepAttrs =
+    base: step:
     lib.mergeAttrsList [
-      { inherit (step) run; }
+      base
       (lib.optionalAttrs (step.name != null) { inherit (step) name; })
       (lib.optionalAttrs (step.env != { }) { inherit (step) env; })
       (lib.optionalAttrs (step.github-actions != null) step.github-actions)
@@ -119,7 +118,7 @@ let
   renderNonBlockStep =
     step:
     if step.run != null then
-      [ (renderRunStep step) ]
+      [ (renderStepAttrs { inherit (step) run; } step) ]
     else if step.github-actions != null then
       [ step.github-actions ]
     else
@@ -134,35 +133,30 @@ let
         step:
         let
           checked = checkStep step;
+          # Validate the block/inputs (unknown block, unknown input names);
+          # defaults are not emitted, only the caller-supplied inputs are.
+          validated = resolveInputs {
+            inherit blocks;
+            name = checked.block;
+            inherit (checked) inputs;
+          };
+          leaves = instantiate {
+            inherit blocks;
+            forbidGithubActions = true;
+          } checked;
         in
         if checked.block == null then
           renderNonBlockStep checked
         else if native then
-          let
-            # Validate the block/inputs (unknown block, unknown input names);
-            # defaults are not emitted, only the caller-supplied inputs are.
-            validated = resolveInputs {
-              inherit blocks;
-              name = checked.block;
-              inherit (checked) inputs;
-            };
-          in
           builtins.deepSeq validated [
-            (lib.mergeAttrsList [
-              { uses = "./.github/actions/${checked.block}"; }
-              (lib.optionalAttrs (checked.inputs != { }) { "with" = checked.inputs; })
-              (lib.optionalAttrs (checked.name != null) { inherit (checked) name; })
-              (lib.optionalAttrs (checked.env != { }) { inherit (checked) env; })
-              (lib.optionalAttrs (checked.github-actions != null) checked.github-actions)
-            ])
+            (renderStepAttrs (
+              {
+                uses = "./.github/actions/${checked.block}";
+              }
+              // lib.optionalAttrs (checked.inputs != { }) { "with" = checked.inputs; }
+            ) checked)
           ]
         else
-          let
-            leaves = instantiate {
-              inherit blocks;
-              forbidGithubActions = true;
-            } checked;
-          in
           lib.concatMap (leaf: renderNonBlockStep (leaf // { env = checked.env // leaf.env; })) leaves;
     in
     lib.concatMap renderStep;
