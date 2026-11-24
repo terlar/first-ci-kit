@@ -130,6 +130,7 @@
         gha-path-changes = pkgs.callPackage ./checks/gha-path-changes.nix { inherit config; };
         gha-job-summary = pkgs.callPackage ./checks/gha-job-summary.nix { };
         git-hooks = pkgs.callPackage ./checks/git-hooks.nix { inherit lib config; };
+        step-block-actions = import ./checks/step-block-actions.nix { inherit lib pkgs inputs; };
       };
 
       packages.module-docs = pkgs.callPackage ../packages/module-docs {
