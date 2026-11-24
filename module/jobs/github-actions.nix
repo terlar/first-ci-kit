@@ -67,8 +67,7 @@ let
   summaryJobNeeds =
     (lib.optional (changes != [ ]) "changes") ++ (map transformJobName (lib.attrNames enabledJobs));
 
-  effectiveSummaryRunsOn =
-    if summaryJobCfg.runsOn != null then summaryJobCfg.runsOn else config.github-actions.defaultRunsOn;
+  effectiveSummaryRunsOn = lib.defaultTo config.github-actions.defaultRunsOn summaryJobCfg.runsOn;
 in
 {
   github-actions.settings = lib.mkMerge [

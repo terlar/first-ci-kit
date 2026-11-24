@@ -5,7 +5,7 @@ let
     args:
     let
       jobName = "${args.stack}_${args.component}_${args.deployment}";
-      envTag = "env:${if args.settings.environment != null then args.settings.environment else "null"}";
+      envTag = "env:${lib.defaultTo "null" args.settings.environment}";
       imageTag = "image:${args.settings.image or "none"}";
       extraPathTags = map (p: "path:${p}") args.settings.extraPaths;
     in
