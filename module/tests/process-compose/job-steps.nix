@@ -36,12 +36,16 @@
           env.X = "1";
         }
         { github-actions.uses = "x/y@v1"; }
-        { gitlab-ci = [ "gl" ]; }
+        {
+          gitlab-ci = [ "gl" ];
+          name = "GitLab only";
+          env.X = "1";
+        }
       ];
     };
     expected = {
       processes.job1 = {
-        command = "echo pc\n( export X=\"1\"\necho $X\n)\ngl";
+        command = "echo pc\n( export X=\"1\"\necho $X\n)";
       };
     };
   };

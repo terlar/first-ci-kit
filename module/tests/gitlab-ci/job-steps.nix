@@ -87,7 +87,10 @@ in
               "y"
             ];
           }
-          { github-actions.uses = "a/b@v1"; }
+          {
+            github-actions.uses = "a/b@v1";
+            name = "GitHub only";
+          }
         ];
       };
     };

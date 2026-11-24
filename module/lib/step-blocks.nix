@@ -167,18 +167,20 @@ let
     lib.concatMap renderStep;
 
   # Render a step's own run/raw lines, ignoring env/name (applied by the caller).
+  # `raw` names the backend field whose raw lines this backend runs, if any.
   renderShellLeaf =
-    step:
+    raw: step:
     if step.run != null then
       [ step.run ]
-    else if step.gitlab-ci != null then
-      step.gitlab-ci
+    else if raw != null && step.${raw} != null then
+      step.${raw}
     else
-      # Raw-only github-actions step: dropped on neutral shell backends.
+      # Raw step for another backend: dropped.
       [ ];
 
   # Wrap a step's rendered body lines with its own env (one collapsed shell
-  # group) and then its name (start/end lines around the result).
+  # group) and then its name (start/end lines around the result). A step
+  # with no lines (dropped raw step) renders nothing.
   wrapShellStep =
     { nameLines }:
     {
@@ -200,16 +202,22 @@ let
           lines;
       nl = nameLines id step.name;
     in
-    if step.name != null then
+    if lines == [ ] then
+      [ ]
+    else if step.name != null then
       (lib.optional (nl.start != "") nl.start) ++ withEnv ++ (lib.optional (nl.end != "") nl.end)
     else
       withEnv;
 
-  # { blocks, nameLines } -> listOf step -> listOf str
+  # { blocks, nameLines, raw } -> listOf step -> listOf str
   # Does not reuse `instantiate`: it needs a per-step path (not just the
   # flattened leaves) to derive stable section ids for nested blocks.
   toShellLines =
-    { blocks, nameLines }:
+    {
+      blocks,
+      nameLines,
+      raw ? null,
+    }:
     let
       wrap = wrapShellStep { inherit nameLines; };
 
@@ -226,7 +234,7 @@ let
           step = checked;
           lines =
             if checked.block == null then
-              renderShellLeaf checked
+              renderShellLeaf raw checked
             else
               renderSteps (stack ++ [ checked.block ]) path (blockSteps blocks stack checked);
           id = "step_${lib.concatStringsSep "_" (map toString path)}";

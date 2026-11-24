@@ -32,6 +32,7 @@ let
         ci-lib.stepBlocks.toShellLines {
           blocks = rootConfig.stepBlocks;
           inherit nameLines;
+          raw = "gitlab-ci";
         } config.steps
       );
 
