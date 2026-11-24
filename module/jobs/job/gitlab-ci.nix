@@ -26,13 +26,14 @@ let
   };
 
   stepLines =
-    if rootConfig.gitlab-ci.stepBlocks.mode == "native" then
-      throw ''gitlab-ci.stepBlocks.mode = "native" is not supported yet; use "expanded"''
-    else
-      ci-lib.stepBlocks.toShellLines {
-        blocks = rootConfig.stepBlocks;
-        inherit nameLines;
-      } config.steps;
+    lib.throwIf (rootConfig.gitlab-ci.stepBlocks.mode == "native")
+      ''gitlab-ci.stepBlocks.mode = "native" is not supported yet; use "expanded"''
+      (
+        ci-lib.stepBlocks.toShellLines {
+          blocks = rootConfig.stepBlocks;
+          inherit nameLines;
+        } config.steps
+      );
 
   scriptLines = stepLines ++ config.commands;
 in

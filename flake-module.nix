@@ -36,10 +36,9 @@
           let
             path = pipeline.github-actions.actionFiles.${name};
           in
-          if acc' ? ${name} && acc'.${name} != path then
-            throw "first-ci-kit: action ${name} differs between pipelines"
-          else
-            acc' // { ${name} = path; }
+          lib.throwIf (
+            acc' ? ${name} && acc'.${name} != path
+          ) "first-ci-kit: action ${name} differs between pipelines" (acc' // { ${name} = path; })
         ) acc (lib.attrNames pipeline.github-actions.actionFiles)
       ) { } githubActionsPipelines;
       actionFiles = lib.mapAttrsToList (name: path: {

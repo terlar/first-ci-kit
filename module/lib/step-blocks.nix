@@ -8,21 +8,24 @@ let
       hasBlock = step.block != null;
       hasRaw = step.github-actions != null || step.gitlab-ci != null;
     in
-    if (hasRun && hasBlock) || !(hasRun || hasBlock || hasRaw) then
-      throw "step: set exactly one of run or block, or only backend-specific fields"
-    else if step.inputs != { } && !hasBlock then
-      throw "step: inputs are only valid with block"
-    else
-      step;
+    lib.pipe step [
+      (lib.throwIf (hasRun && hasBlock) "step: run and block are mutually exclusive")
+      (lib.throwIfNot (hasRun || hasBlock || hasRaw) "step: set run, block, or a backend-specific field")
+      (lib.throwIf (step.inputs != { } && !hasBlock) "step: inputs are only valid with block")
+    ];
 
   # Block `name`, entered from the chain of blocks in `stack`; throws on a
   # cycle or an unknown name.
   enterBlock =
     blocks: stack: name:
-    if builtins.elem name stack then
-      throw "stepBlocks: cycle ${lib.concatStringsSep " -> " (stack ++ [ name ])}"
-    else
-      blocks.${name} or (throw "stepBlocks.${name}: unknown block");
+    let
+      chain = lib.concatStringsSep " -> " (stack ++ [ name ]);
+    in
+    lib.pipe blocks [
+      (lib.throwIf (lib.elem name stack) "stepBlocks: cycle ${chain}")
+      (lib.throwIfNot (blocks ? ${name}) "stepBlocks.${name}: unknown block")
+      (lib.getAttr name)
+    ];
 
   resolveInputs =
     {
@@ -34,9 +37,7 @@ let
       block = blocks.${name} or (throw "stepBlocks.${name}: unknown block");
       unknown = lib.filter (i: !(block.inputs ? ${i})) (builtins.attrNames inputs);
     in
-    if unknown != [ ] then
-      throw "stepBlocks.${name}: unknown input ${builtins.head unknown}"
-    else
+    lib.throwIf (unknown != [ ]) "stepBlocks.${name}: unknown input ${builtins.head unknown}" (
       lib.mapAttrs (
         n: spec:
         inputs.${n} or (
@@ -45,7 +46,8 @@ let
           else
             throw "stepBlocks.${name}: missing required input ${n}"
         )
-      ) block.inputs;
+      ) block.inputs
+    );
 
   # step -> listOf step, expanding `block` recursively.
   instantiate =

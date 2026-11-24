@@ -59,20 +59,7 @@ let
     ) s varNames;
 
   nativeStepBlocksEnabled = rootConfig.github-actions.stepBlocks.mode == "native";
-
-  usedStepBlocks = ci-lib.stepBlocks.usedBlocks { blocks = rootConfig.stepBlocks; } config.steps;
-
-  renderedSteps =
-    let
-      rendered = ci-lib.stepBlocks.toGithubSteps {
-        blocks = rootConfig.stepBlocks;
-        native = nativeStepBlocksEnabled;
-      } config.steps;
-    in
-    if nativeStepBlocksEnabled && usedStepBlocks != [ ] && !config.checkout.enable then
-      throw "job ${name}: native step blocks need checkout"
-    else
-      rendered;
+  usesNativeStepBlocks = nativeStepBlocksEnabled && lib.any (step: step.block != null) config.steps;
 
   needs = lib.pipe config.needs [
     (builtins.filter (need: isEnabledJob need.job))
@@ -149,7 +136,16 @@ in
             ])
           ]
         ))
-        (lib.mkIf (config.steps != [ ]) renderedSteps)
+        (lib.mkIf (config.steps != [ ]) (
+          lib.throwIf (usesNativeStepBlocks && !config.checkout.enable)
+            "job ${name}: native step blocks need checkout"
+            (
+              ci-lib.stepBlocks.toGithubSteps {
+                blocks = rootConfig.stepBlocks;
+                native = nativeStepBlocksEnabled;
+              } config.steps
+            )
+        ))
         (lib.mkAfter (map (command: { run = command; }) config.commands))
       ];
     }
