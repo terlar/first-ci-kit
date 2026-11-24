@@ -46,6 +46,19 @@ let
       (lib.mapAttrs (n: spec: inputs.${n} or spec.default))
     ];
 
+  # Steps of block step `checked` entered from `stack`, with validated inputs.
+  blockSteps =
+    blocks: stack: checked:
+    let
+      block = enterBlock blocks stack checked.block;
+      inputs = resolveInputs {
+        inherit blocks;
+        name = checked.block;
+        inherit (checked) inputs;
+      };
+    in
+    builtins.deepSeq inputs (block.steps { inherit inputs; });
+
   # step -> listOf step, expanding `block` recursively.
   instantiate =
     {
@@ -64,18 +77,10 @@ let
         in
         if name == null then
           [ checked ]
-        else if forbidGithubActions && checked.github-actions != null then
-          throw "step: github-actions overrides on a block step need native mode"
         else
-          let
-            block = enterBlock blocks stack name;
-            resolvedInputs = resolveInputs {
-              inherit blocks name;
-              inherit (checked) inputs;
-            };
-            nestedSteps = builtins.deepSeq resolvedInputs (block.steps { inputs = resolvedInputs; });
-          in
-          lib.concatMap (recurse (stack ++ [ name ])) nestedSteps;
+          lib.throwIf (forbidGithubActions && checked.github-actions != null)
+            "step: github-actions overrides on a block step need native mode"
+            (lib.concatMap (recurse (stack ++ [ name ])) (blockSteps blocks stack checked));
     in
     recurse [ ];
 
@@ -193,11 +198,9 @@ let
           [ "( export ${exports}\n${lib.concatStringsSep "\n" lines}\n)" ]
         else
           lines;
+      nl = nameLines id step.name;
     in
     if step.name != null then
-      let
-        nl = nameLines id step.name;
-      in
       (lib.optional (nl.start != "") nl.start) ++ withEnv ++ (lib.optional (nl.end != "") nl.end)
     else
       withEnv;
@@ -210,38 +213,26 @@ let
     let
       wrap = wrapShellStep { inherit nameLines; };
 
+      renderSteps =
+        stack: path: steps:
+        lib.concatLists (lib.imap0 (i: renderStep stack (path ++ [ i ])) steps);
+
       renderStep =
         stack: path: step:
         let
           checked = checkStep step;
-          id = "step_${lib.concatStringsSep "_" (map toString path)}";
         in
-        if checked.block == null then
-          wrap {
-            step = checked;
-            lines = renderShellLeaf checked;
-            inherit id;
-          }
-        else
-          let
-            name = checked.block;
-            block = enterBlock blocks stack name;
-            resolvedInputs = resolveInputs {
-              inherit blocks name;
-              inherit (checked) inputs;
-            };
-            nestedSteps = builtins.deepSeq resolvedInputs (block.steps { inputs = resolvedInputs; });
-            bodyLines = lib.concatLists (
-              lib.imap0 (j: s: renderStep (stack ++ [ name ]) (path ++ [ j ]) s) nestedSteps
-            );
-          in
-          wrap {
-            step = checked;
-            lines = bodyLines;
-            inherit id;
-          };
+        wrap {
+          step = checked;
+          lines =
+            if checked.block == null then
+              renderShellLeaf checked
+            else
+              renderSteps (stack ++ [ checked.block ]) path (blockSteps blocks stack checked);
+          id = "step_${lib.concatStringsSep "_" (map toString path)}";
+        };
     in
-    steps: lib.concatLists (lib.imap0 (i: step: renderStep [ ] [ i ] step) steps);
+    renderSteps [ ] [ ];
 
   # { blocks } -> name -> attrs, a composite action.yml for one block.
   toGithubAction =
@@ -251,7 +242,7 @@ let
       block = enterBlock blocks [ ] name;
       placeholderInputs = lib.mapAttrs (n: _: "\${{ inputs.${n} }}") block.inputs;
       # Composite action `run` steps require an explicit shell.
-      steps = map (step: if step ? run && !(step ? shell) then step // { shell = "bash"; } else step) (
+      steps = map (step: lib.optionalAttrs (step ? run) { shell = "bash"; } // step) (
         toGithubSteps {
           inherit blocks;
           native = true;

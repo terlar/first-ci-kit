@@ -110,4 +110,24 @@ in
         ? greet;
     expected = false;
   };
+
+  test-github-actions-step-block-actions-explicit-shell = {
+    expr =
+      (test-lib.evalConfig {
+        github-actions.stepBlocks.mode = "native";
+        stepBlocks.pwsh.steps = _: [
+          {
+            run = "Write-Host hi";
+            github-actions.shell = "pwsh";
+          }
+        ];
+        jobs.build.steps = [ { block = "pwsh"; } ];
+      }).github-actions.actions.pwsh.runs.steps;
+    expected = [
+      {
+        run = "Write-Host hi";
+        shell = "pwsh";
+      }
+    ];
+  };
 }

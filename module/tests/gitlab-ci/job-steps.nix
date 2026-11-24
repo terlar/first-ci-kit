@@ -128,6 +128,36 @@ in
     expected = false;
   };
 
+  # Section ids follow each step's path through nested blocks.
+  test-gitlab-ci-steps-nested-block-section-ids = {
+    expr = test-lib.eval-gitlab-ci {
+      stepBlocks.inner.steps = _: [
+        {
+          run = "a";
+          name = "A";
+        }
+      ];
+      stepBlocks.outer.steps = _: [
+        { run = "x"; }
+        {
+          block = "inner";
+          name = "Inner";
+        }
+      ];
+      jobs.build.steps = [ { block = "outer"; } ];
+    };
+    expected = {
+      build.script = [
+        "x"
+        "echo -e \"\\e[0Ksection_start:$(date +%s):step_0_1[collapsed=true]\\r\\e[0KInner\""
+        "echo -e \"\\e[0Ksection_start:$(date +%s):step_0_1_0[collapsed=true]\\r\\e[0KA\""
+        "a"
+        "echo -e \"\\e[0Ksection_end:$(date +%s):step_0_1_0\\r\\e[0K\""
+        "echo -e \"\\e[0Ksection_end:$(date +%s):step_0_1\\r\\e[0K\""
+      ];
+    };
+  };
+
   test-gitlab-ci-steps-byte-identical = {
     expr = test-lib.eval-gitlab-ci {
       jobs.build = {
