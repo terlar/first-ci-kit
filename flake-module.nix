@@ -29,18 +29,12 @@
       # Union of github-actions.actionFiles over every generated top-level
       # pipeline and its children, keyed by action name. Files are
       # content-addressed, so a differing path means differing content.
-      actionFilesUnion = lib.foldl' (
-        acc: pipeline:
-        lib.foldl' (
-          acc': name:
-          let
-            path = pipeline.github-actions.actionFiles.${name};
-          in
-          lib.throwIf (
-            acc' ? ${name} && acc'.${name} != path
-          ) "first-ci-kit: action ${name} differs between pipelines" (acc' // { ${name} = path; })
-        ) acc (lib.attrNames pipeline.github-actions.actionFiles)
-      ) { } githubActionsPipelines;
+      actionFilesUnion = lib.zipAttrsWith (
+        name: paths:
+        lib.throwIf (
+          lib.length (lib.unique paths) > 1
+        ) "first-ci-kit: action ${name} differs between pipelines" (lib.head paths)
+      ) (map (p: p.github-actions.actionFiles) githubActionsPipelines);
       actionFiles = lib.mapAttrsToList (name: path: {
         name = "actions/${name}/action.yml";
         inherit path;

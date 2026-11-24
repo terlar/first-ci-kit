@@ -34,20 +34,17 @@ let
       inputs,
     }:
     let
-      block = blocks.${name} or (throw "stepBlocks.${name}: unknown block");
-      unknown = lib.filter (i: !(block.inputs ? ${i})) (builtins.attrNames inputs);
+      block = enterBlock blocks [ ] name;
+      names = lib.attrNames block.inputs;
+      given = lib.attrNames inputs;
+      unknown = lib.subtractLists names given;
+      missing = lib.subtractLists given (lib.filter (n: block.inputs.${n}.default == null) names);
     in
-    lib.throwIf (unknown != [ ]) "stepBlocks.${name}: unknown input ${builtins.head unknown}" (
-      lib.mapAttrs (
-        n: spec:
-        inputs.${n} or (
-          if spec.default != null then
-            spec.default
-          else
-            throw "stepBlocks.${name}: missing required input ${n}"
-        )
-      ) block.inputs
-    );
+    lib.pipe block.inputs [
+      (lib.throwIf (unknown != [ ]) "stepBlocks.${name}: unknown input ${toString unknown}")
+      (lib.throwIf (missing != [ ]) "stepBlocks.${name}: missing required input ${toString missing}")
+      (lib.mapAttrs (n: spec: inputs.${n} or spec.default))
+    ];
 
   # step -> listOf step, expanding `block` recursively.
   instantiate =
@@ -203,7 +200,7 @@ let
           let
             # `$VAR` is intentionally left to expand, like GitHub's `${{ }}`.
             exports = lib.concatStringsSep " " (
-              map (k: ''${k}="${lib.escape [ "\\" "\"" "`" ] step.env.${k}}"'') (builtins.attrNames step.env)
+              lib.mapAttrsToList (k: v: ''${k}="${lib.escape [ "\\" "\"" "`" ] v}"'') step.env
             );
           in
           [ "( export ${exports}\n${lib.concatStringsSep "\n" lines}\n)" ]
@@ -264,7 +261,7 @@ let
     { blocks }:
     name:
     let
-      block = blocks.${name} or (throw "stepBlocks.${name}: unknown block");
+      block = enterBlock blocks [ ] name;
       placeholderInputs = lib.mapAttrs (n: _: "\${{ inputs.${n} }}") block.inputs;
       # Composite action `run` steps require an explicit shell.
       steps = map (step: if step ? run && !(step ? shell) then step // { shell = "bash"; } else step) (

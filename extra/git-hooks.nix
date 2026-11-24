@@ -178,9 +178,9 @@ in
         (lib.filterAttrs (_: pipeline: pipeline.github-actions.generate))
         lib.attrValues
         (lib.concatMap (p: [ p ] ++ lib.attrValues p.pipelines))
-        (lib.concatMap (p: lib.attrNames p.github-actions.actions))
-        lib.unique
-        (names: lib.genAttrs names (n: lib.mkDefault ".github/actions/${n}/action.yml"))
+        (map (p: p.github-actions.actions))
+        lib.mergeAttrsList
+        (lib.mapAttrs (n: _: lib.mkDefault ".github/actions/${n}/action.yml"))
       ];
 
       first-ci-kit-gen-gitlab-ci.settings.pipelines = lib.pipe config.first-ci-kit.pipelines [
