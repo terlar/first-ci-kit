@@ -33,6 +33,8 @@ let
         blocks = rootConfig.stepBlocks;
         inherit nameLines;
       } config.steps;
+
+  scriptLines = stepLines ++ config.commands;
 in
 {
   config.gitlab-ci = {
@@ -74,7 +76,7 @@ in
       ))
     ];
 
-    script = lib.mkIf (stepLines != [ ] || config.commands != [ ]) (stepLines ++ config.commands);
+    script = lib.mkIf (scriptLines != [ ]) scriptLines;
 
     # A GitLab pipeline is bound to a single ref for every job, so there is
     # no native per-job override. Re-point the already-cloned working copy

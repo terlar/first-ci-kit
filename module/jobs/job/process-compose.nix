@@ -24,13 +24,15 @@ let
     blocks = rootConfig.stepBlocks;
     inherit nameLines;
   } config.steps;
+
+  commandLines = stepLines ++ config.commands;
 in
 {
   imports = [ ./interface.nix ];
 
   config.process-compose = lib.mkMerge [
-    (lib.mkIf (stepLines != [ ] || config.commands != [ ]) {
-      command = lib.concatStringsSep "\n" (stepLines ++ config.commands);
+    (lib.mkIf (commandLines != [ ]) {
+      command = lib.concatStringsSep "\n" commandLines;
     })
 
     (lib.mkIf (depends_on != { }) {
